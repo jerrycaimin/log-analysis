@@ -1,0 +1,157 @@
+============================================================================================
+==================Start to check issue 1: node expel issue due to tcp configuration==============
+Clue: [The mmfs log contains the expel information.]
+Following related log found:
+[Line:5978]C:\Task\2017-4-1 ESS\Logs\32204,999,744\32204.999.744.all.0620150723\gpfs.snap.gssio3-bkp-hs_0620151446.out\gssio3-bkp-hs_0620151446\mmfs.logs.gssio3-bkp-hs
+	Thu Mar  2 04:54:05.558 2017: [N] Close connection to 10.137.239.80 NVMBD1S12BKPMED41.prd.rjil.ril.com <c0n6> (Connection failed because destination is still processing previous node failure)
+	Thu Mar  2 04:54:05.559 2017: [N] Retry connection to 10.137.239.80 NVMBD1S12BKPMED41.prd.rjil.ril.com <c0n6>
+	Thu Mar  2 04:54:05.560 2017: [N] Close connection to 10.137.239.80 NVMBD1S12BKPMED41.prd.rjil.ril.com <c0n6> (Connection failed because destination is still processing previous node failure)
+	Thu Mar  2 04:54:06.569 2017: [E] Killing connection from 10.137.239.80 because the group is not ready for it to rejoin, err 46
+	Thu Mar  2 04:54:07.580 2017: [E] Killing connection from 10.137.239.80 because the group is not ready for it to rejoin, err 46
+------->Thu Mar  2 04:55:20.533 2017: [N] Request sent to 10.137.239.99 (gssio1-bkp-hs) to expel 10.137.239.80 (NVMBD1S12BKPMED41.prd.rjil.ril.com) from cluster RJIL_BACKUP_ESS.gssio1-bkp-hs
+	Thu Mar  2 04:55:27.433 2017: [N] Node 10.137.239.99 (gssio1-bkp-hs) lease renewal is overdue. Pinging to check if it is alive
+	Thu Mar  2 04:55:30.770 2017: [D] Leave protocol detail info: LA: 22 LFLG: 4968535 LFLG delta: 22
+	Thu Mar  2 04:55:30.814 2017: [I] Recovering nodes: 10.137.239.80
+	Thu Mar  2 04:55:30.851 2017: [I] Recovered 1 nodes for file system ESS_BKPDT.
+	Thu Mar  2 04:55:37.722 2017: [I] Accepted and connected to 10.137.239.80 NVMBD1S12BKPMED41.prd.rjil.ril.com <c0n6>
+[Line:10255]C:\Task\2017-4-1 ESS\Logs\32204,999,744\32204.999.744.all.0620150723\gpfs.snap.gssio3-bkp-hs_0620151446.out\gssio3-bkp-hs_0620151446\mmfs.logs.gssio3-bkp-hs
+	Mon Mar 13 04:26:10.429 2017: [N] Close connection to 10.137.239.116 NVMBD1S12BKPMED26.prd.rjil.ril.com <c0n14> (Connection failed because destination is still processing previous node failure)
+	Mon Mar 13 04:26:10.430 2017: [N] Retry connection to 10.137.239.116 NVMBD1S12BKPMED26.prd.rjil.ril.com <c0n14>
+	Mon Mar 13 04:26:10.431 2017: [N] Close connection to 10.137.239.116 NVMBD1S12BKPMED26.prd.rjil.ril.com <c0n14> (Connection failed because destination is still processing previous node failure)
+	Mon Mar 13 04:26:11.455 2017: [E] Killing connection from 10.137.239.116 because the group is not ready for it to rejoin, err 46
+	Mon Mar 13 04:26:12.473 2017: [E] Killing connection from 10.137.239.116 because the group is not ready for it to rejoin, err 46
+------->Mon Mar 13 04:27:21.554 2017: [N] Request sent to 10.137.239.99 (gssio1-bkp-hs) to expel 10.137.239.116 (NVMBD1S12BKPMED26.prd.rjil.ril.com) from cluster RJIL_BACKUP_ESS.gssio1-bkp-hs
+	Mon Mar 13 04:27:31.802 2017: [D] Leave protocol detail info: LA: 27 LFLG: 5917251 LFLG delta: 27
+	Mon Mar 13 04:27:31.835 2017: [I] Recovering nodes: 10.137.239.116
+	Mon Mar 13 04:27:32.218 2017: [I] Recovered 1 nodes for file system ESS_BKPDT.
+	Mon Mar 13 04:27:38.817 2017: [I] Accepted and connected to 10.137.239.116 NVMBD1S12BKPMED26.prd.rjil.ril.com <c0n14>
+	Mon Mar 13 04:29:28.769 2017: [N] Connecting to 10.137.239.122 NVMBD1S12BKPMED32.prd.rjil.ril.com <c0n26>
+[Line:24948]C:\Task\2017-4-1 ESS\Logs\32204,999,744\32204.999.744.all.0620150723\gpfs.snap.gssio3-bkp-hs_0620151446.out\gssio3-bkp-hs_0620151446\mmfs.logs.gssio3-bkp-hs
+	Sat Apr 15 02:48:07.141 2017: [N] Close connection to 10.137.239.76 NVMBD1S12BKPMED37.prd.rjil.ril.com <c0n27> (Connection failed because destination is still processing previous node failure)
+	Sat Apr 15 02:48:07.142 2017: [N] Retry connection to 10.137.239.76 NVMBD1S12BKPMED37.prd.rjil.ril.com <c0n27>
+	Sat Apr 15 02:48:07.143 2017: [N] Close connection to 10.137.239.76 NVMBD1S12BKPMED37.prd.rjil.ril.com <c0n27> (Connection failed because destination is still processing previous node failure)
+	Sat Apr 15 02:48:08.125 2017: [E] Killing connection from 10.137.239.76 because the group is not ready for it to rejoin, err 46
+	Sat Apr 15 02:48:09.141 2017: [E] Killing connection from 10.137.239.76 because the group is not ready for it to rejoin, err 46
+------->Sat Apr 15 02:49:23.532 2017: [N] Request sent to 10.137.239.99 (gssio1-bkp-hs) to expel 10.137.239.76 (NVMBD1S12BKPMED37.prd.rjil.ril.com) from cluster RJIL_BACKUP_ESS.gssio1-bkp-hs
+	Sat Apr 15 02:49:32.845 2017: [N] Node 10.137.239.99 (gssio1-bkp-hs) lease renewal is overdue. Pinging to check if it is alive
+	Sat Apr 15 02:49:33.784 2017: [D] Leave protocol detail info: LA: 17 LFLG: 8762583 LFLG delta: 17
+	Sat Apr 15 02:49:33.868 2017: [I] Recovering nodes: 10.137.239.76
+	Sat Apr 15 02:49:33.933 2017: [I] Recovered 1 nodes for file system ESS_BKPDT.
+	Sat Apr 15 02:49:42.001 2017: [I] Accepted and connected to 10.137.239.76 NVMBD1S12BKPMED37.prd.rjil.ril.com <c0n27>
+[Line:25982]C:\Task\2017-4-1 ESS\Logs\32204,999,744\32204.999.744.all.0620150723\gpfs.snap.gssio3-bkp-hs_0620151446.out\gssio3-bkp-hs_0620151446\mmfs.logs.gssio3-bkp-hs
+	Tue Apr 18 11:43:36.207 2017: [D] Leave protocol detail info: LA: 0 LFLG: 9053842 LFLG delta: 0
+	Tue Apr 18 11:43:36.236 2017: [I] Recovering nodes: 10.137.239.120
+	Tue Apr 18 11:43:36.296 2017: [I] Recovered 1 nodes for file system ESS_BKPDT.
+	Tue Apr 18 11:45:54.537 2017: [E] Timed out waiting for a reply from node 10.137.239.112 NVMBD1S12BKPMED22.prd.rjil.ril.com
+	Tue Apr 18 11:45:54.538 2017: [N] Expel data is not collected on any node. It was collected recently at 2017-04-18_11:43:26+0530.
+------->Tue Apr 18 11:45:54.539 2017: [N] Request sent to 10.137.239.99 (gssio1-bkp-hs) to expel 10.137.239.112 (NVMBD1S12BKPMED22.prd.rjil.ril.com) from cluster RJIL_BACKUP_ESS.gssio1-bkp-hs
+	Tue Apr 18 11:46:08.847 2017: [D] Leave protocol detail info: LA: 27 LFLG: 9053968 LFLG delta: 27
+	Tue Apr 18 11:46:08.888 2017: [I] Recovering nodes: 10.137.239.112
+	Tue Apr 18 11:46:08.948 2017: [I] Recovered 1 nodes for file system ESS_BKPDT.
+	Tue Apr 18 11:46:29.574 2017: [I] Accepted and connected to 10.137.239.112 NVMBD1S12BKPMED22.prd.rjil.ril.com <c0n7>
+	Tue Apr 18 11:48:06.349 2017: [N] sdrServ: Received expel data collection request from 10.137.239.99
+[Line:29761]C:\Task\2017-4-1 ESS\Logs\32204,999,744\32204.999.744.all.0620150723\gpfs.snap.gssio3-bkp-hs_0620151446.out\gssio3-bkp-hs_0620151446\mmfs.logs.gssio3-bkp-hs
+	Wed Apr 19 10:35:59.751 2017: [N] Close connection to 10.137.239.122 NVMBD1S12BKPMED32.prd.rjil.ril.com <c0n26>
+	Wed Apr 19 10:36:00.800 2017: [I] Accepted and connected to 10.137.239.122 NVMBD1S12BKPMED32.prd.rjil.ril.com <c0n26>
+	Wed Apr 19 10:38:11.533 2017: [E] Timed out waiting for a reply from node 10.137.239.112 NVMBD1S12BKPMED22.prd.rjil.ril.com
+	Wed Apr 19 10:38:11.534 2017: Sending request to collect expel debug data to NVMBD1S12BKPMED22.prd.rjil.ril.com localNode
+	Wed Apr 19 10:38:11.535 2017: [I] Calling user exit script gpfsSendRequestToNodes: event sendRequestToNodes, Async command /usr/lpp/mmfs/bin/mmcommon.
+------->Wed Apr 19 10:38:21.783 2017: [N] Request sent to 10.137.239.99 (gssio1-bkp-hs) to expel 10.137.239.112 (NVMBD1S12BKPMED22.prd.rjil.ril.com) from cluster RJIL_BACKUP_ESS.gssio1-bkp-hs
+	Wed Apr 19 10:38:31.950 2017: [N] Node 10.137.239.99 (gssio1-bkp-hs) lease renewal is overdue. Pinging to check if it is alive
+	Wed Apr 19 10:38:36.617 2017: [D] Leave protocol detail info: LA: 106 LFLG: 9136237 LFLG delta: 106
+	Wed Apr 19 10:38:36.679 2017: [I] Recovering nodes: 10.137.239.112
+	Wed Apr 19 10:38:36.739 2017: [I] Recovered 1 nodes for file system ESS_BKPDT.
+	Wed Apr 19 10:39:06.269 2017: [I] Accepted and connected to 10.137.239.112 NVMBD1S12BKPMED22.prd.rjil.ril.com <c0n7>
+[Line:30003]C:\Task\2017-4-1 ESS\Logs\32204,999,744\32204.999.744.all.0620150723\gpfs.snap.gssio3-bkp-hs_0620151446.out\gssio3-bkp-hs_0620151446\mmfs.logs.gssio3-bkp-hs
+	Wed Apr 19 12:08:44.144 2017: [D] Leave protocol detail info: LA: 10 LFLG: 9141740 LFLG delta: 10
+	Wed Apr 19 12:08:44.196 2017: [I] Recovering nodes: 10.137.239.80 10.137.239.112
+	Wed Apr 19 12:08:44.256 2017: [I] Recovered 2 nodes for file system ESS_BKPDT.
+	Wed Apr 19 12:08:47.513 2017: [I] Accepted and connected to 10.137.239.112 NVMBD1S12BKPMED22.prd.rjil.ril.com <c0n7>
+	Wed Apr 19 12:08:49.765 2017: [I] Accepted and connected to 10.137.239.113 NVMBD1S12BKPMED41.prd.rjil.ril.com <c0n6>
+------->Wed Apr 19 12:09:41.759 2017: [N] Request sent to 10.137.239.99 (gssio1-bkp-hs) to expel 10.137.239.113 (NVMBD1S12BKPMED23.prd.rjil.ril.com) from cluster RJIL_BACKUP_ESS.gssio1-bkp-hs
+	Wed Apr 19 12:09:51.997 2017: [D] Leave protocol detail info: LA: 24 LFLG: 9141794 LFLG delta: 24
+	Wed Apr 19 12:09:52.045 2017: [I] Recovering nodes: 10.137.239.113
+	Wed Apr 19 12:09:52.104 2017: [I] Recovered 1 nodes for file system ESS_BKPDT.
+	Wed Apr 19 12:09:58.577 2017: [I] Accepted and connected to 10.137.239.113 NVMBD1S12BKPMED23.prd.rjil.ril.com <c0n5>
+	Wed Apr 19 12:12:04.407 2017: [D] Leave protocol detail info: LA: 29 LFLG: 9141921 LFLG delta: 29
+[Line:30060]C:\Task\2017-4-1 ESS\Logs\32204,999,744\32204.999.744.all.0620150723\gpfs.snap.gssio3-bkp-hs_0620151446.out\gssio3-bkp-hs_0620151446\mmfs.logs.gssio3-bkp-hs
+	Wed Apr 19 14:09:42.667 2017: [N] Close connection to 10.137.239.80 NVMBD1S12BKPMED41.prd.rjil.ril.com <c0n6> (Connection failed due to bad destination addr)
+	Wed Apr 19 14:09:50.857 2017: [D] Leave protocol detail info: LA: 0 LFLG: 9149017 LFLG delta: 0
+	Wed Apr 19 14:09:50.889 2017: [I] Recovering nodes: 10.137.239.113
+	Wed Apr 19 14:09:50.949 2017: [I] Recovered 1 nodes for file system ESS_BKPDT.
+	Wed Apr 19 14:09:57.984 2017: [I] Accepted and connected to 10.137.239.80 NVMBD1S12BKPMED23.prd.rjil.ril.com <c0n5>
+------->Wed Apr 19 14:10:56.596 2017: [N] Request sent to 10.137.239.99 (gssio1-bkp-hs) to expel 10.137.239.80 (NVMBD1S12BKPMED41.prd.rjil.ril.com) from cluster RJIL_BACKUP_ESS.gssio1-bkp-hs
+	Wed Apr 19 14:11:03.303 2017: [N] Node 10.137.239.99 (gssio1-bkp-hs) lease renewal is overdue. Pinging to check if it is alive
+	Wed Apr 19 14:11:06.836 2017: [D] Leave protocol detail info: LA: 16 LFLG: 9149077 LFLG delta: 16
+	Wed Apr 19 14:11:06.867 2017: [I] Recovering nodes: 10.137.239.80
+	Wed Apr 19 14:11:06.927 2017: [I] Recovered 1 nodes for file system ESS_BKPDT.
+	Wed Apr 19 14:11:13.523 2017: [I] Accepted and connected to 10.137.239.80 NVMBD1S12BKPMED41.prd.rjil.ril.com <c0n6>
+-----------Finish Clue:[The mmfs log contains the expel information.]----------
+
+
+Clue: [The mmfs log contains the Unmounting file systems information.]
+Following related log found:
+[Line:2285]C:\Task\2017-4-1 ESS\Logs\32204,999,744\32204.999.744.all.0620150723\gpfs.snap.gssio3-bkp-hs_0620151446.out\gssio3-bkp-hs_0620151446\mmfs.logs.gssio3-bkp-hs
+	Thu Feb 16 13:52:40.545 2017: [N] Close connection to 10.137.239.98 ems-bkp-hs <c0n4> (Connection failed because destination is still processing previous node failure)
+	Thu Feb 16 13:52:41.430 2017: [I] Lease overdue with unsuccessful replies to lease requests. Probing cluster RJIL_BACKUP_ESS.gssio1-bkp-hs
+	Thu Feb 16 13:52:41.544 2017: [N] Retry connection to 10.137.239.98 ems-bkp-hs <c0n4>
+	Thu Feb 16 13:52:41.545 2017: [N] Close connection to 10.137.239.98 ems-bkp-hs <c0n4> (Connection failed because destination is still processing previous node failure)
+	Thu Feb 16 13:52:43.546 2017: [E] Unable to contact enough other quorum nodes during cluster probe.
+------->Thu Feb 16 13:52:43.547 2017: [E] Lost membership in cluster RJIL_BACKUP_ESS.gssio1-bkp-hs. Unmounting file systems.
+	Thu Feb 16 13:52:43.548 2017: [E] File system manager takeover failed.
+	Thu Feb 16 13:52:43.549 2017: File system unmounted due to loss of cluster membership.
+	Thu Feb 16 13:52:43.550 2017: [X] File System ESS_BKPDT unmounted by the system with return code 212 reason code 668
+	Thu Feb 16 13:52:43.551 2017: The current file system manager failed and no new manager will be appointed.
+	Thu Feb 16 13:52:43.566 2017: [I] Calling user exit script GUI_MOUNT_ACTION: event unmount, Async command /usr/lpp/mmfs/lib/gui_enablement/mountActionCallback.
+[Line:45212]C:\Task\2017-4-1 ESS\Logs\32204,999,744\32204.999.744.all.0620150723\gpfs.snap.gssio3-bkp-hs_0620151446.out\gssio3-bkp-hs_0620151446\mmfs.logs.gssio3-bkp-hs
+	Fri May 19 19:52:46.222 2017: [N] VERBS RDMA closed connection to 10.137.239.99 (gssio1-bkp-hs) on mlx5_1 port 1 fabnum 2 index 3
+	Fri May 19 19:52:46.237 2017: [N] Restarting mmsdrserv
+	Fri May 19 19:52:47.920 2017: [N] mmfsd is shutting down.
+	Fri May 19 19:52:47.921 2017: [N] Reason for shutdown: Normal shutdown
+	Fri May 19 19:52:48 IST 2017: mmcommon mmfsdown invoked.  Subsystem: mmfs Status: down
+------->Fri May 19 19:52:48 IST 2017: mmcommon: Unmounting file systems ...
+	Fri May 19 19:52:56 IST 2017: mmremote: Starting the mmsdrserv daemon ...
+	Fri May 19 19:52:56 IST 2017: mmremote: /bin/kill -s TERM 67810 ...
+	Fri May 19 19:52:59 IST 2017: mmremote: /bin/kill -s KILL 67810 ...
+	Fri May 19 19:52:59 IST 2017: mmremote: Unloading GPFS kernel modules ...
+	Fri May 19 19:52:59 IST 2017: mmremote: Completing GPFS shutdown ... 
+-----------Finish Clue:[The mmfs log contains the Unmounting file systems information.]----------
+
+
+The issue [node expel issue due to tcp configuration] is highly happened.
+Please refer the advice:
+This problem may happen due to tpc configuration error. You may need do the following tcp optimized actions to fix the problem.
+1) Check the io node tcp settings in etc/sysctl.conf, make sure the following is set:
+	net.ipv4.tcp_low_latency = 1
+	net.ipv4.tcp_sack = 1
+	net.ipv4.tcp_timestamps = 1
+	net.core.rmem_default = 16777216
+	net.core.rmem_max = 16777216
+	net.ipv4.tcp_rmem = 4096    87380    16777216
+	net.ipv4.tcp_wmem = 4096    65536    16777216
+
+   Check the etc/sysconfig/network-scripts/ifcfg-bond-bond0, make sure the following tag is set properly:
+	BONDING_OPTS="mode=802.3ad miimon=100 xmit_hash_policy=layer3+4"
+	MTU=9000
+						
+2) Check the client tcp settings, make sure the following is set:
+	net.ipv4.tcp_low_latency = 1
+	net.ipv4.tcp_sack = 1
+	net.ipv4.tcp_timestamps = 1
+	net.core.rmem_max = 8388608
+	net.ipv4.tcp_rmem = 4096    87380    8388608
+	net.ipv4.tcp_wmem = 4096    65536    8388608
+
+   Check client node: etc/sysconfig/network-scripts/ifcfg-bond-bond0, make sure the following tag is set properly:
+	BONDING_OPTS="mode=4 xmit_hash_policy=layer3+4 miimon=100"
+	MTU=9000
+==================Finish to check issue 1: node expel issue due to tcp configuration==============
+============================================================================================
+
+
+============================================================================================
+==================Start to check issue 2: 22node expel issue due to tpc configuration==============
+==================Finish to check issue 2: 22node expel issue due to tpc configuration==============
+============================================================================================
+
+

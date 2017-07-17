@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <warning-hittimes>1</warning-hittimes>
+    <define-times>2</define-times>
+    <refine-log>
+    	<item>
+            <filepath>./mmfs.logs*</filepath>
+            <capture-exps>
+            	<exp>\[E\]</exp>
+            </capture-exps>
+            <datetime-convertor>%a %b %d %X.%f %Y</datetime-convertor>
+            <datetime-exp>(.*): \[</datetime-exp>
+        </item>
+        <item></item>
+    </refine-log>
+    <issue name="node expel issue due to tcp configuration">
+		<!-- item>
+            <filepath>./mmfs.logs*</filepath>
+            <exps>
+				<exp>.</exp>
+			</exps>
+			<print_match_position>False</print_match_position>
+			<desc>Test no print match postion</desc>
+        </item-->
+        <item>
+            <filepath>./mmfs.logs*</filepath>
+            <exp>to expel</exp>
+			<desc>The mmfs log contains the expel information.</desc>
+			<log_range>-5,5</log_range>
+        </item>
+		<item>
+            <filepath>./mmfs.logs*</filepath>
+            <exp>Unmounting file systems</exp>
+			<desc>The mmfs log contains the Unmounting file systems information.</desc>
+			<log_range>-5,5</log_range>
+        </item>	
+        <item>
+            <filepath>./internaldumps*/extra*</filepath>
+            <exp>Waiting \d+\.\d+ sec</exp>
+			<desc>Too many waiting threads..</desc>
+        </item>
+        <item>
+            <filepath>./internaldumps*/extra*</filepath>
+            <exp>120000000</exp>
+			<desc>RTO 120000000 issue</desc>
+			<log_range>-5,20</log_range>
+        </item>
+        <advice>
+This problem may happen due to tpc configuration error. You may need do the following tcp optimized actions to fix the problem.
+1) Check the io node tcp settings in etc/sysctl.conf, make sure the following is set:
+	net.ipv4.tcp_low_latency = 1
+	net.ipv4.tcp_sack = 1
+	net.ipv4.tcp_timestamps = 1
+	net.core.rmem_default = 16777216
+	net.core.rmem_max = 16777216
+	net.ipv4.tcp_rmem = 4096    87380    16777216
+	net.ipv4.tcp_wmem = 4096    65536    16777216
+
+   Check the etc/sysconfig/network-scripts/ifcfg-bond-bond0, make sure the following tag is set properly:
+	BONDING_OPTS="mode=802.3ad miimon=100 xmit_hash_policy=layer3+4"
+	MTU=9000
+						
+2) Check the client tcp settings, make sure the following is set:
+	net.ipv4.tcp_low_latency = 1
+	net.ipv4.tcp_sack = 1
+	net.ipv4.tcp_timestamps = 1
+	net.core.rmem_max = 8388608
+	net.ipv4.tcp_rmem = 4096    87380    8388608
+	net.ipv4.tcp_wmem = 4096    65536    8388608
+
+   Check client node: etc/sysconfig/network-scripts/ifcfg-bond-bond0, make sure the following tag is set properly:
+	BONDING_OPTS="mode=4 xmit_hash_policy=layer3+4 miimon=100"
+	MTU=9000
+        </advice>
+    </issue>
+	<issue name="22node expel issue due to tpc configuration">
+	</issue>
+</root>

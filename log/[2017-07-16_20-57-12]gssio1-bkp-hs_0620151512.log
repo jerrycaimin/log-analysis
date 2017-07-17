@@ -1,0 +1,109 @@
+============================================================================================
+==================Start to check issue 1: node expel issue due to tcp configuration==============
+Clue: [The mmfs log contains the expel information.]
+Following related log found:
+[Line:9816]C:\Task\2017-4-1 ESS\Logs\32204,999,744\32204.999.744.all.0620150723\gpfs.snap.gssio1-bkp-hs_0620151512.out\gssio1-bkp-hs_0620151512\mmfs.logs.gssio1-bkp-hs
+	Fri Jun 16 11:53:26.009 2017: [I] Recovered 1 nodes for file system ESS_BKPDT.
+	Fri Jun 16 11:54:03.557 2017: [I] Accepted and connected to 10.137.239.112 NVMBD1S12BKPMED22.prd.rjil.ril.com <c0n5>
+	Fri Jun 16 12:42:45.575 2017: [E] Timed out waiting for a reply from node 10.137.239.112 NVMBD1S12BKPMED22.prd.rjil.ril.com
+	Fri Jun 16 12:42:45.576 2017: Sending request to collect expel debug data to NVMBD1S12BKPMED22.prd.rjil.ril.com localNode
+	Fri Jun 16 12:42:45.577 2017: [I] Calling user exit script gpfsSendRequestToNodes: event sendRequestToNodes, Async command /usr/lpp/mmfs/bin/mmcommon.
+------->Fri Jun 16 12:42:55.836 2017: [N] Request sent to 10.137.239.106 (gssio3-bkp-hs) to expel 10.137.239.112 (NVMBD1S12BKPMED22.prd.rjil.ril.com) from cluster RJIL_BACKUP_ESS.gssio1-bkp-hs
+	Fri Jun 16 12:43:03.010 2017: [N] Node 10.137.239.106 (gssio3-bkp-hs) lease renewal is overdue. Pinging to check if it is alive
+	Fri Jun 16 12:43:10.721 2017: [D] Leave protocol detail info: LA: 29 LFLG: 2392608 LFLG delta: 29
+	Fri Jun 16 12:43:10.894 2017: [I] Recovering nodes: 10.137.239.112
+	Fri Jun 16 12:43:12.600 2017: [I] Recovered 1 nodes for file system ESS_BKPDT.
+	Fri Jun 16 12:43:37.075 2017: [I] Accepted and connected to 10.137.239.112 NVMBD1S12BKPMED22.prd.rjil.ril.com <c0n5>
+[Line:9833]C:\Task\2017-4-1 ESS\Logs\32204,999,744\32204.999.744.all.0620150723\gpfs.snap.gssio1-bkp-hs_0620151512.out\gssio1-bkp-hs_0620151512\mmfs.logs.gssio1-bkp-hs
+	Fri Jun 16 13:16:25.144 2017: [I] Recovering nodes: 10.137.239.112
+	Fri Jun 16 13:16:25.221 2017: [I] Recovered 1 nodes for file system ESS_BKPDT.
+	Fri Jun 16 13:17:03.529 2017: [I] Accepted and connected to 10.137.239.112 NVMBD1S12BKPMED22.prd.rjil.ril.com <c0n5>
+	Fri Jun 16 13:38:01.584 2017: [E] Timed out waiting for a reply from node 10.137.239.112 NVMBD1S12BKPMED22.prd.rjil.ril.com
+	Fri Jun 16 13:38:01.585 2017: [N] Expel data is not collected on any node. It was collected recently at 2017-06-16_12:42:45+0530.
+------->Fri Jun 16 13:38:01.586 2017: [N] Request sent to 10.137.239.106 (gssio3-bkp-hs) to expel 10.137.239.112 (NVMBD1S12BKPMED22.prd.rjil.ril.com) from cluster RJIL_BACKUP_ESS.gssio1-bkp-hs
+	Fri Jun 16 13:38:01.901 2017: [N] sdrServ: Received expel data collection request from 10.137.239.106
+	Fri Jun 16 13:38:01.902 2017: [N] Debug data has not been collected. It was collected recently at 2017-06-16_12:42:45+0530.
+	Fri Jun 16 13:38:11.153 2017: [N] Node 10.137.239.106 (gssio3-bkp-hs) lease renewal is overdue. Pinging to check if it is alive
+	Fri Jun 16 13:38:16.689 2017: [D] Leave protocol detail info: LA: 16 LFLG: 2395927 LFLG delta: 16
+	Fri Jun 16 13:38:16.844 2017: [I] Recovering nodes: 10.137.239.112
+-----------Finish Clue:[The mmfs log contains the expel information.]----------
+
+
+Clue: [The mmfs log contains the Unmounting file systems information.]
+Following related log found:
+[Line:412]C:\Task\2017-4-1 ESS\Logs\32204,999,744\32204.999.744.all.0620150723\gpfs.snap.gssio1-bkp-hs_0620151512.out\gssio1-bkp-hs_0620151512\mmfs.logs.gssio1-bkp-hs
+	Thu Feb 16 13:45:46.506 2017: [I] The quota client for file system ESS_BKPDT has terminated.
+	Thu Feb 16 13:45:46.821 2017: [N] Restarting mmsdrserv
+	Thu Feb 16 13:45:48.493 2017: [N] mmfsd is shutting down.
+	Thu Feb 16 13:45:48.494 2017: [N] Reason for shutdown: Normal shutdown
+	Thu Feb 16 13:45:48 IST 2017: mmcommon mmfsdown invoked.  Subsystem: mmfs Status: down
+------->Thu Feb 16 13:45:48 IST 2017: mmcommon: Unmounting file systems ...
+	Thu Feb 16 13:45:53 IST 2017: mmremote: Starting the mmsdrserv daemon ...
+	Thu Feb 16 13:45:53 IST 2017: mmremote: /bin/kill -s TERM 130801 ...
+	runmmfs: Interrupt received.
+	Thu Feb 16 13:45:56 IST 2017: mmremote: Unloading GPFS kernel modules ...
+	Thu Feb 16 13:45:57 IST 2017: mmremote: Completing GPFS shutdown ... 
+[Line:9478]C:\Task\2017-4-1 ESS\Logs\32204,999,744\32204.999.744.all.0620150723\gpfs.snap.gssio1-bkp-hs_0620151512.out\gssio1-bkp-hs_0620151512\mmfs.logs.gssio1-bkp-hs
+	Fri May 19 19:52:38.929 2017: [N] VERBS RDMA closed connection to 10.137.239.106 (gssio3-bkp-hs) on mlx5_0 port 1 fabnum 1 index 2
+	Fri May 19 19:52:38.932 2017: [N] VERBS RDMA closed connection to 10.137.239.106 (gssio3-bkp-hs) on mlx5_1 port 1 fabnum 2 index 3
+	Fri May 19 19:52:38.934 2017: [I] Cluster Manager connection broke. Probing cluster RJIL_BACKUP_ESS.gssio1-bkp-hs
+	Fri May 19 19:52:38.973 2017: [N] Disk lease period expired in cluster RJIL_BACKUP_ESS.gssio1-bkp-hs. Attempting to reacquire lease.
+	Fri May 19 19:52:39.435 2017: [E] Unable to contact enough other quorum nodes during cluster probe.
+------->Fri May 19 19:52:39.436 2017: [E] Lost membership in cluster RJIL_BACKUP_ESS.gssio1-bkp-hs. Unmounting file systems.
+	Fri May 19 19:52:39.756 2017: [N] VERBS RDMA closed connection to 10.137.239.105 (gssio2-bkp-hs) on mlx5_0 port 1 fabnum 1 index 0
+	Fri May 19 19:52:39.758 2017: [N] VERBS RDMA closed connection to 10.137.239.105 (gssio2-bkp-hs) on mlx5_1 port 1 fabnum 2 index 1
+	Fri May 19 19:52:39.792 2017: [N] VERBS RDMA closed connection to 10.137.239.107 (gssio4-bkp-hs) on mlx5_0 port 1 fabnum 1 index 4
+	Fri May 19 19:52:39.793 2017: [N] VERBS RDMA closed connection to 10.137.239.107 (gssio4-bkp-hs) on mlx5_1 port 1 fabnum 2 index 5
+	Fri May 19 19:52:39.818 2017: [N] Restarting mmsdrserv
+[Line:9487]C:\Task\2017-4-1 ESS\Logs\32204,999,744\32204.999.744.all.0620150723\gpfs.snap.gssio1-bkp-hs_0620151512.out\gssio1-bkp-hs_0620151512\mmfs.logs.gssio1-bkp-hs
+	Fri May 19 19:52:39.793 2017: [N] VERBS RDMA closed connection to 10.137.239.107 (gssio4-bkp-hs) on mlx5_1 port 1 fabnum 2 index 5
+	Fri May 19 19:52:39.818 2017: [N] Restarting mmsdrserv
+	Fri May 19 19:52:41.493 2017: [N] mmfsd is shutting down.
+	Fri May 19 19:52:41.494 2017: [N] Reason for shutdown: Normal shutdown
+	Fri May 19 19:52:41 IST 2017: mmcommon mmfsdown invoked.  Subsystem: mmfs Status: down
+------->Fri May 19 19:52:41 IST 2017: mmcommon: Unmounting file systems ...
+	Fri May 19 19:52:49 IST 2017: mmremote: Starting the mmsdrserv daemon ...
+	Fri May 19 19:52:49 IST 2017: mmremote: /bin/kill -s TERM 34664 ...
+	Fri May 19 19:52:52 IST 2017: mmremote: /bin/kill -s KILL 34664 ...
+	Fri May 19 19:52:52 IST 2017: mmremote: Unloading GPFS kernel modules ...
+	Fri May 19 19:52:53 IST 2017: mmremote: Completing GPFS shutdown ... 
+-----------Finish Clue:[The mmfs log contains the Unmounting file systems information.]----------
+
+
+The issue [node expel issue due to tcp configuration] is highly happened.
+Please refer the advice:
+This problem may happen due to tpc configuration error. You may need do the following tcp optimized actions to fix the problem.
+1) Check the io node tcp settings in etc/sysctl.conf, make sure the following is set:
+	net.ipv4.tcp_low_latency = 1
+	net.ipv4.tcp_sack = 1
+	net.ipv4.tcp_timestamps = 1
+	net.core.rmem_default = 16777216
+	net.core.rmem_max = 16777216
+	net.ipv4.tcp_rmem = 4096    87380    16777216
+	net.ipv4.tcp_wmem = 4096    65536    16777216
+
+   Check the etc/sysconfig/network-scripts/ifcfg-bond-bond0, make sure the following tag is set properly:
+	BONDING_OPTS="mode=802.3ad miimon=100 xmit_hash_policy=layer3+4"
+	MTU=9000
+						
+2) Check the client tcp settings, make sure the following is set:
+	net.ipv4.tcp_low_latency = 1
+	net.ipv4.tcp_sack = 1
+	net.ipv4.tcp_timestamps = 1
+	net.core.rmem_max = 8388608
+	net.ipv4.tcp_rmem = 4096    87380    8388608
+	net.ipv4.tcp_wmem = 4096    65536    8388608
+
+   Check client node: etc/sysconfig/network-scripts/ifcfg-bond-bond0, make sure the following tag is set properly:
+	BONDING_OPTS="mode=4 xmit_hash_policy=layer3+4 miimon=100"
+	MTU=9000
+==================Finish to check issue 1: node expel issue due to tcp configuration==============
+============================================================================================
+
+
+============================================================================================
+==================Start to check issue 2: 22node expel issue due to tpc configuration==============
+==================Finish to check issue 2: 22node expel issue due to tpc configuration==============
+============================================================================================
+
+
