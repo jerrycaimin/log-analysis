@@ -30,6 +30,15 @@ def analyze_log(config_file, target_path=None, output_file=None):
 
     _parse_issue(target_path, issues, warning_hittimes=warning_hittimes, define_times=define_times, output_file=output_file)
 
+def get_basename(full_path):
+    if not full_path:
+        return ""
+    
+    if full_path.endswith("/") or full_path.endswith("\\"):
+        full_path = full_path[:-1]
+
+    return os.path.basename(full_path)
+
 # analyze the log files according to the rules
 def refine_log(config_file, target_folders=None, output_file=None):
     output_file = "./log/Log-Refined [" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "].csv"
@@ -44,7 +53,7 @@ def refine_log(config_file, target_folders=None, output_file=None):
         refine_logs = [refine_logs]
         
     for target_folder in target_folders: 
-        node_name = os.path.basename(target_folder)
+        node_name = get_basename(target_folder)
         if os.path.exists(target_folder) == False:
             continue
 
@@ -251,7 +260,7 @@ if __name__ == "__main__":
     
     for target_folder in target_folders: 
         if os.path.exists(target_folder):
-            basename = os.path.basename(target_folder)
+            basename = get_basename(target_folder)
             output_file = "./log/[" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "]" + basename + ".log"
             # analyze log by each defined task
             analyze_log(config_path, target_folder,output_file)
