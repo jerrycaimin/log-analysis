@@ -2,6 +2,14 @@
 <root>
     <warning-hittimes>1</warning-hittimes>
     <define-times>2</define-times>
+    <timeslot>
+    	<period-days-before>7</period-days-before>
+    	<date-patterns>
+    		<datetime-convertor>%a %b %d %X.%f %Y</datetime-convertor>
+            <datetime-exp>(.*): \[</datetime-exp>
+    	</date-patterns>
+    </timeslot>
+    
     <refine-log>
     	<item>
             <filepath>./mmfs.logs*</filepath>
@@ -35,12 +43,18 @@
 			<log_range>-5,5</log_range>
         </item>	
         <item>
-            <filepath>./internaldumps*/extra*</filepath>
+        	<filepaths>
+	            <filepath>./internaldumps*/extra*</filepath>
+	            <filepath>./internaldumps*/extra*/extra*</filepath>
+            </filepaths>
             <exp>Waiting \d+\.\d+ sec</exp>
 			<desc>Too many waiting threads..</desc>
         </item>
         <item>
-            <filepath>./internaldumps*/extra*</filepath>
+            <filepaths>
+	            <filepath>./internaldumps*/extra*</filepath>
+	            <filepath>./internaldumps*/extra*/extra*</filepath>
+            </filepaths>
             <exp>120000000</exp>
 			<desc>RTO 120000000 issue</desc>
 			<log_range>-5,20</log_range>
@@ -73,6 +87,6 @@ This problem may happen due to tpc configuration error. You may need do the foll
 	MTU=9000
         </advice>
     </issue>
-	<issue name="22node expel issue due to tpc configuration">
+	<issue name="issue2, just testing">
 	</issue>
 </root>

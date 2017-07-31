@@ -89,7 +89,7 @@ def _write_refine_log(filepath, rule, datetime_exp, datetime_convertor, node_nam
         for path in matching_paths:
             #import pdb;pdb.set_trace()
             if os.path.isdir(path):
-                print("WARNING: Directory not supported: %s", path)
+                print("WARNING: Directory not supported:" + path)
             else:
                 lines = open(path, "rb").readlines()
                 i = 0
@@ -139,7 +139,13 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
         items = issue.get("item", None)
         if items is not None:
             for item in items:
-                filepath = item["filepath"]
+                filepath = item.get("filepath")
+                if not filepath:
+                    filepath = item.get("filepaths")
+                    if not filepath:
+                        continue
+                    filepath = filepath.get("filepath")
+                    
                 rule = item.get("exp","")
                 # if no exp defined, get all exp from exps tag.
                 if not rule:
@@ -152,7 +158,7 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
                 print_match_position = False if item.get("print_match_position","").lower()=="false" else True
                 #import pdb;pdb.set_trace()          
                 log_range = item.get("log_range","0,0")
-                if _regex_rule(os.path.join(target_path, filepath), rule, output_file, desc,log_range,print_match_position):
+                if _regex_rule(target_path, filepath, rule, output_file, desc,log_range,print_match_position):
                     counter += 1
 
         if define_times is not None:
@@ -168,13 +174,18 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
         _write_log(output_file, "\n")
 
 
-def _regex_rule(filepath, rule, output_file, desc,log_range="0,0",print_match_position=True):
+def _regex_rule(target_path, filepath, rule, output_file, desc,log_range="0,0",print_match_position=True):
     if type(rule) == list:
         reg_rules = [re.compile(each_rule, re.DOTALL) for each_rule in rule]
     else:
         reg_rules = [re.compile(rule, re.DOTALL)]
     
-    matching_paths = glob.glob(filepath)
+    matching_paths = []
+    if type(filepath) == list:
+        for eachfile in filepath:
+            matching_paths.extend(glob.glob(os.path.join(target_folder, eachfile)))
+    else:
+        matching_paths = glob.glob(os.path.join(target_folder, filepath))
 
     #import pdb;pdb.set_trace()
     Is_found = False
@@ -191,7 +202,7 @@ def _regex_rule(filepath, rule, output_file, desc,log_range="0,0",print_match_po
         for path in matching_paths:
             #import pdb;pdb.set_trace()
             if os.path.isdir(path):
-                print("WARNING: Directory not supported: %s", path)
+                print("Only file marched that supported, directory skipped: %s" % path)
             else:
                 count = 0
                 lines = open(path, "rb").readlines()
