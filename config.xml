@@ -15,6 +15,7 @@
             <filepath>./mmfs.logs*</filepath>
             <capture-exps>
             	<exp>\[E\]</exp>
+            	<exp>Error</exp>
             </capture-exps>
             <datetime-convertor>%a %b %d %X.%f %Y</datetime-convertor>
             <datetime-exp>(.*): \[</datetime-exp>
