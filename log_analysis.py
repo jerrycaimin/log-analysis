@@ -85,20 +85,22 @@ def _write_refine_log(filepath, rule, datetime_exp, datetime_convertor, node_nam
 
     #import pdb;pdb.set_trace()
     
-    for reg_rule in reg_rules:
-        for path in matching_paths:
-            #import pdb;pdb.set_trace()
-            if os.path.isdir(path):
-                print("WARNING: Directory not supported:" + path)
-            else:
-                lines = open(path, "rb").readlines()
-                i = 0
-                log_filename = os.path.basename(path)
-                while i < len(lines):
-                    line = lines[i]
+    for path in matching_paths:
+        #import pdb;pdb.set_trace()
+        if os.path.isdir(path):
+            print("WARNING: Directory not supported:" + path)
+        else:
+            lines = open(path, "rb").readlines()
+            i = 0
+            log_filename = os.path.basename(path)
+            
+            while i < len(lines):
+                line = lines[i]                
+                for reg_rule in reg_rules:
                     match = reg_rule.findall(line)
                     #import pdb;pdb.set_trace()
                     if match is not None and len(match) > 0:
+                        matched_time=""
                         match_datetime = datetime_pattern.match(line)
                         if match_datetime:
                             try:
@@ -108,8 +110,10 @@ def _write_refine_log(filepath, rule, datetime_exp, datetime_convertor, node_nam
                                 matched_time = ""
                         
                         writer.writerow([matched_time, log_filename, node_name, line])
-                    i = i + 1
-                continue
+                        break                
+                
+                i = i + 1
+            continue
 
 def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, output_file=None):
     if output_file is None:
