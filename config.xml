@@ -20,6 +20,14 @@
             <datetime-convertor>%a %b %d %X.%f %Y</datetime-convertor>
             <datetime-exp>(.*): \[</datetime-exp>
         </item>
+        <item>
+            <filepath>./*</filepath>
+            <capture-exps>
+            	<exp>mmback</exp>
+            </capture-exps>
+            <datetime-convertor>%a %b %d %X.%f %Y</datetime-convertor>
+            <datetime-exp>(.*): \[</datetime-exp>
+        </item>
         <item></item>
     </refine-log>
     <issue name="node expel issue due to tcp configuration">
@@ -45,6 +53,7 @@
         </item>	
         <item>
         	<filepaths>
+	            <filepath>./internaldump*/internaldump*</filepath>
 	            <filepath>./internaldumps*/extra*</filepath>
 	            <filepath>./internaldumps*/extra*/extra*</filepath>
             </filepaths>
