@@ -1,12 +1,11 @@
-import csv
+import utils
 
-csvfile = file('csvtest.csv', 'wb')
-writer = csv.writer(csvfile)
-writer.writerow(['datetime', 'node', 'log'])
-data = [
-        ('1', 'http://www.xiaoheiseo.com/', 'xiaohei'),
-        ('2', 'http://www.baidu.com/', 'baidu'),
-        ('3', 'http://www.jd.com/', 'jingdong')
-]
-writer.writerows(data)
-csvfile.close()
+
+if __name__== "__main__":
+    file_object = open("log\\newf.log", 'a')
+    with utils.NewFile("C:\\fs1gs1-ib_1027161535\\mmfs.logs.fs1gs1-ib",
+                       "2017-06") as f:
+        for line in f:
+            file_object.write(line)
+
+    file_object.close()

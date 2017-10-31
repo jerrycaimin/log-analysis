@@ -161,7 +161,7 @@ class NewFile(file):
                                           start_date)
 
         # if EOF, reading from the beginning line
-        self.seek(self.seek(-1, os.SEEK_END))
+        self.seek(-1, os.SEEK_END)
         if start_lineno >= self.tell():
             self.seek(0, 0)
         else:
