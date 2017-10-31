@@ -98,7 +98,7 @@ def _write_refine_log(filepath, rule, datetime_exp, datetime_convertor, node_nam
         else:
             log_filename = os.path.basename(path)
             with open(path, "rb") as f:
-                for line in f.readline():
+                for line in f:
                     for reg_rule in reg_rules:
                         match = reg_rule.findall(line)
                         # import pdb;pdb.set_trace()
