@@ -185,7 +185,7 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
         _write_log(output_file, "\n")
 
 
-def _regex_rule(target_path, filepath, rule, output_file, desc, log_range="0,0", print_match_position=True):
+def _regex_rule(target_folder, filepath, rule, output_file, desc, log_range="0,0", print_match_position=True):
     if type(rule) == list:
         reg_rules = [re.compile(each_rule, re.DOTALL) for each_rule in rule]
     else:
