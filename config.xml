@@ -13,17 +13,10 @@
     <refine-log>
     	<item>
             <filepath>./mmfs.logs*</filepath>
+            <exclude-str>sorted</exclude-str>
             <capture-exps>
             	<exp>\[E\]</exp>
             	<exp>Error</exp>
-            </capture-exps>
-            <datetime-convertor>%a %b %d %X.%f %Y</datetime-convertor>
-            <datetime-exp>(.*): \[</datetime-exp>
-        </item>
-        <item>
-            <filepath>./*</filepath>
-            <capture-exps>
-            	<exp>mmback</exp>
             </capture-exps>
             <datetime-convertor>%a %b %d %X.%f %Y</datetime-convertor>
             <datetime-exp>(.*): \[</datetime-exp>

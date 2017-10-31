@@ -9,6 +9,8 @@ import glob
 import time
 from datetime import datetime
 import csv
+from optparse import OptionParser
+import utils 
 
 
 # validate and read config file
@@ -44,7 +46,7 @@ def get_basename(full_path):
 
 
 # analyze the log files according to the rules
-def refine_log(config_file, target_folders=None, output_file=None):
+def refine_log(config_file, target_folders=None, start_date=None, refine_all=False):
     output_file = "./log/Log-Refined [" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "].csv"
     csvfile = file(output_file, 'wb')
     writer = csv.writer(csvfile)
@@ -69,18 +71,19 @@ def refine_log(config_file, target_folders=None, output_file=None):
                     continue
 
                 filepath = item["filepath"]
+                exclude_str = item.get("exclude-str")
                 rule = item.get("capture-exps")
                 if not rule:
                     continue
                 rule = rule.get("exp")
                 datetime_exp = item.get("datetime-exp")
                 datetime_convertor = item.get("datetime-convertor")
+                
+                _write_refine_log(os.path.join(target_folder, filepath), exclude_str, rule, datetime_exp, datetime_convertor,
+                                  node_name, writer, start_date, refine_all)
 
-                _write_refine_log(os.path.join(target_folder, filepath), rule, datetime_exp, datetime_convertor,
-                                  node_name, writer)
 
-
-def _write_refine_log(filepath, rule, datetime_exp, datetime_convertor, node_name, writer):
+def _write_refine_log(filepath, exclude_str, rule, datetime_exp, datetime_convertor, node_name, writer, start_date=None, refine_all=False):
     if type(rule) == list:
         reg_rules = [re.compile(each_rule, re.DOTALL) for each_rule in rule]
     else:
@@ -93,28 +96,43 @@ def _write_refine_log(filepath, rule, datetime_exp, datetime_convertor, node_nam
 
     for path in matching_paths:
         # import pdb;pdb.set_trace()
+
+        # skip exclude_str
+        if exclude_str and exclude_str in path:
+            continue
+        
         if os.path.isdir(path):
             print("WARNING: Directory not supported:" + path)
         else:
             log_filename = os.path.basename(path)
-            with open(path, "rb") as f:
-                for line in f:
-                    for reg_rule in reg_rules:
-                        match = reg_rule.findall(line)
-                        # import pdb;pdb.set_trace()
-                        if match is not None and len(match) > 0:
-                            matched_time = ""
-                            match_datetime = datetime_pattern.match(line)
-                            if match_datetime:
-                                try:
-                                    matched_time = datetime.strptime(match_datetime.group(1), datetime_convertor)
-                                    matched_time = matched_time.strftime("\"%Y-%m-%d %H:%M:%S.%f\"")
-                                except:
-                                    matched_time = ""
+            
+            # if user limits the start date, do it
+            if start_date:
+                f = utils.NewFile(path, start_date)
+            else:
+                f = open(path, "rb")
 
-                            writer.writerow([matched_time, log_filename, node_name, line])
-                            break
+            # if refine_all open, get all the logs
+            if refine_all:
+                reg_rules = [re.compile(".*", re.DOTALL)]
 
+            for line in f:
+                for reg_rule in reg_rules:
+                    match = reg_rule.findall(line)
+                    # import pdb;pdb.set_trace()
+                    if match is not None and len(match) > 0:
+                        matched_time = ""
+                        match_datetime = datetime_pattern.match(line)
+                        if match_datetime:
+                            try:
+                                matched_time = datetime.strptime(match_datetime.group(1), datetime_convertor)
+                                matched_time = matched_time.strftime("\"%Y-%m-%d %H:%M:%S.%f\"")
+                            except:
+                                matched_time = ""
+
+                        writer.writerow([matched_time, log_filename, node_name, line])
+                        break
+            f.close()
 
 def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, output_file=None):
     if output_file is None:
@@ -277,9 +295,21 @@ if __name__ == "__main__":
         target_folders = sys.argv[1].split("|")
     else:
         target_folders = ["./test"]
-
+    
+    usage = "usage: %prog [options] arg"  
+    parser = OptionParser(usage)  
+    parser.add_option("-d", "--date", dest="start_date",  
+                      help="logs start from date")
+    
+    parser.add_option("-a", "--refine-all", dest="refine_all",
+                      default=False, action="store_true",
+                      help="ignore capture-exps, refine all logs")
+    (options, args) = parser.parse_args()
+    start_date = options.start_date
+    refine_all = options.refine_all
+    
     # refine the log from all the dumplogs, which defined in config.xml
-    refine_log(config_path, target_folders)
+    refine_log(config_path, target_folders, start_date, refine_all)
 
     for target_folder in target_folders:
         if os.path.exists(target_folder):
