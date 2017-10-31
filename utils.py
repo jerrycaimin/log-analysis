@@ -1,3 +1,6 @@
+import os
+
+
 def _read_and_compare(cache, ofs, f, size, tester):
     """Read a line from f at ofs, and test it.
 
@@ -156,4 +159,10 @@ class NewFile(file):
         start_date = start_date
         start_lineno, _ = bisect_interval(open(self.name, "rb"),
                                           start_date)
-        self.seek(start_lineno)
+
+        # if EOF, reading from the beginning line
+        self.seek(self.seek(-1, os.SEEK_END))
+        if start_lineno >= self.tell():
+            self.seek(0, 0)
+        else:
+            self.seek(start_lineno)
