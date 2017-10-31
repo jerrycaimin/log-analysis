@@ -96,30 +96,24 @@ def _write_refine_log(filepath, rule, datetime_exp, datetime_convertor, node_nam
         if os.path.isdir(path):
             print("WARNING: Directory not supported:" + path)
         else:
-            lines = open(path, "rb").readlines()
-            i = 0
             log_filename = os.path.basename(path)
+            with open(path, "rb") as f:
+                for line in f.readline():
+                    for reg_rule in reg_rules:
+                        match = reg_rule.findall(line)
+                        # import pdb;pdb.set_trace()
+                        if match is not None and len(match) > 0:
+                            matched_time = ""
+                            match_datetime = datetime_pattern.match(line)
+                            if match_datetime:
+                                try:
+                                    matched_time = datetime.strptime(match_datetime.group(1), datetime_convertor)
+                                    matched_time = matched_time.strftime("\"%Y-%m-%d %H:%M:%S.%f\"")
+                                except:
+                                    matched_time = ""
 
-            while i < len(lines):
-                line = lines[i]
-                for reg_rule in reg_rules:
-                    match = reg_rule.findall(line)
-                    # import pdb;pdb.set_trace()
-                    if match is not None and len(match) > 0:
-                        matched_time = ""
-                        match_datetime = datetime_pattern.match(line)
-                        if match_datetime:
-                            try:
-                                matched_time = datetime.strptime(match_datetime.group(1), datetime_convertor)
-                                matched_time = matched_time.strftime("\"%Y-%m-%d %H:%M:%S.%f\"")
-                            except:
-                                matched_time = ""
-
-                        writer.writerow([matched_time, log_filename, node_name, line])
-                        break
-
-                i = i + 1
-            continue
+                            writer.writerow([matched_time, log_filename, node_name, line])
+                            break
 
 
 def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, output_file=None):
