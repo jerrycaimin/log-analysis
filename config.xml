@@ -62,34 +62,11 @@
 			<desc>RTO 120000000 issue</desc>
 			<log_range>-5,20</log_range>
         </item>
-        <advice>
-This problem may happen due to tpc configuration error. You may need do the following tcp optimized actions to fix the problem.
-1) Check the io node tcp settings in etc/sysctl.conf, make sure the following is set:
-	net.ipv4.tcp_low_latency = 1
-	net.ipv4.tcp_sack = 1
-	net.ipv4.tcp_timestamps = 1
-	net.core.rmem_default = 16777216
-	net.core.rmem_max = 16777216
-	net.ipv4.tcp_rmem = 4096    87380    16777216
-	net.ipv4.tcp_wmem = 4096    65536    16777216
-
-   Check the etc/sysconfig/network-scripts/ifcfg-bond-bond0, make sure the following tag is set properly:
-	BONDING_OPTS="mode=802.3ad miimon=100 xmit_hash_policy=layer3+4"
-	MTU=9000
-						
-2) Check the client tcp settings, make sure the following is set:
-	net.ipv4.tcp_low_latency = 1
-	net.ipv4.tcp_sack = 1
-	net.ipv4.tcp_timestamps = 1
-	net.core.rmem_max = 8388608
-	net.ipv4.tcp_rmem = 4096    87380    8388608
-	net.ipv4.tcp_wmem = 4096    65536    8388608
-
-   Check client node: etc/sysconfig/network-scripts/ifcfg-bond-bond0, make sure the following tag is set properly:
-	BONDING_OPTS="mode=4 xmit_hash_policy=layer3+4 miimon=100"
-	MTU=9000
-        </advice>
+        <advice from="advice/network/tcp_configuration.txt" />
     </issue>
-	<issue name="issue2, just testing">
-	</issue>
+    <issue name="disk issue">
+    	<item>
+    	
+    	</item>
+    </issue>
 </root>
