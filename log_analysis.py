@@ -50,7 +50,7 @@ def refine_log(config_file, target_folders=None, start_date=None, refine_all=Fal
     output_file = "./log/Log-Refined [" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "].csv"
     csvfile = file(output_file, 'wb')
     writer = csv.writer(csvfile)
-    writer.writerow(['datetime', 'filename', 'node', 'log'])
+    writer.writerow(['filename', 'node', 'log'])
 
     config = read_config(config_file)
     refine_logs = config.get("refine-log", None)
@@ -76,21 +76,19 @@ def refine_log(config_file, target_folders=None, start_date=None, refine_all=Fal
                 if not rule:
                     continue
                 rule = rule.get("exp")
-                datetime_exp = item.get("datetime-exp")
-                datetime_convertor = item.get("datetime-convertor")
                 
-                _write_refine_log(os.path.join(target_folder, filepath), exclude_str, rule, datetime_exp, datetime_convertor,
+                _write_refine_log(os.path.join(target_folder, filepath), exclude_str, rule,
                                   node_name, writer, start_date, refine_all)
 
 
-def _write_refine_log(filepath, exclude_str, rule, datetime_exp, datetime_convertor, node_name, writer, start_date=None, refine_all=False):
+def _write_refine_log(filepath, exclude_str, rule, node_name, writer, start_date=None, refine_all=False):
     if type(rule) == list:
         reg_rules = [re.compile(each_rule, re.DOTALL) for each_rule in rule]
     else:
         reg_rules = [re.compile(rule, re.DOTALL)]
 
     matching_paths = glob.glob(filepath)
-    datetime_pattern = re.compile(datetime_exp)
+    #datetime_pattern = re.compile(datetime_exp)
 
     # import pdb;pdb.set_trace()
 
@@ -121,16 +119,16 @@ def _write_refine_log(filepath, exclude_str, rule, datetime_exp, datetime_conver
                     match = reg_rule.findall(line)
                     # import pdb;pdb.set_trace()
                     if match is not None and len(match) > 0:
-                        matched_time = ""
-                        match_datetime = datetime_pattern.match(line)
-                        if match_datetime:
-                            try:
-                                matched_time = datetime.strptime(match_datetime.group(1), datetime_convertor)
-                                matched_time = matched_time.strftime("\"%Y-%m-%d %H:%M:%S.%f\"")
-                            except:
-                                matched_time = ""
+#                         matched_time = ""
+#                         match_datetime = datetime_pattern.match(line)
+#                         if match_datetime:
+#                             try:
+#                                 matched_time = datetime.strptime(match_datetime.group(1), datetime_convertor)
+#                                 matched_time = matched_time.strftime("\"%Y-%m-%d %H:%M:%S.%f\"")
+#                             except:
+#                                 matched_time = ""
 
-                        writer.writerow([matched_time, log_filename, node_name, line])
+                        writer.writerow([log_filename, node_name, line])
                         break
             f.close()
 
