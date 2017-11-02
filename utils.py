@@ -1,4 +1,5 @@
 import os
+import glob
 
 
 def _read_and_compare(cache, ofs, f, size, tester):
@@ -166,3 +167,35 @@ class NewFile(file):
             self.seek(0, 0)
         else:
             self.seek(start_lineno)
+
+
+def find_file(filename, file_folder, depth=None):
+    matching_filepaths = list()
+    if depth == 0:
+        return matching_filepaths
+
+    relative_depth = 1
+    if depth is not None:
+        relative_depth = depth
+
+    # current dir
+    # matching_filepaths.extend(glob.glob(os.path.join(file_folder, filename)))
+    files = glob.glob(os.path.join(file_folder, filename))
+    for file in files:
+        # only return dir name
+        file_dir = os.path.dirname(file)
+        if file_dir not in matching_filepaths:
+            matching_filepaths.append(file_dir)
+
+    if depth is None or relative_depth > 0:
+        for dir in os.listdir(file_folder):
+            next_dir = os.path.join(file_folder, dir)
+            if os.path.isdir(next_dir):
+                temp_depth = relative_depth - 1
+                if depth is None:
+                    temp_depth = None
+                matching_filepaths.extend(find_file(filename,
+                                                    next_dir,
+                                                    temp_depth))
+
+    return matching_filepaths
