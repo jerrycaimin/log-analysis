@@ -413,7 +413,7 @@ if __name__ == "__main__":
 
     # refine the log from all the dumplogs, which defined in config.xml
     print ""
-    print "######## Refine all " + len(target_folders) + " nodes gpfs.snap into one csv (can be sorted or filtered by Excel) ########"
+    print "######## Refine all " + str(len(target_folders)) + " nodes gpfs.snap into one csv (can be sorted or filtered by Excel) ########"
     #print "Start to refine the logs from all above folder according to configuration."
     if start_date:
         print "    : -s is set to " + start_date + ", only extract the logs AFTER this date."
