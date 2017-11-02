@@ -322,24 +322,46 @@ if __name__ == "__main__":
     start_date=None
     refine_all=False
     
-    if len(sys.argv) > 1:
-        target_folders = sys.argv[1].split("|")
-    else:
-        target_folders = ["./test"]
+#     if len(sys.argv) > 1:
+#         target_folders = sys.argv[1].split("|")
+#     else:
+#         target_folders = ["./test"]
     
     usage = "usage: %prog [options] arg"  
     parser = OptionParser(usage)  
     parser.add_option("-d", "--date", dest="start_date",  
-                      help="logs start from date")
+                      help="logs start from date.")
     
     parser.add_option("-a", "--refine-all", dest="refine_all",
                       default=False, action="store_true",
-                      help="ignore capture-exps, refine all logs")
+                      help="ignore capture-exps, refine all logs.")
 
     parser.add_option("-c", "--config-file", dest="config_files",
-                      action="append", help="specify the config files")
+                      action="append", help="specify the config files.")
+    
+    parser.add_option("-f", "--folder", dest="folders",
+                      action="append", help="specify the folders that need to analysis.")
 
     (options, args) = parser.parse_args()
+    
+    # get target folder auto
+    target_folders = []    
+    if len(args) > 0:
+        if not os.path.exists(args[0]):
+            parser.error("target folder not existed:" + args[0])
+        target_folders = args[0]
+        target_folders = utils.find_file("mmfs.logs*", target_folders, 4)
+    elif options.folders:
+        folders = options.folders
+        for folder in folders:
+            if not os.path.exists(folder):
+                parser.error("targe folder not existed:" + folder)
+            target_folders= target_folders + utils.find_file("mmfs.logs*", folder, 4)
+        # del duplicate
+        if target_folders:
+            target_folders = list(set(target_folders))
+    else:
+        target_folders = ["./test"]
     
     #fill in the parameters
     start_date = options.start_date

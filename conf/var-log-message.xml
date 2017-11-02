@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<root>
-    <warning-hittimes>1</warning-hittimes>
-    <define-times>2</define-times>
-    
+<root>    
     <refine-log>
     	<item>
             <filepath>./var/log/messages</filepath>

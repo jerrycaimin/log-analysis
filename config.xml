@@ -2,7 +2,6 @@
 <root>
     <warning-hittimes>1</warning-hittimes>
     <define-times>2</define-times>
-    
     <refine-log>
     	<item>
             <filepath>./mmfs.logs*</filepath>
@@ -50,7 +49,7 @@
 	            <filepath>./internaldumps*/extra*/extra*</filepath>
             </filepaths>
             <exp>120000000</exp>
-			<desc>RTO 120000000 issue</desc>
+			<desc>RTO raised to 2min network issue</desc>
 			<log_range>-5,20</log_range>
         </item>
         <advice from="advice/network/tcp_configuration.txt" />
