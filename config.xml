@@ -2,13 +2,6 @@
 <root>
     <warning-hittimes>1</warning-hittimes>
     <define-times>2</define-times>
-    <timeslot>
-    	<period-days-before>7</period-days-before>
-    	<date-patterns>
-    		<datetime-convertor>%a %b %d %X.%f %Y</datetime-convertor>
-            <datetime-exp>(.*): \[</datetime-exp>
-    	</date-patterns>
-    </timeslot>
     
     <refine-log>
     	<item>

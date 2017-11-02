@@ -20,20 +20,32 @@ def read_config(config_file):
 
 
 # analyze the log files according to the rules
-def analyze_log(config_file, target_path=None, output_file=None):
+def analyze_log(target_path=None, output_file=None):
     if target_path is None:
         target_path = os.getcwd()
     if output_file is None:
         output_file = "./log/result" + time.strftime("%H-%M-%S", time.localtime()) + ".log"
-    config = read_config(config_file)
+    
+    config_file_num = len(config_files)
+    
+    c_f_current = 1
+    for config_file in config_files:
+        config = read_config(config_file)
+    
+        warning_hittimes = config.get("warning-hittimes", None)
+        define_times = config.get("define-times", None)
+        issues = config.get("issue", None)
+        
+        if config_file_num > 1:
+            _write_log(output_file,
+                       "############## [" + str(c_f_current) + "/" + str(config_file_num) + "] Analysis for config file " + config_file + ". ##############")
+        _parse_issue(target_path, issues, warning_hittimes=warning_hittimes, define_times=define_times,
+                     output_file=output_file)
+        if config_file_num > 1:
+            _write_log(output_file,
+                       "############## [" + str(c_f_current) + "/" + str(config_file_num) + "] Finished analysis for config file " + config_file + ". ##############")
 
-    warning_hittimes = config.get("warning-hittimes", None)
-    define_times = config.get("define-times", None)
-    issues = config.get("issue", None)
-
-    _parse_issue(target_path, issues, warning_hittimes=warning_hittimes, define_times=define_times,
-                 output_file=output_file)
-
+        c_f_current = c_f_current + 1
 
 def get_basename(full_path):
     if not full_path:
@@ -46,17 +58,18 @@ def get_basename(full_path):
 
 
 # analyze the log files according to the rules
-def refine_log(config_file, target_folders=None):
+def refine_log(target_folders=None):
     output_file = "./log/Log-Refined [" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "].csv"
     csvfile = file(output_file, 'wb')
     writer = csv.writer(csvfile)
     writer.writerow(['filename', 'node', 'log'])
 
-    config = read_config(config_file)
-    refine_logs = config.get("refine-log", None)
-
-    if type(refine_logs) != list:
-        refine_logs = [refine_logs]
+    refine_logs = []
+    for config_file in config_files:
+        config = read_config(config_file)
+        refine_log = config.get("refine-log", None)
+        if refine_log:
+            refine_logs.append(refine_log)
 
     for target_folder in target_folders:
         node_name = get_basename(target_folder)
@@ -304,11 +317,11 @@ if __name__ == "__main__":
     # config global opt and args
     global start_date
     global refine_all
+    global config_files
     
     start_date=None
     refine_all=False
     
-    config_path = "./config.xml"
     if len(sys.argv) > 1:
         target_folders = sys.argv[1].split("|")
     else:
@@ -322,16 +335,29 @@ if __name__ == "__main__":
     parser.add_option("-a", "--refine-all", dest="refine_all",
                       default=False, action="store_true",
                       help="ignore capture-exps, refine all logs")
+
+    parser.add_option("-c", "--config-file", dest="config_files",
+                      action="append", help="specify the config files")
+
     (options, args) = parser.parse_args()
+    
+    #fill in the parameters
     start_date = options.start_date
     refine_all = options.refine_all
-    
+    if options.config_files:
+        config_files = options.config_files
+        for conf_file in config_files:
+            if not os.path.exists(conf_file):
+                parser.error("config file not found, please check the config file again: " + conf_file)
+    else:
+        config_files = ["./config.xml"]
+
     # refine the log from all the dumplogs, which defined in config.xml
-    refine_log(config_path, target_folders)
+    refine_log(target_folders)
 
     for target_folder in target_folders:
         if os.path.exists(target_folder):
             basename = get_basename(target_folder)
             output_file = "./log/[" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "]" + basename + ".log"
             # analyze log by each defined task
-            analyze_log(config_path, target_folder, output_file)
+            analyze_log(target_folder, output_file)
