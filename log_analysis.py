@@ -46,7 +46,7 @@ def get_basename(full_path):
 
 
 # analyze the log files according to the rules
-def refine_log(config_file, target_folders=None, start_date=None, refine_all=False):
+def refine_log(config_file, target_folders=None):
     output_file = "./log/Log-Refined [" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "].csv"
     csvfile = file(output_file, 'wb')
     writer = csv.writer(csvfile)
@@ -78,10 +78,10 @@ def refine_log(config_file, target_folders=None, start_date=None, refine_all=Fal
                 rule = rule.get("exp")
                 
                 _write_refine_log(os.path.join(target_folder, filepath), exclude_str, rule,
-                                  node_name, writer, start_date, refine_all)
+                                  node_name, writer)
 
 
-def _write_refine_log(filepath, exclude_str, rule, node_name, writer, start_date=None, refine_all=False):
+def _write_refine_log(filepath, exclude_str, rule, node_name, writer):
     if type(rule) == list:
         reg_rules = [re.compile(each_rule, re.DOTALL) for each_rule in rule]
     else:
@@ -238,8 +238,15 @@ def _regex_rule(target_folder, filepath, rule, output_file, desc, log_range="0,0
                 print("Only file marched that supported, directory skipped: %s" % path)
             else:
                 count = 0
-                lines = open(path, "rb").readlines()
+                
+                if start_date:
+                    f = utils.NewFile(path, start_date)
+                else:
+                    f = open(path, "rb")
+                
+                lines = f.readlines()
                 i = 0
+                #for line in f:
                 while i < len(lines):
                     count = count + 1
                     line = lines[i]
@@ -247,7 +254,7 @@ def _regex_rule(target_folder, filepath, rule, output_file, desc, log_range="0,0
                     # import pdb;pdb.set_trace()
                     if match is not None and len(match) > 0:
                         if Is_des_printed == False:
-                            _write_log(output_file, "Clue: [" + desc + "]")
+                            _write_log(output_file, "Clue: [" + desc + "], keyword:[" + reg_rule.pattern + "]")
                             _write_log(output_file, "Following related log found:")
                             Is_des_printed = True
 
@@ -272,7 +279,7 @@ def _regex_rule(target_folder, filepath, rule, output_file, desc, log_range="0,0
                         Is_found = True
 
                     i = i + 1
-                continue
+                f.close()
 
     if Is_found:
         _write_log(output_file, "-----------Finish Clue:[" + desc + "]----------")
@@ -294,6 +301,13 @@ def _write_log2(filepath, content):
 
 
 if __name__ == "__main__":
+    # config global opt and args
+    global start_date
+    global refine_all
+    
+    start_date=None
+    refine_all=False
+    
     config_path = "./config.xml"
     if len(sys.argv) > 1:
         target_folders = sys.argv[1].split("|")
@@ -313,7 +327,7 @@ if __name__ == "__main__":
     refine_all = options.refine_all
     
     # refine the log from all the dumplogs, which defined in config.xml
-    refine_log(config_path, target_folders, start_date, refine_all)
+    refine_log(config_path, target_folders)
 
     for target_folder in target_folders:
         if os.path.exists(target_folder):
