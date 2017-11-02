@@ -58,8 +58,9 @@ def get_basename(full_path):
 
 
 # analyze the log files according to the rules
-def refine_log(target_folders=None):
-    output_file = "./log/Log-Refined [" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "].csv"
+def refine_log(output_file=None, target_folders=None):
+    if output_file is None:
+        output_file = "./log/Log-Refined [" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "].csv"
     csvfile = file(output_file, 'wb')
     writer = csv.writer(csvfile)
     writer.writerow(['filename', 'node', 'log'])
@@ -89,10 +90,8 @@ def refine_log(target_folders=None):
                 if not rule:
                     continue
                 rule = rule.get("exp")
-                
                 _write_refine_log(os.path.join(target_folder, filepath), exclude_str, rule,
                                   node_name, writer)
-
 
 def _write_refine_log(filepath, exclude_str, rule, node_name, writer):
     if type(rule) == list:
@@ -113,7 +112,8 @@ def _write_refine_log(filepath, exclude_str, rule, node_name, writer):
             continue
         
         if os.path.isdir(path):
-            print("WARNING: Directory not supported:" + path)
+            #print("WARNING: Directory not supported:" + path)
+            continue
         else:
             log_filename = os.path.basename(path)
             
@@ -166,7 +166,7 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
                     advice = adv_f.read()
         
         issue_name = issue.get('@name', "")
-        print("========Start to check issue%d: %s.==============\n" % (issue_num, issue_name))
+        #print("========Start to check issue%d: %s.==============\n" % (issue_num, issue_name))
         _write_log(output_file,
                    "============================================================================================")
         _write_log(output_file,
@@ -205,13 +205,14 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
 
         if define_times is not None:
             if counter >= define_times:
-                print("Found the issue.\n\nPlease follow below advice:\n%s.\n" % advice)
+                #print("Found the issue.\n\nPlease follow below advice:\n%s.\n" % advice)
                 _write_log(output_file,
                            "The issue [" + issue_name + "] is highly happened.\nPlease refer the advice:\n" + advice)
         elif warning_hittimes is not None:
             if counter >= warning_hittimes:
-                print(
-                "The issue [" + issue_name + "] is probably happened, please check the log to determine. If existed, follow the advice:%s\n" % advice)
+                no_thing = 0
+                #print(
+                #"The issue [" + issue_name + "] is probably happened, please check the log to determine. If existed, follow the advice:%s\n" % advice)
 
         _write_log(output_file,
                    "==================Finish to check issue " + str(issue_num) + ": " + issue_name + "==============")
@@ -248,7 +249,8 @@ def _regex_rule(target_folder, filepath, rule, output_file, desc, log_range="0,0
         for path in matching_paths:
             # import pdb;pdb.set_trace()
             if os.path.isdir(path):
-                print("Only file marched that supported, directory skipped: %s" % path)
+                continue
+                #print("Only file marched that supported, directory skipped: %s" % path)
             else:
                 count = 0
                 
@@ -360,9 +362,23 @@ if __name__ == "__main__":
         # del duplicate
         if target_folders:
             target_folders = list(set(target_folders))
+        
+        # del test folder
+        for target_folder in target_folders:
+            if get_basename(target_folder) == "test":
+                test_folder_tbd = target_folder
+                break
+        if test_folder_tbd:
+            target_folders.remove(test_folder_tbd)
     else:
         target_folders = ["./test"]
     
+    #print folders to be analysis
+    print "The following folder(s) contains mmfs.logs, candidates to analysis:"
+    for target_folder in target_folders:
+        print get_basename(target_folder)
+    print ""
+
     #fill in the parameters
     start_date = options.start_date
     refine_all = options.refine_all
@@ -374,12 +390,33 @@ if __name__ == "__main__":
     else:
         config_files = ["./config.xml"]
 
-    # refine the log from all the dumplogs, which defined in config.xml
-    refine_log(target_folders)
-
+    print "############### Analysing gpfs.snap from existed knowledge ##############"
+    analysis_num = 1
     for target_folder in target_folders:
+        pre_num = "[" + str(analysis_num) + "/" + str(len(target_folders)) + "]"
+        print pre_num + " analysing " + get_basename(target_folder) + " ..."
         if os.path.exists(target_folder):
             basename = get_basename(target_folder)
             output_file = "./log/[" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "]" + basename + ".log"
             # analyze log by each defined task
             analyze_log(target_folder, output_file)
+        print "succeeded, output file: " + output_file
+        analysis_num = analysis_num + 1
+
+    # refine the log from all the dumplogs, which defined in config.xml
+    print ""
+    print "######## Refine all nodes gpfs.snap into one csv (can be sorted or filtered by Excel) ########"
+    #print "Start to refine the logs from all above folder according to configuration."
+    if start_date:
+        print "    : -s is set to " + start_date + ", only extract the logs AFTER this date."
+    if refine_all:
+        print "    : -a enabled, ignore regex, all the logs from the period will be generated."
+    
+    output_file = "./log/Log-Refined-[" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "].csv"
+    refine_log(output_file, target_folders)
+    print "succeeded, refer to output file: " + output_file
+    
+    
+    print ""
+    print "All finished." 
+    

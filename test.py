@@ -2,17 +2,10 @@ import utils
 from datetime import datetime
 import re
 
-datetime_pattern = re.compile(".*", re.DOTALL)
-match = datetime_pattern.findall("    Sat Jun  3 13:44:26.306 2017: [I] Calling us:er ")
-print match
+files = utils.find_file("mmfs.logs*","C:\\Logs",5)
+print(files)
 
-match_datetime = datetime_pattern.match()
-if match_datetime:
-    print match_datetime.group(1)
-
-
-
-print "e"
+print "1111e"
 
 #%a %b %d %X.%f %Y
 
