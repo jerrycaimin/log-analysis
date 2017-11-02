@@ -314,6 +314,16 @@ def _write_log2(filepath, content):
     file_object.write(content)
     file_object.close()
 
+def remove_test_folder(target_folders):
+    # del test folder
+    for target_folder in target_folders:
+        if get_basename(target_folder) == "test":
+            test_folder_tbd = target_folder
+            break
+    if test_folder_tbd:
+        target_folders.remove(test_folder_tbd)
+
+    return target_folders
 
 if __name__ == "__main__":
     # config global opt and args
@@ -353,6 +363,9 @@ if __name__ == "__main__":
             parser.error("target folder not existed:" + args[0])
         target_folders = args[0]
         target_folders = utils.find_file("mmfs.logs*", target_folders, 4)
+        
+        # del test folder
+        target_folders = remove_test_folder(target_folders)
     elif options.folders:
         folders = options.folders
         for folder in folders:
@@ -364,12 +377,7 @@ if __name__ == "__main__":
             target_folders = list(set(target_folders))
         
         # del test folder
-        for target_folder in target_folders:
-            if get_basename(target_folder) == "test":
-                test_folder_tbd = target_folder
-                break
-        if test_folder_tbd:
-            target_folders.remove(test_folder_tbd)
+        target_folders = remove_test_folder(target_folders)
     else:
         target_folders = ["./test"]
     
