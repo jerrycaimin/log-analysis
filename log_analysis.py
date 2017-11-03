@@ -199,7 +199,7 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
                     rule = rule.get("exp")
 
                 desc = item["desc"]
-                hint = item["hint"]
+                hint = item.get("hint")
                 print_match_position = False if item.get("print_match_position", "").lower() == "false" else True
                 # import pdb;pdb.set_trace()
                 log_range = item.get("log_range", "0,0")
