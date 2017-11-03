@@ -199,10 +199,11 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
                     rule = rule.get("exp")
 
                 desc = item["desc"]
+                hint = item["hint"]
                 print_match_position = False if item.get("print_match_position", "").lower() == "false" else True
                 # import pdb;pdb.set_trace()
                 log_range = item.get("log_range", "0,0")
-                if _regex_rule(target_path, filepath, rule, output_file, desc, log_range, print_match_position):
+                if _regex_rule(target_path, filepath, rule, output_file, desc, hint, log_range, print_match_position):
                     counter += 1
 
         if define_times is not None:
@@ -223,7 +224,7 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
         _write_log(output_file, "\n")
 
 
-def _regex_rule(target_folder, filepath, rule, output_file, desc, log_range="0,0", print_match_position=True):
+def _regex_rule(target_folder, filepath, rule, output_file, desc, hint, log_range="0,0", print_match_position=True):
     if type(rule) == list:
         reg_rules = [re.compile(each_rule, re.DOTALL) for each_rule in rule]
     else:
@@ -272,6 +273,8 @@ def _regex_rule(target_folder, filepath, rule, output_file, desc, log_range="0,0
                     if match is not None and len(match) > 0:
                         if Is_des_printed == False:
                             _write_log(output_file, "Clue: [" + desc + "], keyword:[" + reg_rule.pattern + "]")
+                            if hint:
+                                _write_log(output_file, "Hint: " + hint)
                             _write_log(output_file, "Following related log found:")
                             Is_des_printed = True
 
