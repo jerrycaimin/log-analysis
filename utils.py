@@ -165,8 +165,10 @@ class NewFile(file):
         self.seek(-1, os.SEEK_END)
         if start_lineno >= self.tell():
             self.seek(0, 0)
+            self.found = False
         else:
             self.seek(start_lineno)
+            self.found = True
 
 
 def find_file(filename, file_folder, depth=None):

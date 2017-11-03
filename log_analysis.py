@@ -120,6 +120,8 @@ def _write_refine_log(filepath, exclude_str, rule, node_name, writer):
             # if user limits the start date, do it
             if start_date:
                 f = utils.NewFile(path, start_date)
+                if f.found == False:
+                    print "    WARNING: " + start_date + "not found in " + log_filename + ", will refine by all the file."
             else:
                 f = open(path, "rb")
 
@@ -254,11 +256,11 @@ def _regex_rule(target_folder, filepath, rule, output_file, desc, log_range="0,0
             else:
                 count = 0
                 
-                if start_date:
-                    f = utils.NewFile(path, start_date)
-                else:
-                    f = open(path, "rb")
-                
+#                 if start_date:
+#                     f = utils.NewFile(path, start_date)
+#                 else:
+#                     f = open(path, "rb")
+                f = open(path, "rb")
                 lines = f.readlines()
                 i = 0
                 #for line in f:
@@ -316,6 +318,7 @@ def _write_log2(filepath, content):
 
 def remove_test_folder(target_folders):
     # del test folder
+    test_folder_tbd = None
     for target_folder in target_folders:
         if get_basename(target_folder) == "test":
             test_folder_tbd = target_folder
