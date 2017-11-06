@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
     <warning-hittimes>1</warning-hittimes>
-    <define-times>2</define-times>
+    <define-times>1</define-times>
     <refine-log>
     	<item>
             <filepath>./mmfs.logs*</filepath>
@@ -28,12 +28,12 @@
             </filepaths>
             <exp>Waiting \d+\.\d+ sec.*NSD I/O completion</exp>
 			<desc>NSD I/O waiters found.</desc>
-			<hint>For NSD IOs waiters, generally it means gpfs has dispatched IOs to
-disk/storage subsys but still waiting for reply, if there are many IOs
-waiters, reported from nsd node, are pending there more than 0.02s, it
-will bring pref impact to your cluster.
-Try use tool iohist.awk:
->iohist.awk slowdata=1000 internaldump.* | grep "E2_GPFS_*" | awk {'print $11'} | sort | uniq -c
+			<hint>For NSD IOs waiters, generally it means gpfs has dispatched IOs to 
+disk/storage subsys but still waiting for reply, if there are many IOs 
+waiters, reported from nsd node, are pending there more than 0.02s, it 
+will bring pref impact to your cluster. 
+Try use tool iohist.awk: 
+>iohist.awk slowdata=1000 internaldump.* | grep "E2_GPFS_*" | awk {'print $11'} | sort | uniq -c 
 could find how many slowdata existed.</hint>
         </item>
         <item>
@@ -47,9 +47,19 @@ could find how many slowdata existed.</hint>
         </item>
         <advice from="advice/network/tcp_configuration.txt" />
     </issue>
-    <issue name="disk issue">
+    <issue name="AD server or winbind issues">
     	<item>
-    	
+    		<filepaths>
+	            <filepath>./var/adm/ras/mmsysmonitor*</filepath>
+            </filepaths>
+            <exps>
+				<exp>Event=ads_down</exp>
+				<exp>Event=ads_failed</exp>
+				<exp>Event=ads_up</exp>
+			</exps>
+            
+            <desc>Tips to troubleshooting AD server or winbind issues</desc>
     	</item>
+        <advice from="advice/authentication/ad_server_and_winbind.txt" />
     </issue>
 </root>

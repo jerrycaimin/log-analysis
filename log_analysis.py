@@ -182,6 +182,9 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
 
         items = issue.get("item", None)
         if items is not None:
+            if type(items) != list:
+                items = [items]
+
             for item in items:
                 filepath = item.get("filepath")
                 if not filepath:
@@ -248,26 +251,27 @@ def _regex_rule(target_folder, filepath, rule, output_file, desc, hint, log_rang
         log_range_start = 0
         log_range_end = 0
 
-    for reg_rule in reg_rules:
-        for path in matching_paths:
-            # import pdb;pdb.set_trace()
-            if os.path.isdir(path):
-                continue
-                #print("Only file marched that supported, directory skipped: %s" % path)
-            else:
-                count = 0
-                
+    for path in matching_paths:
+        # import pdb;pdb.set_trace()
+        if os.path.isdir(path) or os.path.exists(path) == False or os.path.basename(path).endswith("gz"):
+            continue
+            #print("Only file marched that supported, directory skipped: %s" % path)
+        else:
+            count = 0
+            
 #                 if start_date:
 #                     f = utils.NewFile(path, start_date)
 #                 else:
 #                     f = open(path, "rb")
-                f = open(path, "rb")
-                lines = f.readlines()
-                i = 0
-                #for line in f:
-                while i < len(lines):
-                    count = count + 1
-                    line = lines[i]
+            f = open(path, "rb")
+            lines = f.readlines()
+            i = 0
+            #for line in f:
+            while i < len(lines):
+                count = count + 1
+                line = lines[i]
+                
+                for reg_rule in reg_rules:
                     match = reg_rule.findall(line)
                     # import pdb;pdb.set_trace()
                     if match is not None and len(match) > 0:
@@ -297,9 +301,9 @@ def _regex_rule(target_folder, filepath, rule, output_file, desc, hint, log_rang
 
                         # _write_log(output_file, "------------------")
                         Is_found = True
-
-                    i = i + 1
-                f.close()
+                
+                i = i + 1
+            f.close()
 
     if Is_found:
         _write_log(output_file, "-----------Finish Clue:[" + desc + "]----------")

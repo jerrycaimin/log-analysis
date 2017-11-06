@@ -1,0 +1,3 @@
+Tips to troubleshooting AD server or winbind issues:
+Refer to IBM Support:
+http://g01zciwas018.ahe.pok.ibm.com/support/dcf/preview.wss?host=g01zcidbs003.ahe.pok.ibm.com&db=support/ssg/ssgtech.nsf&unid=FDF9E66F9B3C6B68852581C70028665B&taxOC=STXKQY&MD=2017/10/28%2016:10:28&sid=

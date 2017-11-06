@@ -1,6 +1,13 @@
 import utils
 from datetime import datetime
 import re
+path = "C:\\Logs\\fs1gs1-ib_1027161535\\mmfs.logs.fs1gs1-ib"
+f1 = utils.NewFile(path, "2017-07-20")
+f2 = open(path, "rb")
+
+f11 = f1.readlines()
+f22 = f2.readlines()
+
 
 files = utils.find_file("mmfs.logs*","C:\\Logs",5)
 print(files)
