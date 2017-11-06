@@ -13,6 +13,18 @@
         </item>
         <item></item>
     </refine-log>
+    <issue name="long waiters detected.">
+    	<item>
+    		<filepaths>
+	            <filepath>./internaldumps/internaldump*/internaldump*</filepath>
+	            <filepath>./internaldump*/internaldump*</filepath>
+            </filepaths>
+            <exps>
+				<exp>Waiting \d+\.\d+ sec</exp>
+			</exps>
+            <desc>too many long waiters detected.</desc>
+    	</item>
+    </issue>
     <issue name="node expel issue due to tcp configuration">
 		<!-- item>
             <filepath>./mmfs.logs*</filepath>
