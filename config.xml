@@ -62,4 +62,16 @@ could find how many slowdata existed.</hint>
     	</item>
         <advice from="advice/authentication/ad_server_and_winbind.txt" />
     </issue>
+    <issue name="log assert crash issue.">
+    	<item>
+    		<filepaths>
+	            <filepath>./mmfs.logs*</filepath>
+            </filepaths>
+            <exps>
+				<exp>logAssertFailed</exp>
+			</exps>
+            <desc>hit log assert crash issue.</desc>
+            <log_range>-5,20</log_range>
+    	</item>
+    </issue>
 </root>
