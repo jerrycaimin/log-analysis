@@ -20,7 +20,7 @@
 	            <filepath>./internaldump*/internaldump*</filepath>
             </filepaths>
             <exps>
-				<exp>Waiting \d+\.\d+ sec</exp>
+				<exp>aiting \d+\.\d+ sec</exp>
 			</exps>
             <desc>too many long waiters detected.</desc>
     	</item>

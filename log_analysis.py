@@ -119,10 +119,10 @@ def _write_refine_log(filepath, exclude_str, rule, node_name, writer):
             # skip if larger than 600M
             f_size = os.path.getsize(path)
             if f_size > 500000000:
-                print "    file size larger than 500M, is " + f_size + ", skip:" + os.path.basename(path)
+                print "    file size larger than 500M, is " + str(f_size) + ", skip:" + os.path.basename(path)
                 continue
             elif f_size > 50000000:
-                print "    file size is " + f_size + ", need time to analysis: " + os.path.basename(path)
+                print "    file size is " + str(f_size) + ", need time to analysis: " + os.path.basename(path)
 
             
             # if user limits the start date, do it
@@ -274,10 +274,10 @@ def _regex_rule(target_folder, filepath, rule, output_file, desc, hint, log_rang
             # skip if larger than 500M
             f_size = os.path.getsize(path)
             if f_size > 500000000:
-                print "    file size larger than 500M, is " + f_size + ", skip:" + os.path.basename(path)
+                print "    file size larger than 500M, is " + str(f_size) + ", skip:" + os.path.basename(path)
                 continue
             elif f_size > 50000000:
-                print "    file size is " + f_size + ", need time to analysis: " + os.path.basename(path)
+                print "    file size is " + str(f_size) + ", need time to analysis: " + os.path.basename(path)
 
             f = open(path, "rb")
             lines = f.readlines()
