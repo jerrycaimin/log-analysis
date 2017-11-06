@@ -1,0 +1,12 @@
+===========================
+1) Enter ftp testcase.software.ibm.com.
+2) At the login prompt enter anonymous.
+3) At the password prompt enter your complete email address following
+the format customer@company.com.
+4) Change to binary transfer mode. Enter "bin".
+5) Change into the /fromibm/linux directory. Enter "cd /fromibm/linux/".
+6) Use the get command to download the file Enter "get ?????.x86_64-linux-core.tar.gz".
+7) Enter "quit" or "bye".
+
+The tarball ?????.x86_64-linux-core.tar.gz includes a README file,
+containing instructions how to install the efix build.

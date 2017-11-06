@@ -1,0 +1,20 @@
+If the log assert triggered kernel panic, causing the node to reboot.
+
+Suggestion:
+
+1) Kernel dump from when kernel crashed.
+2) If possible, recreate the problem with tracing enabled. Step:
+
+1. Start trace
+[AIX]
+mmtracectl --start --aix-trace-buffer-size=128M --trace-file-size=256M -N all
+
+[Linux]
+mmtracectl --start --trace-file-size=512M -N all
+
+2. When we have slowness, please also run this command
+mmdsh -N all "/usr/lpp/mmfs/bin/mmfsadm saferdump all > /tmp/mmfs/service.\$(hostname -s).safer.dumpall.\$(date +"%m%d%H%M%S")"
+3. We need cut trace and stop trace after slowness lasts for two minutes
+mmtracectl --stop -N all
+mmtracectl --off
+

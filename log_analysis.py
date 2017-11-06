@@ -155,6 +155,17 @@ def _write_refine_log(filepath, exclude_str, rule, node_name, writer):
                         break
             f.close()
 
+def _get_sortable(file_path):
+    if not file_path:
+        return None;
+
+    sortable = file_path.get("@sortable", False)
+    if sortable.lower() == "true":
+        sortable = True
+    else:
+        sortable = False
+    return sortable
+
 def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, output_file=None):
     if output_file is None:
         output_file = "./log/result" + time.strftime("%H-%M-%S", time.localtime()) + ".log"
@@ -199,11 +210,14 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
             for item in items:
                 filepath = item.get("filepath")
                 if not filepath:
-                    filepath = item.get("filepaths")
-                    if not filepath:
+                    filepaths = item.get("filepaths")
+                    if not filepaths:
                         continue
-                    filepath = filepath.get("filepath")
-
+                    filepath = filepaths.get("filepath")
+                    sortable = _get_sortable(filepaths)
+                else:
+                    sortable = _get_sortable(filepath)
+                    
                 rule = item.get("exp", "")
                 # if no exp defined, get all exp from exps tag.
                 if not rule:
@@ -217,7 +231,7 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
                 print_match_position = False if item.get("print_match_position", "").lower() == "false" else True
                 # import pdb;pdb.set_trace()
                 log_range = item.get("log_range", "0,0")
-                if _regex_rule(target_path, filepath, rule, output_file, desc, hint, log_range, print_match_position):
+                if _regex_rule(target_path, filepath, sortable, rule, output_file, desc, hint, log_range, print_match_position):
                     counter += 1
 
         if define_times is not None:
@@ -238,7 +252,7 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
         _write_log(output_file, "\n")
 
 
-def _regex_rule(target_folder, filepath, rule, output_file, desc, hint, log_range="0,0", print_match_position=True):
+def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True):
     if type(rule) == list:
         reg_rules = [re.compile(each_rule, re.DOTALL) for each_rule in rule]
     else:
@@ -270,10 +284,10 @@ def _regex_rule(target_folder, filepath, rule, output_file, desc, hint, log_rang
         else:
             count = 0
             
-#                 if start_date:
-#                     f = utils.NewFile(path, start_date)
-#                 else:
-#                     f = open(path, "rb")
+            if start_date and sortable:
+                f = utils.NewFile(path, start_date)
+            else:
+                f = open(path, "rb")
             # skip if larger than 500M
             f_size = os.path.getsize(path)
             if f_size > 500000000:
@@ -282,11 +296,17 @@ def _regex_rule(target_folder, filepath, rule, output_file, desc, hint, log_rang
             elif f_size > 50000000:
                 print "    file size is " + str(f_size) + ", need time to analysis: " + os.path.basename(path)
 
-            f = open(path, "rb")
+            #f = open(path, "rb")
             lines = f.readlines()
             i = 0
+            found_rule_i = []
             #for line in f:
             while i < len(lines):
+                # if found i existed in found_rule_i, skip
+                if i in found_rule_i:
+                    i = i + 1
+                    continue
+
                 count = count + 1
                 line = lines[i]
                 
@@ -313,6 +333,15 @@ def _regex_rule(target_folder, filepath, rule, output_file, desc, hint, log_rang
                         for print_line in lines[line_start: line_end + 1]:
                             if cur_start == i and log_range_start != log_range_end:
                                 _write_log2(output_file, "------->" + print_line)
+                            elif cur_start > i:
+                                match_follow = reg_rule.findall(print_line)
+                                if match_follow is not None and len(match_follow) > 0:
+                                    # append to found rule list
+                                    found_rule_i.append(cur_start)
+                                    
+                                    _write_log2(output_file, "------->" + print_line)
+                                else:
+                                    _write_log2(output_file, "\t" + print_line)
                             else:
                                 _write_log2(output_file, "\t" + print_line)
 
@@ -320,7 +349,9 @@ def _regex_rule(target_folder, filepath, rule, output_file, desc, hint, log_rang
 
                         # _write_log(output_file, "------------------")
                         Is_found = True
-                
+                        
+                        # append to found rule list
+                        found_rule_i.append(i)
                 i = i + 1
             f.close()
 

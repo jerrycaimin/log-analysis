@@ -15,7 +15,7 @@
     </refine-log>
     <issue name="long waiters detected.">
     	<item>
-    		<filepaths>
+    		<filepaths sortable="False">
 	            <filepath>./internaldumps/internaldump*/internaldump*</filepath>
 	            <filepath>./internaldump*/internaldump*</filepath>
             </filepaths>
@@ -35,7 +35,7 @@
 			<desc>Test no print match postion</desc>
         </item-->
         <item>
-        	<filepaths>
+        	<filepaths sortable="False">
 	            <filepath>./internaldump*/internaldump*</filepath>
             </filepaths>
             <exp>Waiting \d+\.\d+ sec.*NSD I/O completion</exp>
@@ -49,7 +49,7 @@ Try use tool iohist.awk:
 could find how many slowdata existed.</hint>
         </item>
         <item>
-            <filepaths>
+            <filepaths sortable="False">
 	            <filepath>./internaldumps*/extra*</filepath>
 	            <filepath>./internaldumps*/extra*/extra*</filepath>
             </filepaths>
@@ -61,7 +61,7 @@ could find how many slowdata existed.</hint>
     </issue>
     <issue name="AD server or winbind issues">
     	<item>
-    		<filepaths>
+    		<filepaths sortable="True">
 	            <filepath>./var/adm/ras/mmsysmonitor*</filepath>
             </filepaths>
             <exps>
@@ -76,7 +76,7 @@ could find how many slowdata existed.</hint>
     </issue>
     <issue name="log assert crash issue.">
     	<item>
-    		<filepaths>
+    		<filepaths sortable="True">
 	            <filepath>./mmfs.logs*</filepath>
             </filepaths>
             <exps>
