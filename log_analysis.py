@@ -164,6 +164,9 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
 
     issue_num = 0
     for issue in issues:
+        if not issue:
+            continue
+
         # import pdb;pdb.set_trace()
         issue_num = issue_num + 1
 
