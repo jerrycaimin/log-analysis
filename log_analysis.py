@@ -116,6 +116,10 @@ def _write_refine_log(filepath, exclude_str, rule, node_name, writer):
             continue
         else:
             log_filename = os.path.basename(path)
+                        # skip if larger than 400M
+            if os.path.getsize(path) > 600000000:
+                print "    file size larger than 600M, skip:" + log_filename
+                continue
             
             # if user limits the start date, do it
             if start_date:
@@ -263,6 +267,11 @@ def _regex_rule(target_folder, filepath, rule, output_file, desc, hint, log_rang
 #                     f = utils.NewFile(path, start_date)
 #                 else:
 #                     f = open(path, "rb")
+            # skip if larger than 400M
+            if os.path.getsize(path) > 400000000:
+                print "    file size larger than 400M, skip:" + os.path.basename(path)
+                continue
+
             f = open(path, "rb")
             lines = f.readlines()
             i = 0
