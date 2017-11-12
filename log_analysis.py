@@ -58,42 +58,97 @@ def get_basename(full_path):
 
 
 # analyze the log files according to the rules
-def refine_log(output_file=None, target_folders=None):
+def refine_log(output_file=None, target_folders=None, specified_configs=None):
     if output_file is None:
         output_file = "./log/Log-Refined [" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "].csv"
     csvfile = file(output_file, 'wb')
     writer = csv.writer(csvfile)
-    writer.writerow(['filename', 'node', 'log'])
+    head_written = False
+    plane_writer = None
 
     refine_logs = []
-    for config_file in config_files:
+    
+    # for env-report
+    if specified_configs:
+        op_config_files = specified_configs
+    else:
+        op_config_files = config_files
+
+    for config_file in op_config_files:
         config = read_config(config_file)
         refine_log = config.get("refine-log", None)
+        #any "plane" once, output file is plane
+        type = refine_log.get("@type", "csv")
+        if type == "plane":
+            plane_writer = open(output_file, 'w')
+        elif not head_written:
+            writer.writerow(['filename', 'node', 'log'])
+            head_written = True
+
         if refine_log:
             refine_logs.append(refine_log)
 
-    for target_folder in target_folders:
-        node_name = get_basename(target_folder)
-        if os.path.exists(target_folder) == False:
-            continue
-
+    if not plane_writer:
+        # csv loop
+        for target_folder in target_folders:
+            node_name = get_basename(target_folder)
+            if os.path.exists(target_folder) == False:
+                continue
+    
+            for refine_log in refine_logs:
+                items = refine_log.get("item", [])
+    
+                for item in items:
+                    if not item:
+                        continue
+    
+                    filepath = item["filepath"]
+                    exclude_str = item.get("exclude-str")
+                    rule = item.get("capture-exps")
+                    desc = item.get("@desc","")
+                    if not rule:
+                        rule = ".*"
+                    else:
+                        rule = rule.get("exp")
+                    _write_refine_log(os.path.join(target_folder, filepath), exclude_str, rule,
+                                      node_name, desc, writer, plane_writer)
+    else:       
+        # plane loop
         for refine_log in refine_logs:
             items = refine_log.get("item", [])
 
             for item in items:
+                desc_print = False
                 if not item:
                     continue
-
+                
                 filepath = item["filepath"]
                 exclude_str = item.get("exclude-str")
                 rule = item.get("capture-exps")
+                desc = item.get("@desc","")
                 if not rule:
-                    continue
-                rule = rule.get("exp")
-                _write_refine_log(os.path.join(target_folder, filepath), exclude_str, rule,
-                                  node_name, writer)
+                    rule = ".*"
+                else:
+                    rule = rule.get("exp")
+                    
+                for target_folder in target_folders:
+                    node_name = get_basename(target_folder)
+                    if os.path.exists(target_folder) == False:
+                        continue
 
-def _write_refine_log(filepath, exclude_str, rule, node_name, writer):
+                    if desc and not desc_print:
+                        plane_writer.write("=====" + desc + "=====\n")
+                        desc_print = True
+                    _write_refine_log(os.path.join(target_folder, filepath), exclude_str, rule,
+                                      node_name, desc, writer, plane_writer)
+                    
+                if desc:
+                    plane_writer.write("===============\n\n")
+                
+    if plane_writer:
+        plane_writer.close()
+
+def _write_refine_log(filepath, exclude_str, rule, node_name, desc, writer, plane_writer=None):
     if type(rule) == list:
         reg_rules = [re.compile(each_rule, re.DOTALL) for each_rule in rule]
     else:
@@ -137,6 +192,7 @@ def _write_refine_log(filepath, exclude_str, rule, node_name, writer):
             if refine_all:
                 reg_rules = [re.compile(".*", re.DOTALL)]
 
+            plane_writer_title = False
             for line in f:
                 for reg_rule in reg_rules:
                     match = reg_rule.findall(line)
@@ -150,9 +206,17 @@ def _write_refine_log(filepath, exclude_str, rule, node_name, writer):
 #                                 matched_time = matched_time.strftime("\"%Y-%m-%d %H:%M:%S.%f\"")
 #                             except:
 #                                 matched_time = ""
-
-                        writer.writerow([log_filename, node_name, line])
+                        if plane_writer:
+                            if not plane_writer_title and desc:
+                                plane_writer.write("[" + node_name + "]\n")
+                                plane_writer_title = True
+                            
+                            plane_writer.write(line)
+                        else:
+                            writer.writerow([log_filename, node_name, line])
                         break
+            if plane_writer:
+                plane_writer.write("\n")
             f.close()
 
 def _get_sortable(file_path):
@@ -484,6 +548,10 @@ if __name__ == "__main__":
     refine_log(output_file, target_folders)
     print "succeeded, refer to output file: " + output_file
     
+    print ""
+    print "######## Generate Environment Report according to  environment-report.xml for all nodes ########"
+    refine_log("./log/environment-report.txt", target_folders, ["./environment-report.xml"])
+    print "succeeded, refer to file: ./log/environment-report.txt"
     
     print ""
     print "All finished." 

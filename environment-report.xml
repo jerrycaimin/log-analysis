@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>    
+	<refine-log type="plane">
+    	<item>
+            <filepath>./mmlscluster</filepath>
+        </item>
+        <item>
+            <filepath>./mmlscluster_cnfs</filepath>
+        </item>
+    	<item>
+            <filepath>./mmlsmgr</filepath>
+        </item>
+    	<item>
+            <filepath>./mmlsfs</filepath>
+        </item>
+    	<item>
+            <filepath>./mmlsdisk</filepath>
+        </item>
+    	<item>
+            <filepath>./tspreparedisk_s</filepath>
+        </item>        
+    	<item desc="check for gpfs version">
+            <filepath>./rpm_qa</filepath>
+            <capture-exps>
+            	<exp>gpfs.base</exp>
+            </capture-exps>            
+        </item>
+    	<item desc="check for os version">
+            <filepath>./uname_a</filepath>    
+        </item>
+    </refine-log>
+</root>
