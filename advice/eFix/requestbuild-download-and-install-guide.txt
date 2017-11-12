@@ -1,3 +1,9 @@
+How to request an eFix:
+===========================
+https://w3-connections.ibm.com/wikis/home?lang=en-us#!/wiki/W72425d1a413f_4e38_944c_6384651f96ea/page/Efix%20Request%20Process
+
+
+How to download and install an eFix:
 ===========================
 1) Enter ftp testcase.software.ibm.com.
 2) At the login prompt enter anonymous.

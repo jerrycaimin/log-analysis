@@ -1,0 +1,8 @@
+Once our CCR configuration can not be decided, almost all GPFS commands will fail with such message. For more details, please search in PSDB.
+
+c80f5m5n04 Mon Aug 31 00:25:06 0]~# mmgetstate -a
+get file failed: err 801
+gpfsClusterInit: Unexpected error from ccr fget mmsdrfs.  Return code: 149
+mmgetstate: Command failed. Examine previous error messages to determine cause.
+
+Refer to psdb for solution.

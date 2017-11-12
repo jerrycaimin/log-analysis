@@ -236,7 +236,7 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
 
         if define_times is not None:
             if counter >= define_times:
-                #print("Found the issue.\n\nPlease follow below advice:\n%s.\n" % advice)
+                print("    [WARNING] possibly hit issue: %s" % issue_name)
                 _write_log(output_file,
                            "The issue [" + issue_name + "] is highly happened.\nPlease refer the advice:\n" + advice)
         elif warning_hittimes is not None:
@@ -468,7 +468,7 @@ if __name__ == "__main__":
             output_file = "./log/[" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "]" + basename + ".log"
             # analyze log by each defined task
             analyze_log(target_folder, output_file)
-        print "succeeded, output file: " + output_file
+        print "done, output file: " + output_file
         analysis_num = analysis_num + 1
 
     # refine the log from all the dumplogs, which defined in config.xml

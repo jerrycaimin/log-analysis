@@ -83,7 +83,7 @@ could find how many slowdata existed.</hint>
 				<exp>logAssertFailed</exp>
 			</exps>
             <desc>hit log assert crash issue.</desc>
-            <log_range>-5,20</log_range>
+            <log_range>-25,20</log_range>
     	</item>
     </issue>
 </root>
