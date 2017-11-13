@@ -1,0 +1,12 @@
+For NFS problem, we need data collection before OS reboot,
+especially tcpdump output from both NFS server and client, like
+'tcpdump -i <iface> -s0 -w <capfile> host <ip-address>'
+ex: 
+
+and ganesha trace on NFS server, which can enabled by
+'ganesha_mgr set_log COMPONET_ALL FULL_DEBUG'
+
+for five minutes. After that we can stop ganesha trace by
+'ganesha_mgr set_log COMPONET_ALL EVENT'
+
+and collect gpfs.snap.

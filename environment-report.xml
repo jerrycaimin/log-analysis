@@ -28,5 +28,8 @@
     	<item desc="check for os version">
             <filepath>./uname_a</filepath>    
         </item>
+    	<item desc="etc/hosts files">
+            <filepath>./etc/hosts</filepath>
+        </item>  
     </refine-log>
 </root>
