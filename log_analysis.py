@@ -436,10 +436,9 @@ def _write_log(filepath, content):
 
 
 def _write_log2(filepath, content):
-    if content:
-        file_object = open(filepath, 'a')
-        file_object.write(content.encode('utf-8'))
-        file_object.close()
+    file_object = open(filepath, 'a')
+    file_object.write(content)
+    file_object.close()
 
 def remove_test_folder(target_folders):
     # del test folder
