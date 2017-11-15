@@ -1,6 +1,9 @@
 import sys
 
+reload(sys)
+
 sys.path.insert(0, "./lib")
+sys.setdefaultencoding('utf8')
 
 import xmltodict
 import os

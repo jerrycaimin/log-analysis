@@ -1,0 +1,10 @@
+###########
+This is a nine-node AIX cluster with Spectrum Scale 4.2.3.0. Cluster was
+updated from 4.1.1.5 to 4.2.3.0 on Jul 22. Before this update, the
+cluster had been running 4.1.1.5 for more than one year.
+
+This cluster has tens of file systems, most of which were created in
+2014/2015. The newest file system, ccarstpaclblf, was created on Jun 2,
+2017.
+###########
+
