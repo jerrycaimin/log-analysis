@@ -25,31 +25,27 @@
             <desc>too many long waiters detected.</desc>
     	</item>
     </issue>
-    <issue name="node expel issue due to tcp configuration">
-		<!-- item>
-            <filepath>./mmfs.logs*</filepath>
-            <exps>
-				<exp>.</exp>
-			</exps>
-			<print_match_position>False</print_match_position>
-			<desc>Test no print match postion</desc>
-        </item-->
+    <issue name="disks I/O waiting > 20ms that may downgrade the performance">
+        <item>
+        	<filepaths sortable="False">
+	            <filepath>./internaldump*/internaldump*</filepath>
+            </filepaths>
+            <exp>aiting \d+\.\d+ sec.*I/O completion on disk</exp>
+			<desc>wait for disk I/O completion.</desc>			
+        </item>
         <item>
         	<filepaths sortable="False">
 	            <filepath>./internaldump*/internaldump*</filepath>
             </filepaths>
             <exp>Waiting \d+\.\d+ sec.*NSD I/O completion</exp>
-			<desc>NSD I/O waiters found.</desc>
-			<hint>For NSD IOs waiters, generally it means gpfs has dispatched IOs to 
-disk/storage subsys but still waiting for reply, if there are many IOs 
-waiters, reported from nsd node, are pending there more than 0.02s, it 
-will bring pref impact to your cluster. 
-Try use tool iohist.awk: 
->iohist.awk slowdata=1000 internaldump.* | grep "E2_GPFS_*" | awk {'print $11'} | sort | uniq -c 
-could find how many slowdata existed.</hint>
+			<desc>wait for nsd I/O completion.</desc>
         </item>
+        <advice from="advice/disk/disk_nsd_io_pending_20ms.txt" />
+    </issue>
+    <issue name="network problem from rto raise to 2min">
         <item>
             <filepaths sortable="False">
+	            <filepath>./internaldump*/internaldump*</filepath>
 	            <filepath>./internaldumps*/extra*</filepath>
 	            <filepath>./internaldumps*/extra*/extra*</filepath>
             </filepaths>
@@ -85,5 +81,6 @@ could find how many slowdata existed.</hint>
             <desc>hit log assert crash issue.</desc>
             <log_range>-25,20</log_range>
     	</item>
+    	<advice from="advice/crash/logAssertFailed.txt" />
     </issue>
 </root>

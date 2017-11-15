@@ -1,0 +1,11 @@
+For disk IO waiters, generally it means gpfs has dispatched IOs to 
+disk/storage subsystem but still waiting for reply, if there are many IOs 
+waiters, reported from nsd node, are pending there more than 0.02s, it 
+will bring pref impact to your cluster. 
+
+So this might be some hardware abnormal that downgrade the performance, please 
+try to review the hardware environment to resolve the problem.
+
+Also try use tool iohist.awk: 
+>iohist.awk slowdata=1000 internaldump.* | grep "E2_GPFS_*" | awk {'print $11'} | sort | uniq -c 
+could find how many slowdata existed.

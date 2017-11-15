@@ -1,5 +1,4 @@
 If the log assert triggered kernel panic, causing the node to reboot.
-
 Suggestion:
 Q: The assert Condition can be found in psdb?
 	[A] Yes, It¡¯s an existed problem, does it fixed?

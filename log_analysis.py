@@ -77,6 +77,9 @@ def refine_log(output_file=None, target_folders=None, specified_configs=None):
     for config_file in op_config_files:
         config = read_config(config_file)
         refine_log = config.get("refine-log", None)
+        
+        if not refine_log:
+            continue
         #any "plane" once, output file is plane
         type = refine_log.get("@type", "csv")
         if type == "plane":
