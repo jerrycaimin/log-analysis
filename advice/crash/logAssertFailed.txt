@@ -1,10 +1,10 @@
 If the log assert triggered kernel panic, causing the node to reboot.
 Suggestion:
 Q: The assert Condition can be found in psdb?
-	[A] Yes, It¡¯s an existed problem, does it fixed?
+	[A] Yes, It's an existed problem, does it fixed?
 		[A1] Yes, fixed. Talked with dev to make eFix on this issue, PFE need simple function verify, if fix part is danger, may involve test team help to test. The deliver to customer.
 		[B1] Not yet. Talk with developer, try to open the trace and recreate the issue, open a RTC if necessary. If can be fixed, do [A1], if it cannot be recreated, close the pmr and reopen it next time hit.
-	[B] No, it¡¯s a new issue, do as [B1].
+	[B] No, it's a new issue, do as [B1].
 
 
 Here is the step to open trace and recreate the problem in customer env, if allowed by customer.
