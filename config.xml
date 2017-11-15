@@ -45,7 +45,6 @@
     <issue name="network problem from rto raise to 2min">
         <item>
             <filepaths sortable="False">
-	            <filepath>./internaldump*/internaldump*</filepath>
 	            <filepath>./internaldumps*/extra*</filepath>
 	            <filepath>./internaldumps*/extra*/extra*</filepath>
             </filepaths>
