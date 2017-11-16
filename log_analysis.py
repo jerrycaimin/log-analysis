@@ -11,6 +11,7 @@ from datetime import datetime
 import csv
 from optparse import OptionParser
 import utils 
+import commands
 
 
 # validate and read config file
@@ -318,6 +319,47 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
                    "============================================================================================")
         _write_log(output_file, "\n")
 
+def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True):
+    file_part = ""
+    if type(filepath) == list:
+        f_c = 0
+        for f in filepath:
+            if f_c == 0:
+                file_part = os.path.join(target_folder, f)
+            else:
+                file_part = file_part + " " + os.path.join(target_folder, f)
+            f_c = f_c + 1
+    else:
+        file_part = filepath
+    print file_part
+    
+    # write rule to tmp file
+    reg_tmp_filename = "tmpexp"
+    with open(reg_tmp_filename) as tmpexp:
+        if type(rule) == list:
+            for r in rule:
+                tmpexp.write(r)
+        else:
+            tmpexp.write(r)
+    with open("tmpexp") as tmpexp:
+        print tmpexp.read()
+    
+    grep_cmd = "grep -r -f tmpexp " + file_part
+    status, output = commands.getstatusoutput(grep_cmd)
+    
+    print status
+    print output
+    
+    Is_des_printed = False
+    if status == 0 and len(output) > 0:
+        if Is_des_printed == False:
+            _write_log(output_file, "Clue: [" + desc + "]")
+            if hint:
+                _write_log(output_file, "Hint: " + hint)
+            _write_log(output_file, "Following related log found:")
+            Is_des_printed = True
+    _write_log2(output_file, output)
+    
 
 def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True):
     if type(rule) == list:
@@ -359,6 +401,7 @@ def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint
             f_size = os.path.getsize(path)
             if f_size > 500000000:
                 print "    file size larger than 500M, is " + str(f_size) + ", skip:" + os.path.basename(path)
+                _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True)
                 continue
             elif f_size > 50000000:
                 print "    file size is " + str(f_size) + ", need time to analysis: " + os.path.basename(path)
