@@ -331,7 +331,7 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
             f_c = f_c + 1
     else:
         file_part = os.path.join(target_folder, filepath)
-    print file_part
+    #print file_part
     #import pdb;pdb.set_trace()
    
     # write rule to tmp file
@@ -342,8 +342,8 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
                 tmpexp.write(r)
         else:
             tmpexp.write(rule)
-    with open("tmpexp") as tmpexp:
-        print tmpexp.read()
+    #with open("tmpexp") as tmpexp:
+    #    print tmpexp.read()
     
     grep_cmd = "grep -r -f tmpexp " + file_part
     status, output = commands.getstatusoutput(grep_cmd)
