@@ -320,6 +320,8 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
         _write_log(output_file, "\n")
 
 def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True):
+    import pdb;pdb.set_trace()
+    
     file_part = ""
     if type(filepath) == list:
         f_c = 0
@@ -362,7 +364,6 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
     
 
 def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True):
-    import pdb;pdb.set_trace()
     if type(rule) == list:
         reg_rules = [re.compile(each_rule, re.DOTALL) for each_rule in rule]
     else:
