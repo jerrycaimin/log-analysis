@@ -320,7 +320,6 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
         _write_log(output_file, "\n")
 
 def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True):
-    
     file_part = ""
     if type(filepath) == list:
         f_c = 0
@@ -333,7 +332,7 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
     else:
         file_part = os.path.join(target_folder, filepath)
     print file_part
-    import pdb;pdb.set_trace()
+    #import pdb;pdb.set_trace()
    
     # write rule to tmp file
     reg_tmp_filename = "tmpexp"
@@ -349,8 +348,8 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
     grep_cmd = "grep -r -f tmpexp " + file_part
     status, output = commands.getstatusoutput(grep_cmd)
     
-    print status
-    print output
+    #print status
+    #print output
     
     Is_des_printed = False
     if status == 0 and len(output) > 0:
@@ -401,8 +400,8 @@ def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint
                 f = open(path, "rb")
             # skip if larger than 500M
             f_size = os.path.getsize(path)
-            if f_size > 60000000:
-                print "    file size larger than 500M, is " + str(f_size) + ", skip:" + os.path.basename(path)
+            if f_size > 100000000:
+                print "    file size larger than 100M, is " + str(f_size) + ", use os grep instead to speed up. File:" + os.path.basename(path)
                 _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True)
                 continue
             elif f_size > 30000000:
