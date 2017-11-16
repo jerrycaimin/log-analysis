@@ -320,7 +320,6 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
         _write_log(output_file, "\n")
 
 def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True):
-    import pdb;pdb.set_trace()
     
     file_part = ""
     if type(filepath) == list:
@@ -334,10 +333,11 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
     else:
         file_part = filepath
     print file_part
-    
+    import pdb;pdb.set_trace()
+   
     # write rule to tmp file
     reg_tmp_filename = "tmpexp"
-    with open(reg_tmp_filename) as tmpexp:
+    with open(reg_tmp_filename, 'w') as tmpexp:
         if type(rule) == list:
             for r in rule:
                 tmpexp.write(r)
