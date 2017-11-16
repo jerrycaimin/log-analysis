@@ -342,7 +342,7 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
             for r in rule:
                 tmpexp.write(r)
         else:
-            tmpexp.write(r)
+            tmpexp.write(rule)
     with open("tmpexp") as tmpexp:
         print tmpexp.read()
     
