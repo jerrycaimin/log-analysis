@@ -331,7 +331,7 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
                 file_part = file_part + " " + os.path.join(target_folder, f)
             f_c = f_c + 1
     else:
-        file_part = filepath
+        file_part = os.path.join(target_folder, filepath)
     print file_part
     import pdb;pdb.set_trace()
    
