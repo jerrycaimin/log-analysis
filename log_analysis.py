@@ -360,7 +360,7 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
                 _write_log(output_file, "Hint: " + hint)
             _write_log(output_file, "Following related log found:")
             Is_des_printed = True
-    _write_log2(output_file, output)
+        _write_log2(output_file, output)
     
 
 def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True):
