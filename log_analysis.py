@@ -362,6 +362,7 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
     
 
 def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True):
+    import pdb;pdb.set_trace()
     if type(rule) == list:
         reg_rules = [re.compile(each_rule, re.DOTALL) for each_rule in rule]
     else:
@@ -399,11 +400,11 @@ def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint
                 f = open(path, "rb")
             # skip if larger than 500M
             f_size = os.path.getsize(path)
-            if f_size > 500000000:
+            if f_size > 60000000:
                 print "    file size larger than 500M, is " + str(f_size) + ", skip:" + os.path.basename(path)
                 _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True)
                 continue
-            elif f_size > 50000000:
+            elif f_size > 30000000:
                 print "    file size is " + str(f_size) + ", need time to analysis: " + os.path.basename(path)
 
             #f = open(path, "rb")
