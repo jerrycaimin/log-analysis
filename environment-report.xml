@@ -17,6 +17,9 @@
             <filepath>./mmlsdisk</filepath>
         </item>
     	<item>
+            <filepath>./mmlsnsd</filepath>
+        </item>
+    	<item>
             <filepath>./tspreparedisk_s</filepath>
         </item>        
     	<item desc="check for gpfs version">
