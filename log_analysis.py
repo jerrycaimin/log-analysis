@@ -86,7 +86,10 @@ def refine_log(output_file=None, target_folders=None, specified_configs=None):
         if type == "plane":
             plane_writer = open(output_file, 'w')
         elif not head_written:
-            writer.writerow(['filename', 'node', 'log'])
+            if generate_date:
+                writer.writerow(['datetime', 'filename', 'node', 'log'])
+            else:
+                writer.writerow(['filename', 'node', 'log'])
             head_written = True
 
         if refine_log:
@@ -217,11 +220,36 @@ def _write_refine_log(filepath, exclude_str, rule, node_name, desc, writer, plan
                             
                             plane_writer.write(line)
                         else:
-                            writer.writerow([log_filename, node_name, line])
+                            if generate_date:
+                                writer.writerow([_get_datetime_from_line(line),
+                                                 log_filename, node_name, line])
+                            else:
+                                writer.writerow([log_filename, node_name, line])
                         break
             if plane_writer:
                 plane_writer.write("\n")
             f.close()
+
+def _get_datetime_from_line(line):
+    if not convertor_map:
+        return ""
+    
+    for re in convertor_map:
+        matched_time = ""
+        match_datetime = re.match(line)
+        if match_datetime:
+            convertors = convertor_map[re]
+            
+            if type(convertors) != list:
+                convertors = [convertors]
+    
+            for conv in convertors: 
+                try:
+                    matched_time = datetime.strptime(match_datetime.group(0), conv)
+                    matched_time = matched_time.strftime("\"%Y-%m-%d %H:%M:%S.%f\"")
+                    return matched_time
+                except:
+                    matched_time = ""
 
 def _get_sortable(file_path):
     if not file_path:
@@ -400,8 +428,8 @@ def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint
                 f = open(path, "rb")
             # skip if larger than 500M
             f_size = os.path.getsize(path)
-            if f_size > 100000000:
-                print "    file size larger than 100M, is " + str(f_size) + ", use os grep instead to speed up. File:" + os.path.basename(path)
+            if f_size > 300000000:
+                print "    file size larger than 300M, is " + str(f_size) + ", use os grep instead to speed up. File:" + os.path.basename(path)
                 _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True)
                 continue
             elif f_size > 30000000:
@@ -501,6 +529,8 @@ if __name__ == "__main__":
     global start_date
     global refine_all
     global config_files
+    global convertor_map
+    global generate_date
     
     start_date=None
     refine_all=False
@@ -518,6 +548,10 @@ if __name__ == "__main__":
     parser.add_option("-a", "--refine-all", dest="refine_all",
                       default=False, action="store_true",
                       help="ignore capture-exps, refine all logs.")
+
+    parser.add_option("-g", "--generate-date", dest="generate_date",
+                      default=False, action="store_true",
+                      help="generate date when date string includes week not sortable.")
 
     parser.add_option("-c", "--config-file", dest="config_files",
                       action="append", help="specify the config files.")
@@ -558,6 +592,10 @@ if __name__ == "__main__":
         print get_basename(target_folder)
     print ""
 
+    generate_date = options.generate_date
+    if generate_date:
+        convertor_map = {re.compile("[a-zA-Z]{3} [a-zA-Z]{3} .*201[5-8]"):["%a %b %d %H:%M:%S.%f %Y"]}
+
     #fill in the parameters
     start_date = options.start_date
     refine_all = options.refine_all
@@ -568,19 +606,6 @@ if __name__ == "__main__":
                 parser.error("config file not found, please check the config file again: " + conf_file)
     else:
         config_files = ["./config.xml"]
-
-    print "############### Analysing gpfs.snap from existed knowledge ##############"
-    analysis_num = 1
-    for target_folder in target_folders:
-        pre_num = "[" + str(analysis_num) + "/" + str(len(target_folders)) + "]"
-        print pre_num + " analysing " + get_basename(target_folder) + " ..."
-        if os.path.exists(target_folder):
-            basename = get_basename(target_folder)
-            output_file = "./log/[" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "]" + basename + ".log"
-            # analyze log by each defined task
-            analyze_log(target_folder, output_file)
-        print "done, output file: " + output_file
-        analysis_num = analysis_num + 1
 
     # refine the log from all the dumplogs, which defined in config.xml
     print ""
@@ -599,6 +624,21 @@ if __name__ == "__main__":
     print "######## Generate Environment Report according to  environment-report.xml for all nodes ########"
     refine_log("./log/environment-report.txt", target_folders, ["./environment-report.xml"])
     print "succeeded, refer to file: ./log/environment-report.txt"
+    
+    
+    print "############### Analysing gpfs.snap from existed knowledge ##############"
+    analysis_num = 1
+    for target_folder in target_folders:
+        pre_num = "[" + str(analysis_num) + "/" + str(len(target_folders)) + "]"
+        print pre_num + " analysing " + get_basename(target_folder) + " ..."
+        if os.path.exists(target_folder):
+            basename = get_basename(target_folder)
+            output_file = "./log/[" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "]" + basename + ".log"
+            # analyze log by each defined task
+            analyze_log(target_folder, output_file)
+        print "done, output file: " + output_file
+        analysis_num = analysis_num + 1
+
     
     print ""
     print "All finished." 
