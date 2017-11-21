@@ -26,8 +26,8 @@ convertor_map = {re.compile("[a-zA-Z]{3} [a-zA-Z]{3} .*201[5-8]"):["%a %b %d %H:
 
 convertor_map = {re.compile("[a-zA-Z]{3} [a-zA-Z]{3} .*201[5-8]"):["%a %b %d %H:%M:%S.%f %Y"]}
 
-ttt = datetime.strptime("Fri Oct 27 16:14:04 JST 2017", "%a %b %d %H:%M:%S JST %Y")
-
+#ttt = datetime.strptime("Fri Oct 27 16:14:04 JST 2017", "%a %b %d %H:%M:%S JST %Y")
+ttt = datetime.strptime("Tue Jul 25 20:00:13.528 2017", "%a %b %d %H:%M:%S.%f %Y")
 
 for re in convertor_map:
     match_datetime = re.match(line)
