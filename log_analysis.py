@@ -183,15 +183,15 @@ def _write_refine_log(filepath, exclude_str, rule, node_name, desc, writer, plan
             if f_size > 500000000:
                 print "    file size larger than 500M, is " + str(f_size) + ", skip:" + os.path.basename(path)
                 continue
-            elif f_size > 50000000:
+            elif f_size > 150000000:
                 print "    file size is " + str(f_size) + ", need time to analysis: " + os.path.basename(path)
 
             
             # if user limits the start date, do it
-            if start_date:
-                f = utils.NewFile(path, start_date)
+            if start_date and plane_writer is None:
+                f = utils.NewSeqFile(path, start_date)
                 if f.found == False:
-                    print "    WARNING: " + start_date + "not found in " + log_filename + ", will refine by all the file."
+                    print "   Warning : [" + start_date + "] not found in " + log_filename + ", will refine by all the file."
             else:
                 f = open(path, "rb")
 
@@ -423,7 +423,7 @@ def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint
             count = 0
             
             if start_date and sortable:
-                f = utils.NewFile(path, start_date)
+                f = utils.NewSeqFile(path, start_date)
             else:
                 f = open(path, "rb")
             # skip if larger than 500M
