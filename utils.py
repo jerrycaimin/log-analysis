@@ -155,6 +155,9 @@ def bisect_interval(f, x, y=None, is_open=False, size=None):
 
 
 class NewFile(file):
+    """Using bisect to read the file
+    """
+
     def __init__(self, name, start_date):
         super(NewFile, self).__init__(name, "rb")
         start_date = start_date
@@ -201,3 +204,23 @@ def find_file(filename, file_folder, depth=None):
                                                     temp_depth))
 
     return matching_filepaths
+
+
+class NewSeqFile(file):
+    """Read the file line by line, starting from the first matched startswith string.
+    """
+
+    def __init__(self, name, startswith):
+        super(NewSeqFile, self).__init__(name, "rb")
+        while not self.readline().startswith(startswith):
+            pass
+
+        cur_lineno = self.tell()
+        # if EOF, reading from the beginning line
+        self.seek(-1, os.SEEK_END)
+        if cur_lineno >= self.tell():
+            self.seek(0, 0)
+            self.found = False
+        else:
+            self.seek(cur_lineno)
+            self.found = True
