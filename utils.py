@@ -212,13 +212,16 @@ class NewSeqFile(file):
 
     def __init__(self, name, startswith):
         super(NewSeqFile, self).__init__(name, "rb")
-        while not self.readline().startswith(startswith):
+        self.seek(-1, os.SEEK_END)
+        end_lineno = self.tell()
+
+        self.seek(0, 0)
+        while self.tell() < end_lineno and not self.readline().startswith(startswith):
             pass
 
         cur_lineno = self.tell()
         # if EOF, reading from the beginning line
-        self.seek(-1, os.SEEK_END)
-        if cur_lineno >= self.tell():
+        if cur_lineno >= end_lineno:
             self.seek(0, 0)
             self.found = False
         else:
