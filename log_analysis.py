@@ -432,7 +432,7 @@ def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint
                 print "    file size larger than 300M, is " + str(f_size) + ", use os grep instead to speed up. File:" + os.path.basename(path)
                 _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True)
                 continue
-            elif f_size > 30000000:
+            elif f_size > 100000000:
                 print "    file size is " + str(f_size) + ", need time to analysis: " + os.path.basename(path)
 
             #f = open(path, "rb")

@@ -82,4 +82,17 @@
     	</item>
     	<advice from="advice/crash/logAssertFailed.txt" />
     </issue>
+     <issue name="node expel due to network glitches">
+    	<item>
+    		<filepaths sortable="True">
+	            <filepath>./mmfs.logs*</filepath>
+            </filepaths>
+            <exps>
+				<exp>is being expelled because of an expired lease. Pings sent</exp>
+			</exps>
+            <desc>hit node expel due to network glitches problem.</desc>
+            <log_range>-20,100</log_range>
+    	</item>
+    	<advice from="advice/node-expel/node_expel_due_to_network_glitches.txt" />
+    </issue>
 </root>

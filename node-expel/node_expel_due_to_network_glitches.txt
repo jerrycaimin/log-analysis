@@ -1,0 +1,118 @@
+Here is the sample of how to reply "node expel and return" problem:
+
+[Result]
+This could be either network glitches or resource contention that caused disk leases renew timeout, which caused the node got expelled.
+Suggest administrator check the network environment, or tune the minMissedPingTimeout/maxMissedPingTimeout to cover up network glitches and makes gpfs more tolerante to network issues.
+
+[Analysis]
+We can see from mmfs log that
+1st time node rstnsd2 expel, in rstnsd1 mmfs log:
+Mon Nov 13 14:12:56.015 2017: [E] Node 130.145.134.249 (rstnsd2-clus.natlab.research.philips.com) is being expelled because of an expired lease. Pings sent: 60. Replies received: 60.
+
+In rstnsd2 mmfs log:
+Mon Nov 13 14:13:31.558 2017: [N] Disk lease period expired 0.010 seconds ago in cluster rst1.natlab.research.philips.com. Attempting to reacquire the lease.
+after a while:
+Mon Nov 13 14:15:16.715 2017: [N] Disk lease reacquired in cluster rst1.natlab.research.philips.com.
+rstnsd2 seems recovered automatically.
+
+
+2nd time node rstnsd2 expel, in rstnsd1 mmfs log:
+Tue Nov 14 10:31:18.256 2017: [E] Node 130.145.134.249 (rstnsd2-clus.natlab.research.philips.com) is being expelled because of an expired lease. Pings sent: 60. Replies received: 60.
+
+In rstnsd2 mmfs log:
+Tue Nov 14 10:31:37.297 2017: [N] Disk lease period expired 0.020 seconds ago in cluster rst1.natlab.research.philips.com. Attempting to reacquire the lease.
+after a while:
+Tue Nov 14 10:35:09.652 2017: [N] Disk lease reacquired in cluster rst1.natlab.research.philips.com.
+rstnsd2 seems recovered automatically, too.
+
+from the internaldump "dump tscomm" section it also showed that:
+rstnsd1:
+TCP Connections between nodes:
+        node destination     status     err b  sock      sent     recvd   sseq   rseq  retry   ver  ostype
+      <c0n1> 130.145.134.249 broken     233 -    -1  60919405  60919108      1  65535      0  1603  Linux/B
+      <c0n2> 130.145.135.233 connected    0 -    62  17422715  17457817  14467  25297      0  1603  Linux/B
+      <c0n3> 130.145.135.232 connected    0 -    72 556595505 557830046  30060  58886      0  1704  Linux/L
+      <c0n4> 130.145.135.234 connected    0 -   179 403676223 404574230   5964  26147      0  1704  Linux/L
+      <c0n5> 130.145.134.243 connected    0 -    86  96792068  96989097  19976  62369      0  1512  Linux/L
+      <c0n6> 130.145.135.215 connected    0 -    97  91566818  91761929  37632  12649      0  1512  Linux/L
+      <c0n7> 130.145.133.248 connected    0 -   107 135627006 135831097  58294  42373      0  1512  Linux/L
+	...... <All connected besides rstnsd2>
+
+rstnsd2:
+TCP Connections between nodes:
+        node destination     status     err b  sock      sent     recvd   sseq   rseq  retry   ver  ostype
+      <c0n0> 130.145.135.231 broken     233 -    -1  60919108  60919405      1  65535      0  1603  Linux/B
+      <c0n2> 130.145.135.233 broken     233 -    -1   1334633   1337715      1  65535      0  1603  Linux/B
+      <c0n3> 130.145.135.232 broken     233 -    -1   9999432  10024920      1  65535      0  1704  Linux/L
+      <c0n4> 130.145.135.234 broken     233 -    -1  16252301  16284556      1  65535      0  1704  Linux/L
+      <c0n5> 130.145.134.243 broken     233 -    -1   1329936   1333013      1  65535      0  1512  Linux/L
+	...... <All broken>
+
+It seems rstnsd2 got network issue when problem happened, and after a while it returned, which we can consider this as network glitches caused the problem
+
+[Background]
+Here is the gpfs node expel mechanism:
+
+There are two types of node expels:
+1. Disk Lease Expiration - GPFS uses a mechanism referred to as a disk
+lease to prevent file system data corruption by a failing node. A disk
+lease grants a node the right to submit IO to a file system. File system
+disk leases are managed by the Cluster Manager of the file system's home
+cluster. A node must periodically renew it's disk lease with the Cluster
+Manager to maintain it's right to submit IO to the file system. When a
+node fails to renew a disk lease with the Cluster Manager, the Cluster
+Manager marks the node as failed, revokes the node's right to submit IO
+to the file system, expels the node from the cluster, and initiates
+recovery processing for the failed node.
+
+2. Node Expel Request - GPFS uses a mechanism referred to as a node
+expel request to prevent file system resource deadlocks. Nodes in the
+cluster require reliable communication amongst themselves to coordinate
+sharing of file system resources. If a node fails while owning a file
+system resource, a deadlock may ensue. If a node in the cluster detects
+that another node owing a shared file system resource may have failed,
+the node will send a message to the file system Cluster Manger
+requesting the failed node to be expelled from the cluster to prevent a
+shared file system resource deadlock. When the Cluster Manager receives
+a node expel request, it determines which of the two nodes should be
+expelled from the cluster and takes similar action as described for the
+Disk Lease expiration.
+
+Both types of node expels, Disk Lease Expiration and Node Expel Request,
+will result in a node unmounting the GPFS file system and possible job
+failure. Both type of expels are often a result of some type of network
+issue.
+
+[Action Plan]
+1. Adminitrator check potential network glitches problem.
+2. Tune the GPFS config to cover up network glitches and makes gpfs more tolerante to network issues:
+	a) Tune minMissedPingTimeout to 60 and maxMissedPingTimeout to 120.
+	Changing minMissedPingTimeout from 3s to 60s to cover over short
+	network glitches. It allows the lease to be overdue by one minutes
+	before a node is declared dead.
+	This value only needs to be changed on quorum nodes, since GPFS daemon
+	needs to be restarted to take effect the new value, you can reboot
+	quorum nodes one at a time leaving current cluster manager for last this
+	way cluster stays up all the time.
+	mmchconfig minMissedPingTimeout=60
+	mmchconfig maxMissedPingTimeout=120
+	It's better to recycling daemon on cluster manager, select another quorum as new
+	cluster manager (via mmchmgr -c $nodename).
+
+	b) Tuning "failureDetectionTime" would be what you're looking for, lease
+	duration = failure detection time. So increasing this config would
+	increase the lease duration thus giving more time between marking a node
+	as failed when it doesn't renew its lease fast.
+
+	Simply here is the logic where the failed node was not the cluster
+	manager:
+
+	1) We see the last time the failed node renewed its lease
+	2) The cluster manager detects that the lease has expired (after
+	failureDetectionTime), and starts pinging the node.
+	3) The cluster manager decides that the node is dead and runs the node
+	failure protocol
+	4) The file system manager starts log recovery
+
+	For detail of each config, please refer to here:
+	https://www.ibm.com/support/knowledgecenter/en/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1adv_optional.htm
