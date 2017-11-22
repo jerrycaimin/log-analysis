@@ -615,6 +615,8 @@ if __name__ == "__main__":
         print "    : -d is set to " + start_date + ", only extract the logs AFTER this date. (If start date not matched, all data will be generated.)"
     if refine_all:
         print "    : -a enabled, ignore regex, all the logs from the period will be generated."
+    if generate_date:
+        print "    : -g enabled, generate datetime from each line, by which could support time sort, will cost more time."
     
     output_file = "./log/Log-Refined-[" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "].csv"
     refine_log(output_file, target_folders)
