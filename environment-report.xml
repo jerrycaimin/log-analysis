@@ -25,14 +25,14 @@
     	<item desc="check for gpfs version">
             <filepath>./rpm_qa</filepath>
             <capture-exps>
-            	<exp>gpfs.base</exp>
+            	<exp>gpfs\.base</exp>
             </capture-exps>            
         </item>
     	<item desc="check for os version">
             <filepath>./uname_a</filepath>    
         </item>
-    	<item desc="etc/hosts files">
+    	<!--item desc="etc/hosts files">
             <filepath>./etc/hosts</filepath>
-        </item>  
+        </item-->  
     </refine-log>
 </root>
