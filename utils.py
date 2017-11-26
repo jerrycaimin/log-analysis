@@ -218,7 +218,7 @@ class NewSeqFile(file):
         except:
             self.seek(0, 0)
             self.found = False
-            pass
+            return
 
         self.seek(0, 0)
         while self.tell() < end_lineno and not self.readline().startswith(startswith):
