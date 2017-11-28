@@ -196,7 +196,7 @@ def _write_refine_log(filepath, exclude_str, rule, node_name, desc, writer, plan
                 f = open(path, "rb")
 
             # if refine_all open, get all the logs
-            if refine_all:
+            if refine_all and plane_writer is None:
                 reg_rules = [re.compile(".*", re.DOTALL)]
 
             plane_writer_title = False

@@ -116,3 +116,35 @@ issue.
 
 	For detail of each config, please refer to here:
 	https://www.ibm.com/support/knowledgecenter/en/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1adv_optional.htm
+
+[Below explainations are for failureDetectionTime and leaseRecoveryWait]
+The leaseRecoveryWait parameter defines how long the FS manager of a
+filesystem will wait after the last known lease expiration of any failed
+nodes before running recovery. A failed node cannot reconnect to the
+cluster before recovery is finished. The default of leaseRecoveryWait
+value is 35 seconds. Making this value smaller increases the risk that
+there may be IO in flight from the failing node to the disk/controller
+when recovery starts running. This may result in out of order IOs
+between the FS manager and the dying node.
+
+From above statements, you know leaseRecoveryWait is not part of
+failureDetectionTime.
+
+In most cases where a node is expelled from the cluster there is a
+either a problem with the network or the node running out of resources
+like paging. The failureDetectionTime does not protect against network
+glitches, it just changes the frequency of acquiring a lease.
+The leaseRecoveryWait controls how long the FS mgr has to wait before
+running recovery but once you set minMissedPingTimeout longer than
+leaseRecveryWait it doesn't matter.
+
+Current minMissedPingTimeout is 3 seconds, suggest to increase it to 60
+seconds.
+
+For example, mmchconfig minMissedTimeout=60
+Changing MissedPing times only has to be done on the quorum nodes,
+because only the cluster manager uses them to determine how long to wait
+before kicking a bad node out. Recycle quorum nodes one at a time
+leaving current cluster manager for last, use mmchmgr -c to force
+cluster manager to another quorum nodes,this way cluster stays up all
+the time.
