@@ -99,10 +99,9 @@ issue.
 	It's better to recycling daemon on cluster manager, select another quorum as new
 	cluster manager (via mmchmgr -c $nodename).
 
-	b) Tuning "failureDetectionTime" would be what you're looking for, lease
-	duration = failure detection time. So increasing this config would
+	b) Tuning "failureDetectionTime", interval of disk lease request. So increasing this config would
 	increase the lease duration thus giving more time between marking a node
-	as failed when it doesn't renew its lease fast.
+	as failed when it doesn't renew its lease fast. Default is 35s.
 
 	Simply here is the logic where the failed node was not the cluster
 	manager:
@@ -148,3 +147,11 @@ before kicking a bad node out. Recycle quorum nodes one at a time
 leaving current cluster manager for last, use mmchmgr -c to force
 cluster manager to another quorum nodes,this way cluster stays up all
 the time.
+
+[Below explainations are for failureDetectionTime and leaseRecoveryWait]
+1) failureDetectionTime = interval of Disk lease request, default 35s.
+2) leaseRecoveryWait = After disk lease requested, how much time will cluster manager wait and determine if node is dead or alive. Default is 35s. 
+Note: If leaseRecoveryWait < minMissedPingTimeout, leaseRecoveryWait = minMissedPingTimeout
+3) minMissedPingTimeout = min of ping timeout
+Tip: leaseRecoveryWait is not recommended to set < 35s, as in overload situation, it will increase time of disk lease response, less than 35s
+may harm stability or lead data inconsistency.

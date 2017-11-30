@@ -1,0 +1,83 @@
+From GPFS perspective, there is no specific criteria that how fast it's good, it depends on what type of disk you have(hdd or ssd), how the backend storage connect to nsd server(fc or ethernet), and which protocal you use(san or scsi)
+We can see from an ESS env dd write speed raised to 4.8G/s, and a local x86 vm env dd write is only 150M/s, both of them can be normal. 
+
+1. Test write speed:
+	dd if=/dev/zero bs=1M count=1000 of=/gpfs/gpfs0/test2
+2. Test read speed:
+	dd if=/gpfs/gpfs0/test2 bs=1M count=1000 of=/dev/null
+
+Then from L2 side, we check the long waiters of "I/O completion on disk dm-{x}", it's environment independent, and if we see it's larger than 100ms, disk problem will be the most possible cause.
+From the uploaded dumpall log I can found a lot of long waiters:
+Waiting 0.7894 sec since 09:46:57, monitored, thread 26929 CleanBufferThread: for I/O completion on disk dm-0
+Waiting 0.7842 sec since 09:46:57, monitored, thread 26926 CleanBufferThread: for I/O completion on disk dm-3
+Waiting 0.7806 sec since 09:46:57, monitored, thread 26487 WritebehindWorkerThread: for I/O completion on disk dm-2
+...
+
+The waiting sec is 700ms that beyond 100ms, it's not good and high possible that some disk has io issue need to check.
+
+Also I generate the report with performance tool on dumpsome file, found this:
+>iohist.awk slowdata=1000 internaldump.* | awk {'print $9'} | sort 
+
+                         Num of    Time in   NSD        FS                                                                      
+Time     R/W   Buf type sectors    seconds  name      name     K/sec  type      NSD server   Context                   Thread   
+-------- ---   -------- -------  --------- ----- --------- ---------  ----  -------------- --------- ------------------------   
+09:45:43   W       data    2048  0.7746420 data1   gpfs001   1321.90  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7841620 data1   gpfs001   1305.85  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7795770 data3   gpfs001   1313.53  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7807510 data1   gpfs001   1311.56  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7823030 data6   gpfs001   1308.96  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7968570 data5   gpfs001   1285.05  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7902930 data6   gpfs001   1295.72  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7903240 data2   gpfs001   1295.67  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.8008930 data1   gpfs001   1278.57  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.8040610 data4   gpfs001   1273.54  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.8008990 data4   gpfs001   1278.56  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7906390 data1   gpfs001   1295.15  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7925760 data2   gpfs001   1291.99  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.8006300 data4   gpfs001   1278.99  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.8013960 data2   gpfs001   1277.77  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.8002510 data1   gpfs001   1279.60  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7926290 data4   gpfs001   1291.90  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7881690 data1   gpfs001   1299.21  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7949620 data5   gpfs001   1288.11  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7957370 data5   gpfs001   1286.86  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7974250 data6   gpfs001   1284.13  lcl                    Cleaner CleanBufferThread          
+                         Num of    Time in   NSD        FS                                                                      
+Time     R/W   Buf type sectors    seconds  name      name     K/sec  type      NSD server   Context                   Thread   
+-------- ---   -------- -------  --------- ----- --------- ---------  ----  -------------- --------- ------------------------   
+09:45:43   W       data    2048  0.8014650 data1   gpfs001   1277.66  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7990050 data3   gpfs001   1281.59  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7856300 data4   gpfs001   1303.41  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7965130 data1   gpfs001   1285.60  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7911060 data6   gpfs001   1294.39  lcl                    Cleaner CleanBufferThread          
+09:45:43   W       data    2048  0.7806260 data6   gpfs001   1311.77  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7825000 data3   gpfs001   1308.63  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7944060 data4   gpfs001   1289.01  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7945820 data5   gpfs001   1288.73  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7889710 data6   gpfs001   1297.89  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7780630 data2   gpfs001   1316.09  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7812380 data3   gpfs001   1310.74  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7818320 data5   gpfs001   1309.74  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7762480 data6   gpfs001   1319.17  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7852490 data1   gpfs001   1304.04  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7831570 data1   gpfs001   1307.53  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7836300 data3   gpfs001   1306.74  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7869150 data3   gpfs001   1301.28  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7890260 data5   gpfs001   1297.80  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7867940 data1   gpfs001   1301.48  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7869900 data2   gpfs001   1301.16  lcl                   Prefetch WritebehindWorkerThread    
+                         Num of    Time in   NSD        FS                                                                      
+Time     R/W   Buf type sectors    seconds  name      name     K/sec  type      NSD server   Context                   Thread   
+-------- ---   -------- -------  --------- ----- --------- ---------  ----  -------------- --------- ------------------------   
+09:45:43   W       data    2048  0.7913640 data3   gpfs001   1293.97  lcl                   Prefetch WritebehindWorkerThread    
+09:45:43   W       data    2048  0.7979510 data4   gpfs001   1283.29  lcl                   Prefetch WritebehindWorkerThread    
+
+
+This shows the IO situation of 9:45:43, on multiple nsd data1-6 of fs gpfs001, each of them write speed are larger than 1000K/s, from gpfs perspective in this point it's acceptable and only need to check when bussiness got impact.
+
+[Action Plan]
+Could customer answer the following question and try to do:
+1. How much space does gpfs001 left? use "mmdf gpfs001" could see the result, if less capacity left, it will impact the performance extremely.
+2. Does the performance behaviour like this all the time since gpfs installed, or just happen on this gpfs001 fs(created on 17-11-17)?
+3. Is there any bussiness impact on specified case?
+4. Suggest admin check each disk, check if any single disk wrong? Ex, try dd on each single disk, or use iostat to check any disk abnormal during dd a large file, to narrow down the io problem.

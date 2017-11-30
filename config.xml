@@ -90,6 +90,7 @@
             <exps>
 				<exp>is being expelled because of an expired lease. Pings sent</exp>
 				<exp>Disk lease period expired</exp>
+				<exp>Disk lease reacquired</exp>
 			</exps>
             <desc>hit node expel due to network glitches problem.</desc>
             <log_range>-20,100</log_range>
