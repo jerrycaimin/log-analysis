@@ -81,3 +81,10 @@ Could customer answer the following question and try to do:
 2. Does the performance behaviour like this all the time since gpfs installed, or just happen on this gpfs001 fs(created on 17-11-17)?
 3. Is there any bussiness impact on specified case?
 4. Suggest admin check each disk, check if any single disk wrong? Ex, try dd on each single disk, or use iostat to check any disk abnormal during dd a large file, to narrow down the io problem.
+5. Try different blocksizes, here is the sample table for speed to each type of blocksize:
+	512K = 180 MB/s
+	1 M = 200 MB/s
+	2 M = 220 MB/s
+	4 M = 1GB/s
+	8 M = 1,1 GB/s
+	16M = 1,2 GB/s

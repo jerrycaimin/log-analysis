@@ -534,6 +534,7 @@ if __name__ == "__main__":
     
     start_date=None
     refine_all=False
+    nodes=""
     
 #     if len(sys.argv) > 1:
 #         target_folders = sys.argv[1].split("|")
@@ -558,6 +559,9 @@ if __name__ == "__main__":
     
     parser.add_option("-f", "--folder", dest="folders",
                       action="append", help="specify the folders that need to analysis.")
+
+    parser.add_option("-n", "--nodes", dest="nodes",
+                      help="collect only folders that contain the specified nodes name.")
 
     (options, args) = parser.parse_args()
     
@@ -586,10 +590,33 @@ if __name__ == "__main__":
     else:
         target_folders = ["./test"]
     
+    
+    selected_target_folders = []
     #print folders to be analysis
-    print "The following folder(s) contains mmfs.logs, candidates to analysis:"
-    for target_folder in target_folders:
-        print get_basename(target_folder)
+    if options.nodes:
+        nodes_name = options.nodes.split(",")
+        # check if specified nodes name in basename
+        for node_name in nodes_name:
+            for target_folder in target_folders:
+                if node_name in get_basename(target_folder):
+                    selected_target_folders.append(target_folder)
+        
+        len_stf = len(selected_target_folders)
+        if len_stf > 0:
+            print "Node selected string:" + options.nodes
+            print "Collecting " + str(len_stf) + " nodes that found in total " + str(len(target_folders)) + " folders:"
+            for selected_target_folder in selected_target_folders:
+                print get_basename(selected_target_folder)
+            target_folders = selected_target_folders
+        else:
+            print "node folder name candidates found as your node name:" + options.nodes + ". All nodes candidates:"
+            for target_folder in target_folders:
+                print get_basename(target_folder)
+            sys.exit()
+    else:    
+        print "The following folder(s) contains mmfs.logs, candidates to analysis:"
+        for target_folder in target_folders:
+            print get_basename(target_folder)
     print ""
 
     generate_date = options.generate_date
@@ -618,7 +645,9 @@ if __name__ == "__main__":
         print "    : -a enabled, ignore regex, all the logs from the period will be generated."
     if generate_date:
         print "    : -g enabled, generate datetime from each line, by which could support time sort, will cost more time."
-    
+    if options.nodes:
+        print "    : -n enable, only collect log in folders that name contains " + options.nodes
+        
     output_file = "./log/Log-Refined-[" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "].csv"
     refine_log(output_file, target_folders)
     print "succeeded, refer to output file: " + output_file
