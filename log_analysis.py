@@ -594,7 +594,8 @@ if __name__ == "__main__":
 
     generate_date = options.generate_date
     if generate_date:
-        convertor_map = {re.compile("[a-zA-Z]{3} [a-zA-Z]{3} .*?201[5-8]"):["%a %b %d %H:%M:%S.%f %Y"]}
+        convertor_map = {re.compile("[a-zA-Z]{3} [a-zA-Z]{3}.*?201[5-8]"):["%a %b %d %H:%M:%S.%f %Y",
+                                                                           "%a %b  %d %H:%M:%S.%f %Y"]}
 
     #fill in the parameters
     start_date = options.start_date
