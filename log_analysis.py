@@ -25,7 +25,7 @@ def analyze_log(target_path=None, output_file=None):
     if target_path is None:
         target_path = os.getcwd()
     if output_file is None:
-        output_file = "./log/result" + time.strftime("%H-%M-%S", time.localtime()) + ".log"
+        output_file = log_folder + "result.log"
     
     config_file_num = len(config_files)
     
@@ -61,7 +61,7 @@ def get_basename(full_path):
 # analyze the log files according to the rules
 def refine_log(output_file=None, target_folders=None, specified_configs=None):
     if output_file is None:
-        output_file = "./log/Log-Refined [" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "].csv"
+        output_file = log_folder + "Log-Refined.csv"
     csvfile = file(output_file, 'wb')
     writer = csv.writer(csvfile)
     head_written = False
@@ -264,7 +264,7 @@ def _get_sortable(file_path):
 
 def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, output_file=None):
     if output_file is None:
-        output_file = "./log/result" + time.strftime("%H-%M-%S", time.localtime()) + ".log"
+        output_file = log_folder + "result.log"
 
     if type(issues) != list:
         issues = [issues]
@@ -531,7 +531,12 @@ if __name__ == "__main__":
     global config_files
     global convertor_map
     global generate_date
+    global log_folder
     
+    log_folder = "./log/" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "/"
+    if not os.path.exists(log_folder):
+        os.mkdir(log_folder)
+        
     start_date=None
     refine_all=False
     nodes=""
@@ -648,13 +653,13 @@ if __name__ == "__main__":
     if options.nodes:
         print "    : -n enable, only collect log in folders that name contains " + options.nodes
         
-    output_file = "./log/Log-Refined-[" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "].csv"
+    output_file = log_folder + "Log-Refined.csv"
     refine_log(output_file, target_folders)
     print "succeeded, refer to output file: " + output_file
     
     print ""
     print "######## Generate Environment Report according to  environment-report.xml for all nodes ########"
-    refine_log("./log/environment-report.txt", target_folders, ["./environment-report.xml"])
+    refine_log(log_folder + "environment-report.txt", target_folders, ["./environment-report.xml"])
     print "succeeded, refer to file: ./log/environment-report.txt"
     print ""
     
@@ -666,7 +671,7 @@ if __name__ == "__main__":
         print pre_num + " analysing " + get_basename(target_folder) + " ..."
         if os.path.exists(target_folder):
             basename = get_basename(target_folder)
-            output_file = "./log/[" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "]" + basename + ".log"
+            output_file = log_folder + basename + ".log"
             # analyze log by each defined task
             analyze_log(target_folder, output_file)
         print "done, output file: " + output_file
