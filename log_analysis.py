@@ -609,7 +609,7 @@ if __name__ == "__main__":
                 print get_basename(selected_target_folder)
             target_folders = selected_target_folders
         else:
-            print "node folder name candidates found as your node name:" + options.nodes + ". All nodes candidates:"
+            print "ERROR: no folder names that contains your options:" + options.nodes + ". Here are all nodes folders:"
             for target_folder in target_folders:
                 print get_basename(target_folder)
             sys.exit()
