@@ -611,7 +611,7 @@ if __name__ == "__main__":
         folders = options.folders
         for folder in folders:
             if not os.path.exists(folder):
-                parser.error("targe folder not existed:" + folder)
+                parser.error("target folder not existed:" + folder)
             target_folders= target_folders + utils.find_file("mmfs.logs*", folder, 4)
         # del duplicate
         if target_folders:
@@ -620,7 +620,9 @@ if __name__ == "__main__":
         # del test folder
         target_folders = remove_test_folder(target_folders)
     else:
-        target_folders = ["./test"]
+        target_folders = utils.find_file("mmfs.logs*", "..", 4)
+        # del test folder
+        target_folders = remove_test_folder(target_folders)
     
     if options.set_exp:
         if type(options.set_exp) == list:
