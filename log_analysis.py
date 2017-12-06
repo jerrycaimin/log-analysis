@@ -687,7 +687,8 @@ if __name__ == "__main__":
         for conf_file in config_files:
             if not os.path.exists(conf_file):
                 parser.error("config file not found, please check the config file again: " + conf_file)
-    elif options.set_exp:
+    elif options.set_exp and not options.config_files:
+        # only set when user didn't specified config_files, as they might have their own grep-files configured. 
         config_files = ["./grep-files.xml"]
     else:
         config_files = ["./config.xml"]
