@@ -231,7 +231,7 @@ def _write_refine_log(filepath, exclude_str, rule, node_name, desc, writer, plan
                             if not set_exp:
                                 print_and_write_line(plane_writer, line)
                             else:
-                                print_and_write_line(plane_writer, line, True)
+                                print_and_write_line(plane_writer, "[" + node_name + "]: " + line, True)
                         else:
                             if generate_date:
                                 writer.writerow([_get_datetime_from_line(line),
