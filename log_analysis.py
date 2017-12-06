@@ -157,6 +157,9 @@ def refine_log(output_file=None, target_folders=None, specified_configs=None):
                 
     if plane_writer:
         plane_writer.close()
+        
+        if set_exp:
+            print "Refer to file for output:" + output_file
 
 def _write_refine_log(filepath, exclude_str, rule, node_name, desc, writer, plane_writer=None):
     if type(rule) == list:
@@ -241,13 +244,14 @@ def _write_refine_log(filepath, exclude_str, rule, node_name, desc, writer, plan
             f.close()
 
 def print_and_write_line(writer, line, is_print=False, add_enter=False):
+    if is_print and not silence_grep:
+        print line
+
     if add_enter:
         line = line + "\n"
     
     writer.write(line)
     
-    if is_print:
-        print line
     
     
     
@@ -554,11 +558,13 @@ if __name__ == "__main__":
     global generate_date
     global log_folder
     global set_exp
+    global silence_grep
         
     log_folder = "./log/" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "/"
     
     start_date=None
     refine_all=False
+    silence_grep=False
     nodes=""
     set_exp=None
     
@@ -594,6 +600,9 @@ if __name__ == "__main__":
                                             "grep-files.xml. If -e specified, only run" + 
                                             "Refine-Log function.")
     
+    parser.add_option("-s", "--silence", dest="silence_grep",
+                      default=False, action="store_true",
+                      help="If specified, do not print output when use -e to grep.")
     
     (options, args) = parser.parse_args()
     
@@ -671,6 +680,8 @@ if __name__ == "__main__":
     #fill in the parameters
     start_date = options.start_date
     refine_all = options.refine_all
+    silence_grep = options.silence_grep
+    
     if options.config_files:
         config_files = options.config_files
         for conf_file in config_files:
