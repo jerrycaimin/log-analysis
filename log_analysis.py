@@ -131,10 +131,13 @@ def refine_log(output_file=None, target_folders=None, specified_configs=None):
                 
                 filepath = item["filepath"]
                 exclude_str = item.get("exclude-str")
-                rule = item.get("capture-exps")
                 desc = item.get("@desc","")
+                rule = item.get("capture-exps")
                 if not rule:
-                    rule = ".*"
+                    if set_exp:
+                        rule = set_exp
+                    else:
+                        rule = ".*"
                 else:
                     rule = rule.get("exp")
                     
@@ -214,11 +217,18 @@ def _write_refine_log(filepath, exclude_str, rule, node_name, desc, writer, plan
 #                             except:
 #                                 matched_time = ""
                         if plane_writer:
-                            if not plane_writer_title and desc:
-                                plane_writer.write("[" + node_name + "]\n")
-                                plane_writer_title = True
+                            if not plane_writer_title and (desc or set_exp):
+                                if not set_exp:
+                                    print_and_write_line(plane_writer, "[" + node_name + "]", False, True)
+                                    plane_writer_title = True
+                                else:
+                                    print_and_write_line(plane_writer, path, True, True)
+                                    plane_writer_title = True
                             
-                            plane_writer.write(line)
+                            if not set_exp:
+                                print_and_write_line(plane_writer, line)
+                            else:
+                                print_and_write_line(plane_writer, line, True)
                         else:
                             if generate_date:
                                 writer.writerow([_get_datetime_from_line(line),
@@ -226,10 +236,21 @@ def _write_refine_log(filepath, exclude_str, rule, node_name, desc, writer, plan
                             else:
                                 writer.writerow([log_filename, node_name, line])
                         break
-            if plane_writer:
+            if plane_writer and not set_exp:
                 plane_writer.write("\n")
             f.close()
 
+def print_and_write_line(writer, line, is_print=False, add_enter=False):
+    if add_enter:
+        line = line + "\n"
+    
+    writer.write(line)
+    
+    if is_print:
+        print line
+    
+    
+    
 def _get_datetime_from_line(line):
     if not convertor_map:
         return ""
@@ -532,14 +553,14 @@ if __name__ == "__main__":
     global convertor_map
     global generate_date
     global log_folder
-    
-    log_folder = "./log/" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "/"
-    if not os.path.exists(log_folder):
-        os.mkdir(log_folder)
+    global set_exp
         
+    log_folder = "./log/" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "/"
+    
     start_date=None
     refine_all=False
     nodes=""
+    set_exp=None
     
 #     if len(sys.argv) > 1:
 #         target_folders = sys.argv[1].split("|")
@@ -568,6 +589,12 @@ if __name__ == "__main__":
     parser.add_option("-n", "--nodes", dest="nodes",
                       help="collect only folders that contain the specified nodes name.")
 
+    parser.add_option("-e", "--exp", dest="set_exp",
+                      action="append", help="Can multiply specify what exps to grep in " + 
+                                            "grep-files.xml. If -e specified, only run" + 
+                                            "Refine-Log function.")
+    
+    
     (options, args) = parser.parse_args()
     
     # get target folder auto
@@ -595,6 +622,16 @@ if __name__ == "__main__":
     else:
         target_folders = ["./test"]
     
+    if options.set_exp:
+        if type(options.set_exp) == list:
+            set_exp=options.set_exp
+        else:
+            set_exp=[options.set_exp]
+    
+    if not options.set_exp:
+        # only create log folder when exp not set
+        if not os.path.exists(log_folder):
+            os.mkdir(log_folder)
     
     selected_target_folders = []
     #print folders to be analysis
@@ -637,25 +674,36 @@ if __name__ == "__main__":
         for conf_file in config_files:
             if not os.path.exists(conf_file):
                 parser.error("config file not found, please check the config file again: " + conf_file)
+    elif options.set_exp:
+        config_files = ["./grep-files.xml"]
     else:
         config_files = ["./config.xml"]
 
-    # refine the log from all the dumplogs, which defined in config.xml
-    print ""
-    print "######## Refine all " + str(len(target_folders)) + " nodes gpfs.snap into one csv (can be sorted or filtered by Excel) ########"
-    #print "Start to refine the logs from all above folder according to configuration."
-    if start_date:
-        print "    : -d is set to " + start_date + ", only extract the logs AFTER this date. (If start date not matched, all data will be generated.)"
-    if refine_all:
-        print "    : -a enabled, ignore regex, all the logs from the period will be generated."
-    if generate_date:
-        print "    : -g enabled, generate datetime from each line, by which could support time sort, will cost more time."
-    if options.nodes:
-        print "    : -n enable, only collect log in folders that name contains " + options.nodes
-        
-    output_file = log_folder + "Log-Refined.csv"
-    refine_log(output_file, target_folders)
-    print "succeeded, refer to output file: " + output_file
+    if not set_exp:
+        # refine the log from all the dumplogs, which defined in config.xml
+        print ""
+        print "######## Refine all " + str(len(target_folders)) + " nodes gpfs.snap into one csv (can be sorted or filtered by Excel) ########"
+        #print "Start to refine the logs from all above folder according to configuration."
+        if start_date:
+            print "    : -d is set to " + start_date + ", only extract the logs AFTER this date. (If start date not matched, all data will be generated.)"
+        if refine_all:
+            print "    : -a enabled, ignore regex, all the logs from the period will be generated."
+        if generate_date:
+            print "    : -g enabled, generate datetime from each line, by which could support time sort, will cost more time."
+        if options.nodes:
+            print "    : -n enable, only collect log in folders that name contains " + options.nodes
+            
+        output_file = log_folder + "Log-Refined.csv"
+        refine_log(output_file, target_folders)
+        print "succeeded, refer to output file: " + output_file
+    else:
+        print "Start to grep " + str(set_exp) + " from files configured in grep-files.xml"
+        output_fn = ""
+        for exp in set_exp:
+            output_fn = output_fn + exp + ","
+        output_file = "./log/" + output_fn[:-1] + ".txt"
+        refine_log(output_file, target_folders)
+        sys.exit()
     
     print ""
     print "######## Generate Environment Report according to  environment-report.xml for all nodes ########"

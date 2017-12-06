@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>    
+	<refine-log type="plane">
+    	<item>
+            <filepath>./mmls*</filepath>
+        </item>     
+    	<item desc="mmfs logs files">
+            <filepath>./mmfs*</filepath>
+        </item>
+    	<item desc="check for os version">
+            <filepath>./uname_a</filepath>    
+        </item>
+        <item desc="dmesg">
+            <filepath>./dmesg</filepath>    
+        </item>
+        
+    </refine-log>
+</root>
