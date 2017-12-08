@@ -117,7 +117,7 @@ def refine_log(output_file=None, target_folders=None, specified_configs=None):
                         rule = ".*"
                     else:
                         rule = rule.get("exp")
-                    _write_refine_log(os.path.join(target_folder, filepath), exclude_str, rule,
+                    _write_refine_log(target_folder, filepath, exclude_str, rule,
                                       node_name, desc, writer, plane_writer)
     else:       
         # plane loop
@@ -129,7 +129,7 @@ def refine_log(output_file=None, target_folders=None, specified_configs=None):
                 if not item:
                     continue
                 
-                filepath = item["filepath"]
+                filepath = item.get("filepath")
                 exclude_str = item.get("exclude-str")
                 desc = item.get("@desc","")
                 rule = item.get("capture-exps")
@@ -149,7 +149,7 @@ def refine_log(output_file=None, target_folders=None, specified_configs=None):
                     if desc and not desc_print:
                         plane_writer.write("=====" + desc + "=====\n")
                         desc_print = True
-                    _write_refine_log(os.path.join(target_folder, filepath), exclude_str, rule,
+                    _write_refine_log(target_folder, filepath, exclude_str, rule,
                                       node_name, desc, writer, plane_writer)
                     
                 if desc:
@@ -161,13 +161,19 @@ def refine_log(output_file=None, target_folders=None, specified_configs=None):
         if set_exp:
             print "Refer to file for output:" + output_file
 
-def _write_refine_log(filepath, exclude_str, rule, node_name, desc, writer, plane_writer=None):
+def _write_refine_log(target_folder, filepath, exclude_str, rule, node_name, desc, writer, plane_writer=None):
     if type(rule) == list:
         reg_rules = [re.compile(each_rule, re.DOTALL) for each_rule in rule]
     else:
         reg_rules = [re.compile(rule, re.DOTALL)]
 
-    matching_paths = glob.glob(filepath)
+    matching_paths = []
+    if type(filepath) == list:
+        for f in filepath:
+            matching_paths = matching_paths + glob.glob(os.path.join(target_folder, f))
+        matching_paths = list(set(matching_paths))
+    else:
+        matching_paths = glob.glob(os.path.join(target_folder, filepath))
     #datetime_pattern = re.compile(datetime_exp)
 
     # import pdb;pdb.set_trace()

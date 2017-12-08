@@ -14,5 +14,17 @@
             <filepath>./dmesg</filepath>    
         </item>
         
+        <item desc="internaldump">
+            <filepath>./internaldump*</filepath>
+	        <filepath>./internaldump*/internaldump*</filepath>
+            <filepath>./internaldumps/internaldump*/internaldump*</filepath>
+        </item>
+        <item desc="os message">
+            <filepath>./var/log/message</filepath>    
+        </item>        
+        
+        <item desc="etc config">
+            <filepath>./etc/*</filepath>    
+        </item>
     </refine-log>
 </root>

@@ -88,3 +88,8 @@ Could customer answer the following question and try to do:
 	4 M = 1GB/s
 	8 M = 1,1 GB/s
 	16M = 1,2 GB/s
+	(Solved for pmr 20848,999,724)
+6. use tool in /usr/lpp/mmfs/samples/net/nsdperf.C.
+	a) Build follow as /usr/lpp/mmfs/samples/net/README
+	b) Run built out file.
+	c) set client and server and run.

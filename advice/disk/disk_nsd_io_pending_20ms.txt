@@ -9,3 +9,5 @@ try to review the hardware environment to resolve the problem.
 Also try use tool iohist.awk: 
 >iohist.awk slowdata=1000 internaldump.* | grep "E2_GPFS_*" | awk {'print $11'} | sort | uniq -c 
 could find how many slowdata existed.
+Get average speed:
+>iohist.awk internaldump.* | awk '{sum+=$7} END {print "Average = ", sum/NR}'
