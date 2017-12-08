@@ -28,7 +28,7 @@
         </item>
         
         <item desc="netstate">
-            <filepath>./netstate*</filepath>    
+            <filepath>./netstat*</filepath>    
         </item>
     </refine-log>
 </root>
