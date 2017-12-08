@@ -26,5 +26,9 @@
         <item desc="etc config">
             <filepath>./etc/*</filepath>    
         </item>
+        
+        <item desc="netstate">
+            <filepath>./netstate*</filepath>    
+        </item>
     </refine-log>
 </root>
