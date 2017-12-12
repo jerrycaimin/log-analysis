@@ -20,7 +20,7 @@
             <filepath>./internaldumps/internaldump*/internaldump*</filepath>
         </item>
         <item desc="os message">
-            <filepath>./var/log/message</filepath>    
+            <filepath>./var/log/message*</filepath>    
         </item>        
         
         <item desc="etc config">
