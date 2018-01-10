@@ -1,0 +1,138 @@
+Inode allocation map file has corrupt block 29 record 948 (reason 6).
+Block allocation map of fc_8T pool file has corrupt block 54 record
+13898 (reason 5).
+- since there are reserved file corruptions, we cannot use patch apply
+to repair. So please run full fsck repair -
+mmdsh -N all mmfsadm test fsck usePatchQueue 0
+mmfsck <fs> -Vy -xsc --threads 128 -N <nsd server nodes> 2>&1 | tee
+/tmp/fscky.out
+-----------------------------------------------------------------------
+There are also some OrphanInode list, that will move files to lost+found
+folder, some block maybe lost cause files read IO error, then you can
+use "dd" copy file to skip bad block.
+No. SnapId InodeNum FileType Fix Error(s)
+----- ---------- ------------- ------------------- ---
+-----------------------
+1 0 2 Inode Alloc Map N ReservedFileRecord
+2 0 1035 Block Alloc Map N ReservedFileRecord
+3 0 2744731 Directory N Fatal
++ DirectoryBlock
++ OrphanInode
+4 0 63073416 Directory N Fatal
++ OrphanInode
+5 0 36848434 Directory N Fatal
++ OrphanInode
+6 0 2744730 Directory N InodeMetadata
++ DirectoryEntry
+7 0 36848433 Directory N InodeMetadata
++ DirectoryEntry
+8 0 345657642 Directory N InodeMetadata
++ DirectoryEntry
+9 0 127126 User N OrphanInode
+10 0 127127 User N OrphanInode
+11 0 272514 User N OrphanInode
+12 0 645536 User N OrphanInode
+13 0 651793 User N OrphanInode
+589381632 inodes
+427411383 allocated
+5 repairable
+0 repaired
+3 damaged
+0 deallocated
+8315 orphaned
+0 attached
+0 corrupt ACL references
+4234320600 subblocks
+1833081044 allocated
+1056 unreferenced
+0 duplicates
+10 deletable
+0 deallocated
+255535892 addresses
+0 suspended
+0 duplicates
+0 reserved file holes found
+0 reserved file holes repaired
+File system contains unrepaired damage.
+Exit status 0:0:8.
+Patch file written to "cl002:/tmp/fsck.home.patch-file" with 8436 patch
+entries.
+mmfsck: Command failed. Examine previous error messages to determine
+cause.
+
+
+Check if unreferenced files are moved to lost+found folder:
+
+================> goto fs root folder
+[root@cl005 home]# pwd
+/gpfs/home
+================> check which one is latest, in this is rsettlag_lab and hxin_lab
+[root@cl005 home]# ls -altr | tail
+-r--------  1 root     root                      20080388219 Dec 21 19:33 .mmbackupShadow.1.adsm.filesys
+drwxr-xr-x 74 root     root                           262144 Dec 21 19:33 .
+drwxr-xr-x  5 root     root                             4096 Dec 21 19:33 .mmbackupCfg
+drwxrws--- 11 root     predictHPC                       4096 Dec 22 12:09 predictHPC
+drwxrws---  6 root     HighD_GEOSCIENCE_Analysis        4096 Dec 28 14:39 HighD_GEOSCIENCE_Analysis
+drwxrwx--- 30 root     songli_lab                       4096 Jan  2 01:36 songli_lab
+drwxrws---  7 arcadm   arcadm                           4096 Jan  4 10:53 arcadm
+drwxrws--- 24 root     HYCCSIM                        262144 Jan  7 09:11 HYCCSIM
+drwxr-xr-x 26 rsettlag rsettlag                       262144 Jan  8 05:15 rsettlag_lab
+drwxrwx--- 20 root     hxin_lab                         4096 Jan  8 05:15 hxin_lab 
+
+================> check each of them contains lost+found folder:
+[root@cl005 home]# ls -altr rsettlag_lab/ | tail
+-rw-r--r--  1 rsettlag rsettlag        7100927923 Nov  2 20:31 DataSets2_10012017.tgz
+drwxrwxr-x  5 rsettlag rsettlag              4096 Dec  2 07:30 class
+drwxrwxr-x 11 rsettlag rsettlag              4096 Dec 20 09:29 GPU_testing
+drwxr-xr-x 74 root     root                262144 Dec 21 19:33 ..
+drwxrwxr-x  2 rsettlag rsettlag              4096 Dec 30 06:54 genomes
+drwxrwxr-x  9 rsettlag rsettlag              4096 Dec 31 17:47 HOMER
+drwxrwxr-x  7 rsettlag rsettlag              4096 Dec 31 23:58 Valdez_Oct2017
+drwxrwxr-x  4 rsettlag rsettlag              4096 Jan  7 07:56 ARCminION
+drwxr-xr-x 26 rsettlag rsettlag            262144 Jan  8 05:15 .
+drwx------  2 root     root                  4096 Jan  8 05:16 lost+found
+
+[root@cl005 home]# ls -altr hxin_lab/ | tail
+drwxr-xr-x 13 zhengl   hxin_lab   4096 Dec  2 23:30 zhengl
+drwxr-xr-x 32 hxin     hxin_lab   4096 Dec  4 16:28 hxin
+drwxrwxr-x 16 jiamin   jiamin   262144 Dec 15 21:39 jiamin
+drwxr-xr-x 74 root     root     262144 Dec 21 19:33 ..
+drwxr-xr-x  7 memily15 memily15   4096 Dec 28 11:01 memily15
+drwxrwxr-x 26 siwenw   siwenw     4096 Jan  4 16:52 siwenw
+drwxrwxr-x 10 omidvar  omidvar    4096 Jan  5 11:52 omidvar
+drwxrwxr-x 20 liangyu3 liangyu3   4096 Jan  7 17:36 liangyu3
+drwxrwx--- 20 root     hxin_lab   4096 Jan  8 05:15 .
+drwx------  2 root     root     524288 Jan  8 05:16 lost+found
+
+================> compare with mmfsck out file, if the unreferenced files are moved to them, logs will be like:
+File inode 127126 in fileset rsettlag_lab is not referenced by any directory.
+Reattach inode to lost+found in fileset rsettlag_lab? Yes
+
+File inode 127127 in fileset rsettlag_lab is not referenced by any directory.
+Reattach inode to lost+found in fileset rsettlag_lab? Yes
+
+File inode 272514 in fileset rsettlag_lab is not referenced by any directory.
+Reattach inode to lost+found in fileset rsettlag_lab? Yes
+
+File inode 645536 in fileset rsettlag_lab is not referenced by any directory.
+Reattach inode to lost+found in fileset rsettlag_lab? Yes
+
+File inode 651793 in fileset rsettlag_lab is not referenced by any directory.
+Reattach inode to lost+found in fileset rsettlag_lab? Yes
+
+File inode 1170717 in fileset hxin_lab is not referenced by any directory.
+Reattach inode to lost+found in fileset hxin_lab? Yes
+
+File inode 1170718 in fileset hxin_lab is not referenced by any directory.
+Reattach inode to lost+found in fileset hxin_lab? Yes
+
+File inode 1170719 in fileset hxin_lab is not referenced by any directory.
+Reattach inode to lost+found in fileset hxin_lab? Yes
+
+File inode 1170720 in fileset hxin_lab is not referenced by any directory.
+Reattach inode to lost+found in fileset hxin_lab? Yes
+
+File inode 1170721 in fileset hxin_lab is not referenced by any directory.
+Reattach inode to lost+found in fileset hxin_lab? Yes
+
+If so, filesystem is clean, and ready to mount.

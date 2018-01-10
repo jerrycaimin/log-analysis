@@ -1,0 +1,165 @@
+This is xxx from Spectrum Scale L2 and i have your pmr. I just
+completed snap reviewed and blow are what i found:
+
+1. from client cluster, all Client IOs waiters were pending on ess io
+node pg22essp01-hs
+
+lupgrid14.webservices.group:  0x7FEA440043B0 (   3259) waiting
+0.000883912 seconds, InodePrefetchWorkerThread: on ThCond 0x7FEBB80845E8
+(0x7FEBB80845E8) (MsgRecordCondvar), reason 'RPC wait' for NSD I/O
+completion on node 10.240.135.12 <c1n2>
+lupgrid05.webservices.group:  0x7FCAFC000910 (   3206) waiting
+0.021569152 seconds, InodePrefetchWorkerThread: on ThCond 0x7FCA3C007E28
+(0x7FCA3C007E28) (MsgRecordCondvar), reason 'RPC wait' for NSD I/O
+completion on node 10.240.135.11 <c1n1>
+lupgrid22.webservices.group:  0x7F3110007DE0 (   2968) waiting
+0.004312034 seconds, SGExceptionLogBufferFullThread: on ThCond
+0x7F30D03774D8 (0x7F30D03774D8) (parallelWaitCond), reason 'wait for
+parallel write' for NSD I/O completion
+lxpmat04v.webservices.group:  0x7FBA94037530 (   2960) waiting
+0.022748453 seconds, InodePrefetchWorkerThread: on ThCond 0x7FBA8C0C6938
+(0x7FBA8C0C6938) (MsgRecordCondvar), reason 'RPC wait' for NSD I/O
+completion on node 10.240.135.11 <c1n1>
+lxpslib01v.webservices.group:  0x7F5B981C66E0 (   2873) waiting
+0.030478564 seconds, InodePrefetchWorkerThread: on ThCond 0x7F5BB0015418
+(0x7F5BB0015418) (MsgRecordCondvar), reason 'RPC wait' for NSD I/O
+completion on node 10.240.135.11 <c1n1>
+lxpsolv44v.webservices.group:  0x7F3B3C04B200 (   2673) waiting
+0.003943753 seconds, InodePrefetchWorkerThread: on ThCond 0x7F3B3C0403D8
+(0x7F3B3C0403D8) (MsgRecordCondvar), reason 'RPC wait' for NSD I/O
+completion on node 10.240.135.11 <c1n1>
+lxpara01v.webservices.group:  0x7F14C8000930 (   2511) waiting
+0.022298020 seconds, InodePrefetchWorkerThread: on ThCond 0x7F14BC012938
+(0x7F14BC012938) (MsgRecordCondvar), reason 'RPC wait' for NSD I/O
+completion on node 10.240.135.11 <c1n1>
+
+....
+bash-4.1$ cat 4.Client-IO-waiters | grep -e "on node 10.240.135.11" | wc
+-l
+367
+
+2. Then i would go to check ess node pg22essp01-hs and found those local
+IOs waiters are:
+
+bash-4.1$ egrep -e "for I/O completion on disk" mmfsadm_dump_some
+0x3FEC742AD120 (  86124) waiting 0.027996000 seconds,
+VdiskFlusherThread: for I/O completion on disk sdae on disk sdk on disk
+sdg on disk sdai
+0x3FEC74291AB0 (  86101) waiting 0.004652000 seconds,
+VdiskFlusherThread: for I/O completion on disk sdcd on disk sdab on disk
+sdm on disk sdd on disk sdbf
+0x3FEC741CE470 (  85937) waiting 0.052318000 seconds,
+VdiskFlusherThread: for I/O completion on disk sdah on disk sdcf
+
+If local io pending time longer than 0.02s, this will bring perf impact
+to your cluster. As you can see above, half of them are longer than
+0.02s
+
+3. Checking mmfs.log and found many write timeout on disks on Aug 18:
+
+bash-4.1$ egrep -e "for I/O completion on disk" mmfsadm_dump_some
+0x3FEC742E8A40 (  86177) waiting 0.067761000 seconds,
+VdiskFlusherThread: for I/O completion on disk sdj
+0x3FEEC803DC80 (  77611) waiting 0.055028000 seconds,
+VdiskFlusherThread: for I/O completion on disk sdby
+0x3FFF42EBDBA0 ( 103728) waiting 0.065454000 seconds, NSDThread: for I/O
+completion on disk sdd
+0x3FFF7BFFE820 ( 103207) waiting 0.076232000 seconds,
+VdiskFlusherThread: for I/O completion on disk sdab
+0x3FEC7401CE40 (  85573) waiting 0.085098000 seconds,
+VdiskFlusherThread: for I/O completion on disk sdaa
+0x3FFF430E7BB0 ( 104193) waiting 0.091066000 seconds, NSDThread: for I/O
+completion on disk sdaf
+0x3FEC741BECA0 (  85924) waiting 0.010747000 seconds,
+VdiskFlusherThread: for I/O completion on disk sdab on disk sdcb
+0x3FF4C8002240 (  86189) waiting 0.017701000 seconds,
+VdiskFlusherThread: for I/O completion on disk sdbh
+0x3FFCD80008C0 (  85501) waiting 0.016873000 seconds,
+VdiskFlusherThread: for I/O completion on disk sdcc on disk sdah on disk
+sdk
+0x3FEC742AD120 (  86124) waiting 0.027996000 seconds,
+VdiskFlusherThread: for I/O completion on disk sdae on disk sdk on disk
+sdg on disk sdai
+0x3FEC74291AB0 (  86101) waiting 0.004652000 seconds,
+VdiskFlusherThread: for I/O completion on disk sdcd on disk sdab on disk
+sdm on disk sdd on disk sdbf
+0x3FEC741CE470 (  85937) waiting 0.052318000 seconds,
+VdiskFlusherThread: for I/O completion on disk sdah on disk sdcf
+
+Generally if there is hw or disk issue on ess env, i would suggest to
+treat it as first priority to fix. You can try gnrhealthcheck to verify
+if any disk/hardware issue. Moreover, for debug perf issue, we may still
+need internaldump all and trace for deeper analysis.
+
+When the problem persist, you can go through below procedures to collect
+data:
+
+1. run :
+mmtracectl --set --trace=def --trace-file-size=300000000
+--tracedev-buffer-size=1048576 --trace-recycle=global -N all
+mmtracectl --start -N all
+
+sleep 60 -----------> collect 60s trace data
+
+mmtracectl --stop -N all
+
+2. run:
+mmdsh -N all '/usr/lpp/mmfs/bin/mmfsadm dump all > /tmp/mmfs/$(uname
+-n).$(date +%s).gpfs.dump.all'
+mmdsh -N all '/usr/lpp/mmfs/bin/mmfsadm dump kthreads >
+/tmp/mmfs/$(uname -n).$(date +%s).gpfs.dump.kthreads'
+
+3. run:
+gpfs.snap --deadlock
+
+You may need to collect above data from both ess and client clusters
+
+In addition, if you want to monitor run time perf, beside monitoring
+waiter list, you can run mmdiag --iohist to check io statistics:
+
+The --iohist can be done on any node.  On servers it will show how fast
+the local IO is and on clients it will show how long it takes including
+network time
+
+iperf:
+[To check if the link of os-to-os between nodes can guarantee a promised perf.]
+wget ftp://fr2.rpmfind.net/linux/epel/6/ppc64/Packages/i/iperf-2.0.5-11.el6.ppc64.rpm
+wget ftp://fr2.rpmfind.net/linux/epel/6/x86_64/Packages/i/iperf-2.0.5-11.el6.x86_64.rpm
+installed on both nodes 
+ran iperf -s 
+on first node to make it the server 
+and iperf -c ip address of server node 
+
+
+dstat:
+
+mmnetverify:
+position: /usr/lpp/mmfs/bin/mmnetverify
+
+In v4.2.2 which is what you have on your cluster there is
+a new cmd called mmnetverify. You can use the mmnetverify command to
+detect network problems and to identify nodes where a network problem
+exist. (chapter 15 in the problem determination guide and and man page
+in command doc. in the following links have the detail.)
+
+https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.2/com.ibm.spectru
+m.scale.v4r22.doc/pdf/a7604439.pdf?view=kc
+
+https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.2/com.ibm.spectru
+m.scale.v4r22.doc/pdf/a2314562.pdf?view=kc
+
+
+nsdperf:
+use tool in /usr/lpp/mmfs/samples/net/nsdperf.C.
+	a) Build follow as /usr/lpp/mmfs/samples/net/README
+	b) Run built out file.
+	c) set client and server and run.
+	
+gpfsperf:
+/usr/lpp/mmfs/samples/perf/gpfsperf
+
+dd:
+1. Test write speed:
+	dd if=/dev/zero bs=1M count=1000 of=/gpfs/gpfs0/test2
+2. Test read speed:
+	dd if=/gpfs/gpfs0/test2 bs=1M count=1000 of=/dev/null

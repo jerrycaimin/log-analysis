@@ -1,3 +1,30 @@
+First response
+##################
 Hi, I am GPFS L2 and looking at this ticket, I'm now retrieving your snap for detail analysis.
 I will bring back update to you once snap is fully reviewed. And the
 problem may also be delivered to a dev for deeper review if necessary.
+
+BTW, tomorrow I'll be out of office until Sept 5th. During this time if
+it needs urgent help you can put a note in the PMR and one of my
+colleagues would handle it accordingly or open a new one.
+##################
+
+
+No gpfs log, tell customer how to get gpfs log:
+##################
+Hi Robert,
+
+it's Marco here from HPC support.
+In order to investigate the issue please collect and upload the GPFS
+snap:
+
+1. run /usr/lpp/mmfs/bin/gpfs.snap (on one node it will gather data from
+the other nodes)
+	Page 13 of 136
+2. This will generate a file in /tmp/gpfs.snapOut/ called
+all.(timestamp).tar please rename it to 02597.077.724.gpfs.tar
+3. upload options are available here:
+http://www-05.ibm.com/de/support/ecurep/send.html
+
+Your PMR number is 02597,077,724
+##################
