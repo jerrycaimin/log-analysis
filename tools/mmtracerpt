@@ -1,0 +1,529 @@
+#!/usr/bin/perl
+#
+# script: mmtracerpt
+#
+# purpose: parse all enter/exit function lines in mmtrace data and provided details
+#          of time taken in each function.  It also reports on all disk IOs, mutex locks
+#          and communication msgs/work
+#          output is broken into the  Func:, App:, IO:, SumF:, SumIO:, comm:, & mutex: sections
+#
+# written by:  Jim Doherty
+#
+# Change History:  Mar 4 2015  - Jim  added code to track mutex and incoming server communication
+#                                     also restructured code.
+#                  Mar 8 2015  - Jim  added byte range lock info and revokes
+#                  Mar 16 2015 - Jim  fixed bug in Windows time process hack 
+#                  Apr 23 2015 - Jim  add a look at IO based on number of sectors,  a difference
+#                                     between smaller IO and larger full block IO may indicate 
+#                                     that the nsd server is dealing with read-modify-write issues.
+#                                     Added look at time spent waiting for an exclusive lock on
+#                                     the network socket.
+#
+# Copyright 2014,2015  IBM Corp
+#
+# tested:  GPFS 3.5.0, GPFS 4.1.0
+#
+use Getopt::Long;
+GetOptions('file|f=s'  => \$file,     # mmtrace file to read
+           'help|h'    => \$help,     # usage info
+           'verbose|v' => \$verbose,  # debug comm and mutex  you really don't want to use this
+           'debug'     => \$debug);   # debug io and functions .. likewise
+
+if(!defined $file){ #  given as argument to the script instead of on the --file flag
+    $file = shift @ARGV;
+    ($dev,@stat) = stat($file);
+    $help = 'needs help' if !defined $dev;
+}
+if(defined $help or  !defined $file){
+    print "Usage: $0  --file mmtrace_file\n";
+    exit 1;
+}
+$COMMcount = 0; $COMMRcount = 0; $diff = 0;
+$smallIO = 0;   $largeIO = 0; $SIO_count = 0; $FIO_count = 0;
+$smallIOtotal = 0;   $largeIOtotal = 0; $FIO_total = 0;
+$smallData = 0; $largeData = 0;  $smallDataTotal = 0;  $largeDataTotal = 0;
+$smallMetaData = 0; $largeMetaData = 0;  $smallMetaDataTotal = 0;  $largeMetaDataTotal = 0;
+open(F, "< $file" ) or die("$0: failed to open $file: $!");
+while(<F>){    #  first deal with OS differences in the time and trace header.
+    print "SI:  $_" if defined $verbose or defined $debug;
+    if(/\s+(\d+\.\d+)\s+(\S+)\s+(TRACE_\S+):\s+(.*)/){      # Linux trace pattern match
+        $type = 'Linux'; 
+        $time = $1; $thread = $2; $tr = $3;  $data = $4;
+        $function = $1 if $data =~ /(\S+)\s/;
+        $sec = $1 if $time =~ /(\d+)\./;
+    } elsif(/\s*(\S+)\s+(\d+\.\d+)\s+\S+\s+(MMFS \S+):\s+(.*)/){   # AIX trace pattern match
+        $type = 'AIX';
+        $time = $2; $thread = $1; $tr = $3;  $data = $4;
+        $function = $1 if $data =~ /(\S+)\s/;
+        $sec = $1 if $time =~ /(\d+)\./;
+    } elsif(/\s+(\d+:\d+:\d+\.\d+)\s+(\S+)\s+\S+\s+(\S+):\s+(.*)/){ # Windows trace pattern match - note timestamp
+        $type = 'Windows';
+        $time = $1; $thread = $2;  $tr = $3 ; $data = $4;
+        local($h,$m,$s) = split(':', $time); $time = ($h * 60 * 60) + ($m * 60) + $s;  # fake the time
+        $function = $1 if $data =~ /(\S+)\s/;
+    } else {  # avoid using old daata
+        undef $time; undef $thread; undef $tr; undef $data;
+    }
+    # 0.000005  22335 TRACE_MUTEX: Thread 0x450384FF (Msg handler tmMsgTellAcquire1) now owns mutex 0x1800B37C4A8 (0xD00000000B37C4A8) (aTokenClassMutex)
+    # 0.000395   3263 TRACE_MUTEX: Thread 0x1240459 (TcpConnTabReceiveThread) now owns mutex 0xFFF90276F50 (0xFFF90276F50) (RcvPoolMutex)
+    # 9.549149369       0.001315   MMFS MUTEX: Thread 0x3DA28137 (Msg handler mnMsgGetDirReservation) now owns mutex 0xF100000624399DB8 (0xF100000624399DB8) (InodeCacheObjMutex)
+    # 308     0.001271269       0.000158   MMFS MUTEX: Thread 0x248C424E (RetrieveDiskAddrThread) now owns mutex 0xF1000006512E8978 (0xF1000006512E8978) (InodeCacheObjMutex)
+    if($data =~ /.*now owns mutex.*\((\S+Mutex)\)/ ){# new mutex lock for this thread
+        $mutex = $1;                          # type of mutex  e.g. RcvPoolMutex or aTokenClassMutex, etc
+        if(defined $SEC{$sec}){
+            $SEC{$sec}  = $SEC{$sec} +1;
+        } else {
+            $SEC{$sec} = 1;
+        }
+        if(defined $MUTEX{$mutex}{$sec}){   # increment counts for this mutex type 
+           $MUTEX{$mutex}{$sec} = $MUTEX{$mutex}{$sec} + 1;
+           $MUTEXcounter{$mutex} = $MUTEXcounter{$mutex} +1;
+        } else {                        # initialze counters for this mutex type
+           $MUTEX{$mutex}{$sec} = 1;
+           if(defined $MUTEXcounter{$mutex}){
+               $MUTEXcounter{$mutex} = $MUTEXcounter{$mutex} + 1;
+           } else {
+               $MUTEXcounter{$mutex} = 1;
+           }
+        }
+        print ">mutex $mutex sec $sec mutex count sec $MUTEX{$mutex}{$sec} mutex count $MUTEXcounter{$mutex}\n" if defined $verbose;
+    # 308     0.000301556       0.000373   MMFS MUTEX: Thread 0x82F9C28A (RangeRevokeWorkerThread) waiting for mutex 0xF1000006512E8978 (0xF1000006512E8978) (InodeCacheObjMutex)
+    } elsif($data =~ /.*waiting for mutex.*\((\S+Mutex)\)/ ){ # waiting for mutex
+        $mutex = $1;                          # type of mutex  e.g. RcvPoolMutex or aTokenClassMutex, etc
+        if(defined $SECW{$sec}){
+            $SECW{$sec}  = $SECW{$sec} +1;
+        } else {
+            $SECW{$sec} = 1;
+        }
+        if(defined $MUTEXW{$mutex}{$sec}){   # increment counts for this mutex type 
+           $MUTEXW{$mutex}{$sec} = $MUTEXW{$mutex}{$sec} + 1;
+           $MUTEXWcounter{$mutex} = $MUTEXWcounter{$mutex} +1;
+        } else {                        # initialze counters for this mutex type
+           $MUTEXW{$mutex}{$sec} = 1;
+           if(defined $MUTEXWcounter{$mutex}){
+               $MUTEXWcounter{$mutex} = $MUTEXWcounter{$mutex} + 1;
+           } else {
+               $MUTEXWcounter{$mutex} = 1;
+           }
+        }
+        print ">mutex waiting $mutex sec $sec mutex count sec $MUTEXW{$mutex}{$sec} mutex count $MUTEXWcounter{$mutex}\n" if defined $verbose;
+    # 308  81133745   53.630899195       0.005955   MMFS MUTEX: Thread 0x008F0215 (NSDThread) no longer waiting on condvar 0x0000000116C71BD8 (0x0000000116C71BD8) (InuseCondvar): waiting for exclusive use of connection for sending msg
+    } elsif($data =~ /Thread (.*) no longer waiting on.*waiting for exclusive use of connection/){
+        $ttmp = $1;  
+        if($EX{$thread}{start} =~ /\d+/){
+           $diff = $time - $EX{$thread}{start};
+           $diff = sprintf("%2.6f",$diff);
+           if(defined $EXCLUSIVE){
+              $EXCOUNT++;
+              $EXCLUSIVE = $EXCLUSIVE + $diff; 
+           } else {
+              $EXCOUNT = 1;
+              $EXCLUSIVE = $diff;
+           }
+           print "exclusive: $EX{$thread}{type} $diff start $EX{$thread}{start}\n";
+        }
+
+    # 308  81133745   53.627428597       0.003246   MMFS MUTEX: Thread 0x008F0215 (NSDThread) waiting on condvar 0x0000000116C71BD8 (0x0000000116C71BD8) (InuseCondvar): waiting for exclusive use of connection for sending msg
+    } elsif($data =~ /Thread (.*) waiting on.*waiting for exclusive use of connection/){
+       $ttmp = $1;
+       $EX{$thread}{start} = $time;
+       $EX{$thread}{type} = $ttmp;
+    # 0.000109   3270 TRACE_TS: RcvPool: no idle workers; msg queued: msg 'tmMsgTellAcquire1', msg_id 75222933, from <c0n96>
+    # 3.672737   3276 TRACE_TS: RcvPool: no idle workers; msg queued: msg 'tmMsgQueryServer', msg_id 94986577, from <c0n149>
+    } elsif(($tr eq 'TRACE_TS' or $tr eq 'MMFS TS')  and $data =~ /RcvPool: no idle workers; msg queued: msg \'(\S+)\'/){
+        $work = $1;  $COMMcount++;
+        if(defined $COMM{$work}{$sec}){
+            $COMM{$work}{$sec} = $COMM{$work}{$sec} + 1;
+            $COMM{$sec} = $COMM{$sec} + 1;
+        } else {
+            $COMM{$work}{$sec} = 1;
+            if(defined $COMM{$sec}){
+                $COMM{$sec}++;
+            } else {
+                $COMM{$sec} = 1;
+            } 
+        } 
+        print "> comm work $work sec $sec comm work sec $COMM{$work}{$sec} comm sec $COMM{$sec}\n" if defined $verbose;
+    # 0.000000   3259 TRACE_TS: service_message: enter: msg 'tmMsgTellAcquire1', msg_id 73813956 seq 19191 ackseq 19133, from <c0n80> 10.
+    } elsif(($tr eq 'TRACE_TS' or $tr eq 'MMFS TS') and $data =~ /service_message: enter: msg \'(\S+)\',/){
+        $work = $1;   $COMMRcount++;
+        if(defined $COMMR{$work}{$sec}){
+            $COMMR{$work}{$sec} = $COMMR{$work}{$sec} + 1;
+            $COMMR{$sec} = $COMMR{$sec} + 1;
+        } else {
+            $COMMR{$work}{$sec} = 1;
+            if(defined $COMMR{$sec}){
+                $COMMR{$sec} = $COMMR{$sec} + 1;
+            } else {  
+                $COMMR{$sec} = 1;
+            }
+        } 
+        print "> comm work $work sec $sec comm work sec $COMMR{$work}{$sec} comm sec $COMMR{$sec}\n" if defined $verbose;
+    # 4.147113 106371 TRACE_BRL: brLockM enter: ofP 0xFFFFC9007CEC0FF0 inode 178208 snap 0 brFlags 0x0000 rvkSeqNo -1
+    } elsif(($tr eq 'TRACE_BRL' or $tr eq 'MMFS BRL') and $data =~ /brLockM enter: .* inode\s+(\d+)\s/){ 
+        $inode = $1;
+        $LOCK{$thread}{$inode}{start} = $time;
+        if(defined $LOCKinode{$inode}){
+            $LOCKinode{$inode}++;
+        } else {
+            $LOCKinode{$inode} = 1;
+        }
+    # 4.147118 106371 TRACE_BRL: brLockM exit: inode 178208 snap 0 granted sx lHandle 0xFFFFC9007CEC17A0 isGlobal 0
+    } elsif(($tr eq 'TRACE_BRL' or $tr eq 'MMFS BRL') and $data =~ /brLockM exit: inode\s+(\d+)\s/){ 
+        $inode = $1;
+        if(defined $LOCKR{$thread}{$inode}{start}){
+            $LOCKR{$thread}{$inode}{stop} = $time;
+            if(defined$LOCKRtime{$inode}){
+                $LOCKRtime{$inode} = $LOCKRtime{$inode} + ($LOCKR{$thread}{$inode}{stop} - $LOCKR{$thread}{$inode}{start});
+            } else {
+                $LOCKRtime{$inode} = $LOCKR{$thread}{$inode}{stop} - $LOCKR{$thread}{$inode}{start};
+            }
+        }
+        if(defined $LOCK{$thread}{$inode}{start}){
+            $LOCK{$thread}{$inode}{stop} = $time;
+            if(defined$LOCKtime{$inode}){
+                $LOCKtime{$inode} = $LOCKtime{$inode} + ($LOCK{$thread}{$inode}{stop} - $LOCK{$thread}{$inode}{start});
+            } else {
+                $LOCKtime{$inode} = $LOCK{$thread}{$inode}{stop} - $LOCK{$thread}{$inode}{start};
+            }
+        }
+        undef $LOCK{$thread}{$inode}{start} ; undef $LOCKR{$thread}{$inode}{start};
+    # 20.046997  86563 TRACE_BRL: brLockM waiting revoke inode 178208 mode xw range 0x0-0xFFFFFFFFFFFFFFFF
+    } elsif(($tr eq 'TRACE_BRL' or $tr eq 'MMFS BRL') and $data =~ /brLockM waiting revoke inode\s+(\d+)\s/){ 
+        $inode = $1;
+        $LOCKR{$thread}{$inode}{start} = $time;
+        if(defined $LOCKrevoke{$inode}){
+            $LOCKrevoke{$inode}++;
+        } else {
+            $LOCKrevoke{$inode} = 1;
+        }
+    }
+    # process Apps, IOs, and function calls 
+    if($tr  eq 'TRACE_IO'  or $tr eq 'MMFS IO'){ 
+        parseIOdata();
+   } elsif($tr eq 'TRACE_VNOP' or $tr eq 'MMFS VNOP'){
+        print "App: $data $thread $time\n";
+   } elsif($data =~ /\S+\s+enter/){
+        next if $data =~ /startBackgroundDeletionThread/;  # ignore - no end info
+        next if $data =~ /service_message/;                # ignore - no end info
+        next if $data =~ /QuotaEntryClt::FetchUpdate/;     # ignore - no end info
+        next if $data =~ /OpenFile::acquireBuffer/;        # ignore - no end info
+        next if $data =~ /MM::unlockMnode/;                # ignore - no end info
+        next if $data =~ /MM::lockMnodeByKey/;             # ignore - no end info
+        next if $data =~ /kAccessXAttrFile/;               # ignore - no end info
+        next if $data =~ /IsRangeCached/;                  # ignore - no end info
+        next if $data =~ /FM::cleanIndirectUpdates/;       # ignore - no end info
+        next if $data =~ /FM::ApplyLocalUnsentUpdates/;    # ignore - no end info
+        next if $data =~ /cxiPutOSNode/;                   # ignore - no end info
+        next if $data =~ /createInternal/;                 # ignore - no end info
+        next if $data =~ /copyDataToPrevSnapshotNeeded/;   # ignore - no end info
+        next if $data =~ /CheckThresholds/;                # ignore - no end info
+        next if $data =~ /AddToDestroyedFileList/;         # ignore - no end info
+        next if $data =~ /getNextFileFromInodeList/;       # ignore - no end info
+        next if $data =~ /FM::cleanIndirectUpdates/;       # ignore - no end info
+        next if $data =~ /FM::ApplyLocalUnsentUpdates/;    # ignore - no end info
+        if(!defined $N{$function}){ 
+            print "---  creating function $function\n" if defined $debug;
+            $N{$function} = 0;
+            $T{$function} = 0;
+        }
+        $F{$thread}{$function}{data}  = $data;
+        $F{$thread}{$function}{start} = $time;
+        print ">>> $thread enter $function $F{$thread}{$function}{start}\n" if defined $debug;
+    } elsif($data =~ /tscSend: service/){
+        if(!defined $N{$function}){ 
+            print "---  creating function $function\n" if defined $debug;
+            $N{$function} = 0;
+            $T{$function} = 0;
+        }
+        $F{$thread}{$function}{data}  = $data;
+        $F{$thread}{$function}{start} = $time;
+    } elsif($data =~ /\S+\s+exit/){
+        processFunction();
+    } elsif($data =~ /ctAcquire returning mode/){   # function uses a different exit line
+        processFunction();
+    } elsif($data =~ /wrapLogInternal: logwrap ended/){
+        processFunction();
+    } elsif($data =~ /stealBufferFromDoneList: recycled/){
+        processFunction();
+    } elsif($data =~ /MM::GetDirEntries reply/){
+        processFunction();
+    } elsif($data =~ /gpfsNode_t::findOrCreate success/){
+        processFunction();
+    } elsif($data =~ /crtAcquire: returning/){
+        processFunction();
+    } elsif($data =~ /getFMFRecord FMFRecNum/){
+        processFunction();
+    } elsif($data =~ /FM::mhGetSubIndirectBlock inode/){
+        processFunction();
+    } elsif($data =~ /crtTestRange returning/){
+        processFunction();
+    } elsif($data =~ /crtTellServer returning/){
+        processFunction();
+    } elsif($data =~ /stealBufferFromDoneList: recycled/){
+        processFunction();
+    } elsif($data =~ /pcacheOpen: dir inode/){
+        processFunction();
+    } elsif($data =~ /pcacheNeedValidate: inode/){
+        processFunction();
+    } elsif($data =~ /pcacheGetattr: inode/){
+        processFunction();
+    } elsif($data =~ /tscSend: rc =/){
+        processFunction();
+    } elsif($data =~ /gpfs_filemap_nopage_internal: return /){
+        $function = 'gpfs_filemap_nopage_internal';
+        processFunction();
+    } else {
+        ; # nop
+    }
+    $max_sec = $sec;
+}
+# now report on all GPFS function calls enter/exit data with 
+# average time,  total time for all calls,  and number of calls
+foreach $function (keys %N){
+    if($N{$function} > 0){
+        $average = sprintf("%2.6f",($T{$function} / $N{$function}));
+        $total = sprintf("%2.6f", $T{$function});
+    } else {
+        $average = 0;
+        $total = 0;
+    }
+    print "SumF: $function: $average  $total $N{$function}\n";
+}
+if($EXCOUNT == 0){
+   ; # nop
+} else {
+   $exavg = $EXCLUSIVE / $EXCOUNT;
+   $exavg = sprintf("%2.6f",$exavg);
+   print "SumEx: exclusve count $EXCOUNT  total $EXCLUSIVE  avg $exavg\n";
+}
+if($FIO_count == 0){
+    $avg = 0;
+} else {
+    $avg = sprintf("%2.6f", $FIO_total / $FIO_count);
+}
+if($smallIO == 0){
+    $savg = 0;
+} else {
+    $savg = sprintf("%2.6f", $smallIOtotal / $smallIO);
+}
+if($largeIO == 0){
+    $lavg = 0;
+} else {
+    $lavg = sprintf("%2.6f", ($largeIOtotal / $largeIO));
+}
+if($smallData == 0){
+    $sdavg = 0;
+} else {
+    $sdavg = sprintf("%2.6f", ($smallDataTotal / $smallData));
+}
+if($largeData == 0){
+    $ldavg = 0;
+} else {
+    $ldavg = sprintf("%2.6f", $largeDataTotal / $largeData);
+}
+if($smallMetaData == 0){
+    $smdavg = 0;
+} else {
+    $smdavg = sprintf("%2.6f", $smallMetaDataTotal / $smallMetaData);
+}
+if($largeMetaData == 0){
+    $lmdavg = 0;
+} else {
+    $lmdavg = sprintf("%2.6f", $largeMetaDataTotal / $largeMetaData);
+}
+print "SumIO: StartIOs:     total  start                 $SIO_count \n";
+print "SumIO: FinishIOs:    $avg     $FIO_total          $FIO_count\n";
+print "SumIO: 64K_IOs:      $savg    $smallIOtotal       $smallIO\n";
+print "SumIO: 64_data:      $sdavg   $smallDataTotal     $smallData\n";
+print "SumIO: 64_meta:      $smdavg  $smallMetaDataTotal $smallMetaData\n";
+print "SumIO: large_IOs:    $lavg    $largeIOtotal       $largeIO\n";
+print "SumIO: large_data:   $ldavg   $largeDataTotal     $largeData\n";
+print "SumIO: large_meta:   $lmdavg  $largeMetaDataTotal $largeMetaData\n";
+
+for($i = 0;$i <= $max_sec; $i++){
+    $tb =  $sec{$i}{sec} * 0.000488281;  # * ( 512 bytes in a sector / 1024 /1024 )
+    print "SumIO: time $i IO count $sec{$i}{count}     $tb MB/sec  disk sectors $sec{$i}{sec}\n";
+}
+foreach $size (@IOSIZE){
+    if($IOCOUNT{$size}{count} != 0){
+        $avg = $IOCOUNT{$size}{time} / $IOCOUNT{$size}{count};
+        $avg = sprintf("%2.6f", $avg);
+        $IOCOUNT{$size}{time} = sprintf("%2.6f",$IOCOUNT{$size}{time});
+        print "SumIO: size $size avg $avg  total $IOCOUNT{$size}{time} count $IOCOUNT{$size}{count}\n";
+   }
+}
+
+$tmp = 0;
+for ($i = 0; $i <= $max_sec; $i++){
+    print "mutex: sec  $i  counter $SEC{$i} $MUTEXcounter{$i} \n";
+    foreach $k (keys %MUTEX ){
+        $tmp = $tmp + $MUTEX{$k}{$i};
+        print "mutex: $i $k $MUTEX{$k}{$i}  waiting $MUTEXW{$k}{$i} \n" if $MUTEX{$k}{$i} =~ /^\d+$/;
+    }
+}
+print "mutex: time total $tmp\n";
+$tmp = 0;
+foreach $k (keys %MUTEXcounter){
+    $total = 0;
+    for ($i = 0; $i <= $max_sec; $i++){
+        if($MUTEX{$k}{$i} =~ /^\d+$/){
+            $total = $total + $MUTEX{$k}{$i};
+            $tmp = $tmp + $MUTEX{$k}{$i};
+        }
+    }
+    print "mutex: total $k  $total\n";
+}
+$tmpw = 0;
+foreach $k (keys %MUTEXWcounter){
+    $totalw = 0;
+    for ($i = 0; $i <= $max_sec; $i++){
+        if($MUTEXW{$k}{$i} =~ /^\d+$/){
+            $totalw = $totalw + $MUTEXW{$k}{$i};
+            $tmpw = $tmpw + $MUTEXW{$k}{$i};
+        }
+    }
+    print "mutex: waiting $k  $totalw\n";
+}
+print "mutex: total $tmp\n";
+print "mutex: waiting $tmpw\n";
+for ($i = 0; $i <= $max_sec; $i++){
+    print "comm: received sec $i  total $COMMR{$i}  queued total $COMM{$i}\n";
+    foreach $k (keys %COMMR){
+        print "comm: received work $k  $COMMR{$k}{$i}\n"  if $COMMR{$k}{$i} =~ /^\d+$/;
+    }
+    foreach $k (keys %COMM){
+        print "comm: queued work $k  $COMM{$k}{$i}\n"  if $COMM{$k}{$i} =~ /^\d+$/;
+    }
+}
+print "comm: received total $COMMRcount\n";
+print "comm: queued total $COMMcount\n";
+foreach $inode (keys %LOCKinode){
+   $tmpt = sprintf("%2.6f", $LOCKtime{$inode});
+   print "brLockM: inode $inode count $LOCKinode{$inode} time $tmpt\n";
+} 
+foreach $inode (keys %LOCKrevoke){
+   $tmpt = sprintf("%2.6f", $LOCKRtime{$inode});
+   print "brLockM: revokes $inode count $LOCKrevoke{$inode} time $tmpt\n";
+}
+
+exit 0;
+
+sub processFunction{
+    print ">>> $thread exit $function $F{$thread}{$function}{start}\n" if defined $debug;
+    if(defined $F{$thread}{$function}{start}){
+        $total = sprintf("%2.6f", ($time - $F{$thread}{$function}{start}));
+        print "Func: $function $total $F{$thread}{$function}{data} $F{$thread}{$function}{start} $thread\n";
+        $N{$function}++;  $T{$function} = $T{$function} + $total;
+        undef $F{$thread}{$function}{start}; undef $F{$thread}{$function}{data};
+    }
+    return;
+}
+
+sub parseIOdata{
+    local($tag, $buf, $disk, $da, $nsdId, $nSec);
+    print "IO $data \n" if defined $debug;
+    if($data =~ /^SIO/){
+        $SIO_count++;
+        if(! ($data =~ /^SIO: buf/)){
+            if($data =~ /^SIO:\s(.*) buf/){
+                $tag = $1;
+            }
+        }
+        if($data =~ /buf (\S+)\s/){
+            $buf = $1;
+        }
+        if($data =~ /nsdId (\S+)\s/){
+            $nsdId = $1;
+        }
+        if($data =~ /disk (\S+)\s/){
+            $disk = $1;
+            $nsdId = $disk;
+        }
+        if($data =~ /da (\S+)\s/){
+            $da = $1;
+        }
+        if($data =~ /nSectors (\S+)\s/){
+            $nSec = $1;
+        }
+        $IO{$nsdId.$da.$buf.start} = $time;
+        $IO{$nsdId.$da.$buf.disk}  = $disk;
+        $IO{$nsdId.$da.$buf.da}    = $da;
+        $IO{$nsdId.$da.$buf.buf}   = $buf;
+        $IO{$nsdId.$da.$buf.nSec}  = $nSec;
+        $IO{$nsdId.$da.$buf.nsdId} = $nsdId;
+        $IO{$nsdId.$da.$buf.tag}   = $tag;
+    } elsif($data =~/^FIO/){
+        $FIO_count++ ;
+        if(! ($data =~ /^FIO: buf/)){
+            if($data =~ /^FIO:\s(.*) buf/){
+                $tag = $1;
+            }
+        }
+        if($data =~ /buf (\S+)\s/){
+            $buf = $1;
+        }
+        if($data =~ /nsdId (\S+)\s/){
+            $nsdId = $1;
+            $type = 'NSDclientIO';
+        }
+        if($data =~ /disk (\S+)\s/){
+            $disk = $1;
+            $nsdId = $disk;
+            $type = 'NSDserverIO';
+        }
+        if($data =~ /da (\S+)\s/){
+            $da = $1;
+        }
+        $IO{$nsdId.$da.$buf.finish} = $time;
+        $IO{$nsdId.$da.$buf.tag} = $tag;
+        if($IO{$nsdId.$da.$buf.start} =~ /\d+/){
+            $diff = $IO{$nsdId.$da.$buf.finish}  - $IO{$nsdId.$da.$buf.start};
+            if($IO{$nsdId.$da.$buf.nSec} <= 128){
+                $smallIO++;
+                $smallIOtotal = $smallIOtotal +  $diff;
+                $IOt = "small $IO{$nsdId.$da.$buf.start}";
+                if($IO{$nsdId.$da.$buf.tag} =~ / data /){
+                    $smallData++;  $smallDataTotal = $smallDataTotal + $diff;
+                } else {
+                    $smallMetaData++;  $smallMetaDataTotal = $smallMetaDataTotal + $diff;
+                }
+            } else {
+                $largeIO++;
+                $largeIOtotal = $largeIOtotal + $diff;
+                $IOt = "large $IO{$nsdId.$da.$buf.start}";
+                if($IO{$nsdId.$da.$buf.tag} =~ / data /){
+                    $largeData++;  $largeDataTotal = $largeDataTotal + $diff;
+                } else {
+                    $largeMetaData++;  $largeMetaDataTotal = $largeMetaDataTotal + $diff;
+                }
+            }
+            $FIO_total = $FIO_total + $diff;
+            printf("IO: %11s: %7.6f disk %12s da %12s buf %12s nSec %4d misc %s %s\n", $type, $diff, $IO{$nsdId.$da.$buf.nsdId}, $IO{$nsdId.$da.$buf.da}, $IO{$nsdId.$da.$buf.buf}, $IO{$nsdId.$da.$buf.nSec}, $IO{$nsdId.$da.$buf.tag}, $IOt);
+            if($IO{$nsdId.$da.$buf.finish} =~ /(\d+)\.\d*/){
+                $tsec = $1;
+                if(!defined ($sec{$tsec}{count})){ 
+                    $sec{$tsec}{count} = 1; $sec{$tsec}{total} = $diff;   $sec{$tsec}{sec} = $IO{$nsdId.$da.$buf.nSec};
+                } else {
+                    $sec{$tsec}{count}++;  $sec{$tsec}{total} = $sec{$tsec}{total} + $diff; $sec{$tsec}{sec} = $sec{$tsec}{sec} + $IO{$nsdId.$da.$buf.nSec};
+                }
+            }
+            # add code to track IO average by size of the IO in sectors.
+            $size = $IO{$nsdId.$da.$buf.nSec};
+            if($IOCOUNT{$size}{count} =~ /\d+/){
+                $IOCOUNT{$size}{count} =$IOCOUNT{$size}{count} + 1;
+                $IOCOUNT{$size}{time} = $IOCOUNT{$size}{time} + $diff;
+
+            } else {
+                push(@IOSIZE, $size);
+                $IOCOUNT{$size}{count} = 1;
+                $IOCOUNT{$size}{time} = $diff;
+            }
+         } else {
+             ; # nop
+         }
+    } else {
+        ; # nop
+    }
+    return;
+} # end of sub parseIOdata

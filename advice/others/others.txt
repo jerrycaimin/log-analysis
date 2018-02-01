@@ -20,7 +20,6 @@ snap:
 
 1. run /usr/lpp/mmfs/bin/gpfs.snap (on one node it will gather data from
 the other nodes)
-	Page 13 of 136
 2. This will generate a file in /tmp/gpfs.snapOut/ called
 all.(timestamp).tar please rename it to 02597.077.724.gpfs.tar
 3. upload options are available here:
@@ -28,3 +27,14 @@ http://www-05.ibm.com/de/support/ecurep/send.html
 
 Your PMR number is 02597,077,724
 ##################
+
+Query for first analysis
+##################
+1. Have you noticed this issue previously or is this the first time?
+2. What is the current business impact? Is there any loss of access to
+data?
+	Page 7 of 58
+3. Have there been any changes recently?
+4. A snap on one of the nodes is fine.
+##################
+

@@ -163,3 +163,15 @@ dd:
 	dd if=/dev/zero bs=1M count=1000 of=/gpfs/gpfs0/test2
 2. Test read speed:
 	dd if=/gpfs/gpfs0/test2 bs=1M count=1000 of=/dev/null
+
+	
+test on specified disk:
+root@nsd34# mmfsadm dump nsd | grep eon20B4nsd
+  eon20B4nsd  0A0023FE:59F9EF5D  active    0    0   0      0      0x7FB868001820
+NSD eon20B4nsd at 0x7FB868001820 (Disk 0x18040C61EA8):
+  eon20B4nsd    0A0023FE:59F9EF5D  0 N  0 /dev/dm-83    dmm      metadataOnly        7FB868006130 <c0n6> <c0n3> <c0n5> <c0n2> <c0n7> <c0n441> <c0n8> <c0n4>
+/root
+root@nsd34# dd if=/dev/dm-83 of=/dev/null bs=4M count=100
+100+0 records in
+100+0 records out
+419430400 bytes (419 MB) copied, 1.12086 s, 374 MB/s
