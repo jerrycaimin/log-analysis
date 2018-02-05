@@ -106,6 +106,7 @@
 				<exp>Error=MMFS_FSSTRUCT</exp>
 			</exps>
             <desc>fs might crashed, need follow the best practice to fix the fs issue.</desc>
+            <log_range>0,20</log_range>
     	</item>
     	<advice from="advice/filesystem/best_practise_fix_fs.txt" />
     </issue>
