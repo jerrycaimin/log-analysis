@@ -1,0 +1,72 @@
+[How to enable properly]
+
+Enable GPFS to write to a new trace file if current is full.
+mmchconfig tracedevCycleOnWrap=yes -i   (default is no, you change it back to 'no' after the test. Will take effect immediately with -i option)
+
+Using blocking mode for trace, and each trace file is 1GB.
+mmtracectl --start --trace-file-size=1G -tracedev-write-mode=blocking -N <node_list>
+
+
+
+mmtracectl --stop -N all
+mmtracectl --off
+
+
+
+[How to analysis]
+trsum.awk
+
+
+mmtracerpt:
+mmtracerpt trace_file > trace_file.mmtracerpt
+
+Slow sample:
+SumIO: time 14 IO count 36     30.007797136 MB/sec  disk sectors 61456
+SumIO: time 15 IO count 49     31.231429322 MB/sec  disk sectors 63962
+SumIO: time 16 IO count 31     25.006823134 MB/sec  disk sectors 51214
+SumIO: time 17 IO count 38     32.008284393 MB/sec  disk sectors 65553
+SumIO: time 18 IO count 46     37.010234957 MB/sec  disk sectors 75797
+SumIO: time 19 IO count 40     33.008772162 MB/sec  disk sectors 67602
+SumIO: time 20 IO count 48     31.230941041 MB/sec  disk sectors 63961
+
+Normal sample:
+SumIO: time 8 IO count 88     703.999639552 MB/sec  disk sectors 1441792
+SumIO: time 9 IO count 81     647.999668224 MB/sec  disk sectors 1327104
+SumIO: time 10 IO count 119     951.999512576 MB/sec  disk sectors 1949696
+SumIO: time 11 IO count 99     791.999594496 MB/sec  disk sectors 1622016
+SumIO: time 12 IO count 167     1335.999315968 MB/sec  disk sectors 2736128
+SumIO: time 13 IO count 48     383.999803392 MB/sec  disk sectors 786432
+SumIO: time 14 IO count 47     375.999807488 MB/sec  disk sectors 770048
+
+[Method]
+1. Find in client write/read message:
+example:
+  96.354742 111021 TRACE_TS: tscSend: service 00100001 msg 'nsdMsgWriteExt' n_dest 1 data_len 104 msg_id 931061 msg 0x7F807002D200 mr 0x7F807002D020
+  96.523667 111291 TRACE_TS: service_message: enter: msg 'reply', msg_id 931061 seq 10364 ackseq 10411, from <c1n6> 10.1.0.230, active 0
+
+0.17s for 1 write, too slow. Check on 10.1.0.230
+
+Notice 
+Trace begins: Thu Jan 18 14:15:46 2018
+
+bash-4.1$ date -d "Thu Jan 18 14:15:46 2018" +%s
+1516302946
+bash-4.1$ echo $[1516302946+96]
+1516303042
+bash-4.1$ date -d @1516303042
+Thu Jan 18 14:17:22 EST 2018
+
+2. Goto server node and find the trace in time "Thu Jan 18 14:17:22 EST 2018"
+39.368965  33184 TRACE_TS: tscHandleMsgDirectly: service 00100001, msg 'nsdMsgWriteExt', msg_id 931061, len 104, from <c0n152> 10.1.33.113
+39.537609  30079 TRACE_TS: tscSendReply: service 00100001, msg 'nsdMsgWriteExt', msg_id 931061, replyLen 0
+
+Grep all the content between timeslot and analysis it.
+
+3. Find this
+  39.368973  33184 TRACE_MUTEX: Signaling fast condvar for signal 0x3FFB30000F80 NSDQFastCondvar
+  39.368976  33184 TRACE_NSD: queueMsgReadWriteFast: exit: err 306
+  
+ E_DELAYED_REPLY =            306, /* Reply will be sent later */
+
+ 
+

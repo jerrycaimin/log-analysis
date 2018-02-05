@@ -1,0 +1,120 @@
+###################
+In /var/log/messages there are fsstruct errors indicating metadata corruption for 61 inodes.
+$ fsstructlx.awk  */var/log/messages | grep lookup | cut -f 2 -d '(' | cut -f 1 -d ')' | sort | uniq | wc -l
+61    
+ 
+I recommend that you unmount the filesystem on all nodes and run an offline mmfsck.  
+
+# script 
+# mmfsck gpfsFS1  -v -n | tee mmfsck_gpfsFS1_n.out
+# exit 
+
+Send in the typescript file for us to evaluate.  
+You can also mount the filesystem after the mmfsck -n completes in service mode:
+mmmount gpfsFS1 -o rs 
+and you can run a tsfindinode giving it a file containing the list of bad inodes (see above). 
+This will allow you to identify the bad inodes.   
+Call the support center and have them pageout the oncall to evaluate the mmfsck output,  then you can run the mmfsck -y.
+
+# script
+# mmfsck gpfsFS1 -v -y | tee mmfsck_gpfsFS1_y.out
+# exit
+
+Send in the new typescript file for us to evaluate it.
+###################
+
+1. Check fs with fsstructlx.awk on /var/log/message if any "errorcode=lookup", by this cmd:
+$ fsstructlx.awk  */var/log/messages | grep lookup 
+
+2. If fs corrupt identified, try to unmount all the fs:
+# mmumount /gpfsFS1 -a
+# mmlsmount all -L
+
+3. run the mmfsck gpfsFS1 -v -n to check the output(not to fix), Policy: 
+>>>>>>>>>>>If no inode in reserved problem, can run mmfsck -y, else involve dev to check. 
+Analysis gpfsFS1 -v -n report, sample:
+#######################
+There are total 182 bad entries from the mmfsck -n output, include the duplicated address, bad indirect block and bad directory enties:
+InodeProblemList: 182 entries
+iNum           snapId     status keep delete noScan new error
+-------------- ---------- ------ ---- ------ ------ --- ------------------
+       125402          0      1    0      0      0   0 0x00000008 AddrDuplicate
+       123556          0      1    0      0      0   0 0x00001408 AddrDuplicate FullBlocksBad SubblocksBad
+       123682          0      1    0      0      0   0 0x00000008 AddrDuplicate
+       371708          0      1    0      0      0   0 0x00000008 AddrDuplicate
+       145090          0      1    0      0      0   0 0x10001408 AddrDuplicate FullBlocksBad SubblocksBad IndblockBad
+       145441          0      1    0      0      0   0 0x00000008 AddrDuplicate
+...
+        27094          0      1    1      0      0   0 0x10000000 IndblockBad
+       439413          0      1    1      0      0   0 0x10000000 IndblockBad
+...
+         6950          0      1    0      0      0   0 0x00010000 DirEntryBad
+         6955          0      1    0      0      0   0 0x00010000 DirEntryBad
+
+You need run the offline fsck -y to fix above problems. 
+Some files will be moved into lost+found directory after fsck -y, 
+and fsck will punch a hole for the duplicated address, the application will hit input/output errors when access the hole. 
+grep these iNum to ./inode.list
+
+Following are the steps of the offline fsck:
+1. Mount the file system in read only mode on a node, for example az18u3257
+   # mmmount gpfsFS1 -o ro
+
+2. Run tsfindinode to find out the corrupted files
+   # tsfindinode -i ./inode.list /gpfsFS1
+
+3. Backup the files found in step 2 to other place, for example, the local fs.
+
+4. unmount the file system
+   # mmumount gpfsFS1 -a
+   # mmlsmount gpfsFS1 -L
+
+4. Run mmfsck -y to fix the problem
+   # mmfsck gpfsFS1 -v -y | tee mmfsck_gpfsFS1_y.out
+
+5. If you have backup, recover the corrupted files from backup
+
+6. Send the mmfsck_gpfsFS1_y.out to us for check
+ 
+Please run above steps in the 'script' command. Thanks.
+#######################
+
+The file system is clean from the mmfsck -y output:
+===================================================
+               500736 inodes
+               165114   allocated
+                  164   repairable
+                  164   repaired
+                   16   damaged
+                   11   deallocated
+                  234   orphaned
+                  234   attached
+                    0   corrupt ACL references
+
+            285696000 subblocks
+             58004662   allocated
+               185005   unreferenced
+                    0   deletable
+               191326   deallocated
+
+              1898702 addresses
+                    0   suspended
+
+...
+File system is clean.
+===================================================
+
+I think you can mount the file system of all the nodes and start your application. Thanks.
+
+
+
+
+
+Looks like the log file is corrupt. Like you said, there are not fsstruct errors logged, but that is no guarantee that fs is not corrupt. You will need to run offline fsck to at least repair log files -
+
+mmfsck <fs> -xk
+
+- if ct has time to run full offline fsck, then that is preferable -
+
+mmdsh -N all mmfsadm test fsck usePatchQueue 0
+mmfsck <fs> -Vnm -xc -xsc --threads 128 -N <nsd server nodes> --patch-file <patch-file-name>  2>&1 | tee /tmp/fsckn.out

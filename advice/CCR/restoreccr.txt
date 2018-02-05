@@ -1,0 +1,11 @@
+it maybe file mmsdrfs on node NA340375 was corrupted.
+Please try following command on the good node and restart gpfs:
+mmsdrrestore -N NA340375-SAL_stby
+
+If it cannot work,  and  you still cannot gpfs snap data on node
+NA340375, please upload following files:
+1.  gpfs log: /var/adm/ras/mmfs.log*
+2. files under /var/mmfs
+3. df output
+
+Please let me know the result.

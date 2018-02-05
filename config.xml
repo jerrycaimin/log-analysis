@@ -97,4 +97,16 @@
     	</item>
     	<advice from="advice/node-expel/node_expel_due_to_network_glitches.txt" />
     </issue>
+    <issue name="fs crash issue">
+    	<item>
+    		<filepaths sortable="True">
+	            <filepath>./var/log/messages</filepath>
+            </filepaths>
+            <exps>
+				<exp>Error=MMFS_FSSTRUCT</exp>
+			</exps>
+            <desc>fs might crashed, need follow the best practice to fix the fs issue.</desc>
+    	</item>
+    	<advice from="advice/filesystem/best_practise_fix_fs.txt" />
+    </issue>
 </root>
