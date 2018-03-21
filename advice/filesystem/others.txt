@@ -1,0 +1,9 @@
+Generally speaking, most of these corruptions happen
+due to power outages, bad
+hardware (bad disks or bad sectors on disks), something wrong within the
+storage subsystem etc. so we can't say for sure what exactly caused it
+here unfortunately. Once the issue is resolved though, we can perhaps
+monitor the system, and as
+soon as any FSSTRUCT-related messages are observed in the logs, we can
+take a quick trace for a review. I don't think it should happen again
+though if everything is working fine.

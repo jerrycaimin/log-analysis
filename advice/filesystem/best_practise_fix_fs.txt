@@ -118,3 +118,92 @@ mmfsck <fs> -xk
 
 mmdsh -N all mmfsadm test fsck usePatchQueue 0
 mmfsck <fs> -Vnm -xc -xsc --threads 128 -N <nsd server nodes> --patch-file <patch-file-name>  2>&1 | tee /tmp/fsckn.out
+
+(--threads 128 to fasten the process)
+
+=========================================================================
+
+Hello,
+
+An online mmfsck does not do everything that an offline mmfsck does.
+I would recommend an offline mmfsck be run using a patchfile.  While
+some FSSTRUCT errors indicate that file system metadata is corrupt,
+users can avoid the downtime of running offline fsck to fix these
+corruptions by looking closer at the FSSTRUCT errors.
+If the errors are in a snapshot, then it is much easier to delete the
+snapshot and its ancestors. Also some snapshot errors may not be fixable
+by fsck. So deleting the snapshot would be the only options in such
+cases.
+
+Running fsck on selective nodes in the cluster:
+This is done using the -N option of mmfsck command. The nodes specified
+in this option only decide the fsck worker nodes. The stripe group
+manager for the file system being scanned will always be the fsck master
+node and it is selected implicitly. If users want to exclude the current
+stripe group manager node from fsck run, then they have to first change
+the stripe group manager node using mmchmgr and then run mmfsck.
+
+Speeding up multi-pass fsck:
+If there is insufficient memory to allow fsck to complete its scan in a
+single pass, fsck would need multiple scan over the inodes. This can
+significantly slow down fsck. To avoid this,  increase the pagepool size
+(mmchconfig pagepool=<n>).
+
+From your mmlsconfig output,  there are only 4 nodes that have a decent
+amount of pagepool which is required to reduce the amount of time the
+scan will take,  I would recommend limiting the mmfsck to just utilizing
+these 4 nodes.
+
+[io01-ib,io02-ib,io03-ib,io04-ib]
+pagepool 32G
+#  mmfsck /dev/work -v -n --patch-file /tmp/work.patchfile --threads 128
+-N io01-ib,io02-ib,io03-ib,io04-ib  > mmfsck_n.out 2>&1
+Once the mmfsck -n completes, upload /tmp/work.patchfile  and the
+mmfsck_n.out file for review  then we can check it for problems and you
+can run the mmfsck command to patch the filesystem using the patchfile
+created by the mmfsck -n.
+#  mmfsck /dev/work -v  --patch  --patch-file /tmp/work.patchfile
+--threads 128  -N io01-ib,io02-ib,io03-ib,io04-ib  > mmfsck_patch.out
+2>&1
+
+You may want to check out multipathd before doing anything
+
+Dec 26 21:21:54 gpfs01 multipathd: HOME_CAPA_01: sdah - tur checker
+reports path is down
+Dec 26 21:21:58 gpfs01 multipathd: HOME_CAPA_02: sdai - tur checker
+reports path is down
+Dec 26 21:21:58 gpfs01 multipathd: HOME_CAPA_02: sdds - tur checker
+reports path is down
+Dec 26 21:21:58 gpfs01 multipathd: HOME_CAPA_01: sddr - tur checker
+reports path is down
+Dec 26 21:21:59 gpfs01 multipathd: HOME_CAPA_01: sdah - tur checker
+reports path is down
+Dec 26 21:22:03 gpfs01 multipathd: HOME_CAPA_02: sdai - tur checker
+reports path is down
+Dec 26 21:22:03 gpfs01 multipathd: HOME_CAPA_02: sdds - tur checker
+reports path is down
+Dec 26 21:22:03 gpfs01 multipathd: HOME_CAPA_01: sddr - tur checker
+reports path is down
+
+$ grep multipathd io01-ib_*/var/log/messages | wc -l
+188388
+$ grep multipathd io02-ib_*/var/log/messages | wc -l
+189761
+$ grep multipathd io03-ib_*/var/log/messages | wc -l
+188225
+$ grep multipathd io04-ib_*/var/log/messages | wc -l
+188524
+$
+
+[How to read mmfsck report]
+=========identify corruption=============
+Search of "Block allocation map of **"
+example:
+Block allocation map of SAS7K pool file inode 40 has one or more block corruptions.
+Fix all block corruptions in the file? Yes
+Block allocation map of SAS7K pool file has corrupt block 9523 record 19046 (reason 5).
+Block allocation map of SAS7K pool file has corrupt block 9523 record 19046 (reason 7).
+Block allocation map of SAS7K pool file has corrupt block 9523 record 19046 (reason 8).
+
+
+

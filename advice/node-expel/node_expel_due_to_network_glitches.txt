@@ -155,3 +155,67 @@ Note: If leaseRecoveryWait < minMissedPingTimeout, leaseRecoveryWait = minMissed
 3) minMissedPingTimeout = min of ping timeout
 Tip: leaseRecoveryWait is not recommended to set < 35s, as in overload situation, it will increase time of disk lease response, less than 35s
 may harm stability or lead data inconsistency.
+
+[Suggestion from senior member]
+provided an AP with 9 recommendations to optimize the network
+performance:
+
+According to the mmlscluster output, the 192.1.213.1xxx network is used
+for GPFS daemon traffic. While most nodes use bond1 as GPFS interface,
+there are three nodes (pur02, pur03, pur04) use eth3 alone. Not sure if
+this is intended or not, please double check.
+
+2. Although the other nodes use bond1, but the mode is set to
+active-backup, so actually, we can only achieve 10G bandwidth from the
+bonded interface. We recommend with bond mode 4 (802.3ad, require
+support from switch), and xmit_hash_policy layer3+4.
+Please refer to:
+https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.3/com.ibm.spectru
+m.scale.v4r23.doc/bl1ins_aggregate.htm
+
+3. The Ring parameters for the interface is set quite low comparing to
+its pre-set maximum. Please contact your NIC vendor to see if those
+should be bump up to the maximum. Note that, the settings using ethtool
+won't survive reboot, you can add the change into your boot scripts.
+
+4. High rate of reordering packets. Reordering can hurt the TCP
+performance. You might want to involve your network team to check this.
+
+5. Nodes in pur are not enabled with net.ipv4.tcp_sack and
+net.ipv4.timestamp, while the nodes in other clusters are. With a
+network of reordered packets, ack loss or packet replication, you can
+try enable sack and timestamp which can help..
+
+Please refer to the below link:
+https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/G
+eneral%20Parallel%20File%20System%20(GPFS)/page/Linux%20Performance
+
+7. The pagepool 1G and maxFilesToCache 4000 is too small for your
+applications.. In the 3s of trace when the node was expelled, I can see
+your applications performed lookup against 2018 files/directorys. And
+also 2% dirty steal for the file cache...... With 120G physical memory,
+and most of them free, I would recommend to try increase the pagepool to
+ 4G ~ 8G, and increase maxFilesToCache, eg. 10K . This can help to
+decreasing the NSD data written/read data to/from the NSD server over
+network.....
+
+Please refer to more details of those parameters in our wiki as below.
+https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/G
+eneral%20Parallel%20File%20System%20(GPFS)/page/Tuning%20Parameters
+
+8. vm.min_free_kbytes is too small as well. Please increase them to
+5%~6% of your physical memory but no more than 2G.
+https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.3/com.ibm.spectru
+m.scale.v4r23.doc/bl1ins_suse.htm
+
+9. In your ESS cluster, I noticed verbsRdma is enabled, but both RDMA
+ports were disabled... Not sure if you plan to use RDMA or not, you
+might want to involve your network team to have a check.
+
+
+Customer added following options:
+
+# added in /etc/sysctl.conf
+net.ipv4.tcp_sack = 1
+net.ipv4.tcp_timestamps = 1
+vm.min_free_kbytes = 2000000

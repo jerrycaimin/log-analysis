@@ -1,0 +1,5 @@
+I found the mmlsdisk and tspreparedisk_s is empty. Which means the
+manager node do not have available path to access the disks.
+You can try to access the disk by dd command. If that fails you need to
+fix the hardware part. If it works you can then issue the mmchdisk to
+start the disks.

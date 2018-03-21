@@ -1,0 +1,25 @@
+mmafmctl to control the fileset of remote fs
+
+
+>>Q1. We want to know how each way works by the following point of view.
+>>a. what happen about the changes that have queued at
+>>   stop/suspend/unlink?
+Yes, these operations are not documented proper in this version, and
+will be documented in next release.
+Queue or not queue:
+stop: Not queue.
+suspend: Queue.
+unlink: Not queue.
+
+>>Q2. what happen about the changes that were made on stopped/suspended state?
+[stop/restart]: stops the replication, applications can access the
+fileset while operations are not queued,
+applications can modify the data, when fileset is restarted recovery
+will be run to recover the pending operations.
+[suspend/resume]: stops the replication , but messages are still queued
+at gateway node. Used for temporary stall of replication
+[unlink/link]: applications cannot access the fileset
+For this problem I suggest you to run stop/restart which can stop the
+queue increasement. 
+
+

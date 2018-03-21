@@ -1,0 +1,37 @@
+[ces failover case]
+failover from fs1n1 to fs1n3:
+===================> Select node to failover
+fs1n1-ib_0222122412	"2018-01-18_16:04:40.552+0900: mmcesop: getIPTakeoverNode enter, ipAddress=150.65.214.181 policy=even-coverage skipList=:13:13:
+fs1n1-ib_0222122412	"2018-01-18_16:04:40.631+0900: mmcesop: getIPTakeoverNode - RR selected node 7
+fs1n1-ib_0222122412	"2018-01-18_16:04:40.651+0900: mmcesop: markAddressMovement 150.65.214.181 move 7
+===================> take down current ip
+fs1n1-ib_0222122412	"2018-01-18_16:04:42.245+0900: mmcesop: killTcpLocal: 150.65.214.181
+fs1n1-ib_0222122412	"2018-01-18_16:04:42.266+0900: mmcesop: Taking down 150.65.214.181
+===================> fs1n3 new node ipconfig set ip
+fs1n3-ib_0222122412	"2018-01-18_16:04:43.743+0900: mmcesop: /sbin/ifconfig bond0:1 150.65.214.181 netmask 255.255.255.224
+fs1n3-ib_0222122412	"2018-01-18_16:04:43.747+0900: mmcesop: enableCesIP 150.65.214.181 returning 0
+===================> phase4: moveIP finished from node 13 to node 7
+fs1n3-ib_0222122412	"2018-01-18_16:04:44.744+0900: mmcesop: cesop moveIP phase4 150.65.214.181_13_7
+fs1n3-ib_0222122412	"2018-01-18_16:04:44.998+0900: mmcesop: moveIP moveIP phase4 150.65.214.181_13_7
+
+ Node  Daemon node name  IP address    Admin node name  Designation
+--------------------------------------------------------------------
+   7   fs1n3-ib          192.168.1.3   fs1n3-ib         perfmon
+   8   fs1n4-ib          192.168.1.4   fs1n4-ib         perfmon
+  13   fs1n1-ib          192.168.1.1   fs1n1-ib         perfmon
+
+[How to identify why failover]
+1. check sysmonitor in /var/adm/ras/mmsysmonitor.x.log
+any failed or downgrade type event happened on that time
+
+2. check /var/log/messages on that time
+3. check protocal log on that time. ex, ganesha.log-20180121 
+
+[How to analysis ces related problem]
+1. Check mmfs.
+2. Check syslog:/var/log/message
+3. Check sysmonitor log.
+4. check ces folder
+5. Enable and check ganesha log
+6. If ganesha crashed, you can enable ABRT to check:
+https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1pdg_configchangescoredumpdata.htm

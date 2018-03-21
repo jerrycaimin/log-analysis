@@ -49,6 +49,7 @@ example:
 Notice 
 Trace begins: Thu Jan 18 14:15:46 2018
 
+date --date="Thu Jan 18 14:15:46 2018 23.123 seconds"
 bash-4.1$ date -d "Thu Jan 18 14:15:46 2018" +%s
 1516302946
 bash-4.1$ echo $[1516302946+96]

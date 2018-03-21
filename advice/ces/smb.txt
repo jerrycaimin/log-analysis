@@ -1,0 +1,62 @@
+[check smb throughput]
+for i in smb*/CommandOutput/mmlsperfdata_smb2Throughput_n_1440_b_60; do node=$(echo $i | cut -f 3 -d "."); echo $node; grep "2018-03-07-21" $i | awk '{sum_read+=$3; sum_write+=$4} END {print "total read = ", sum_read, "total write = ", sum_write, "avg read = ", sum_read/3600/1024, "avg write = ", sum_write/3600/1024}'; done
+
+d1pfsscal01
+total read = 1447797249 total write = 1219148472 avg read = 392.74 avg write = 330.715
+d1pfsscal02
+total read = 82506193 total write = 88883640 avg read = 22.3812 avg write = 24.1112
+d1pfsscal03
+total read = 21348428671 total write = 164098261 avg read = 5791.13 avg write = 44.5145
+d1pfsscal04
+total read = 38971979 total write = 64871063 avg read = 10.5718 avg write = 17.5974
+d2pfsscal01
+total read = 969270869 total write = 25263293 avg read = 262.932 avg write = 6.85311
+d2pfsscal02
+total read = 54469203 total write = 59411682 avg read = 14.7757 avg write = 16.1165
+d2pfsscal03
+total read = 685476260359 total write = 13810770040 avg read = 185947 avg write = 3746.41 ===> Throughput KB/s
+d2pfsscal04
+total read = 224255975 total write = 225750299 avg read = 60.8333 avg write = 61.2387
+
+[check smb IO rate]
+for i in smb*/CommandOutput/mmlsperfdata_smb2IORate_n_1440_b_60; do node=$(echo $i | cut -f 3 -d "."); echo $node; grep "2018-03-07-21" $i | awk '{sum_read+=$3; sum_write+=$4} END {print "total read = ", sum_read, "total write = ", sum_write, "avg read =", sum_read/3600, "avg write = ", sum_write/3600}'; done
+
+d1pfsscal01
+total read = 42353 total write = 29520 avg read = 11.7647 avg write = 8.2
+d1pfsscal02
+total read = 2889 total write = 279333 avg read = 0.8025 avg write = 77.5925
+d1pfsscal03
+total read = 240102 total write = 2913 avg read = 66.695 avg write = 0.809167
+d1pfsscal04
+total read = 1344 total write = 675 avg read = 0.373333 avg write = 0.1875
+d2pfsscal01
+total read = 16848 total write = 223 avg read = 4.68 avg write = 0.0619444
+d2pfsscal02
+total read = 426 total write = 170502 avg read = 0.118333 avg write = 47.3617
+d2pfsscal03
+total read = 655110 total write = 3133504 avg read = 181.975 avg write = 870.418 ====> IO rate
+d2pfsscal04
+total read = 8296 total write = 519467 avg read = 2.30444 avg write = 144.296
+
+[check smb connections(smb port is 445)]
+bash-4.1$ grep :445 */netstat_a -c
+d1pfsscal01_c_0307214823/netstat_a:341
+d1pfsscal02_c_master_0307214158/netstat_a:368
+d1pfsscal03_c_0307214823/netstat_a:326
+d1pfsscal04_c_0307214823/netstat_a:348
+d2pfsscal01_c_0307214823/netstat_a:344
+d2pfsscal02_c_0307214823/netstat_a:350
+d2pfsscal03_c_0307214823/netstat_a:33
+d2pfsscal04_c_0307214823/netstat_a:354
+v1passcal01_c_0307214822/netstat_a:0
+v6pqnscal01_c_0307214823/netstat_a:0
+
+[check performance of ces]
+Could you execute the following command for each protocol node:
+    mmlsperfdata smbConnections -n 1460 -b 60 -N <protocol node name> > /var/tmp/<protocol node name>.perfdata
+
+and upload all /var/tmp/<protocol node name>.perfdata files to us. This command will pull the number of SMB connections 
+on each protocol node for that last 24 hours at a 1 minute interval from the performance data database. 
+
+=======> There are other commands that can be used to compare the CES nodes workloads.. Eg CPU usage.. FYI.
+https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/General%20Parallel%20File%20System%20(GPFS)/page/Protocol%20Node%20-%20Tuning%20and%20Analysis

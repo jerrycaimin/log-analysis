@@ -1,0 +1,11 @@
+[unzip tar]
+ls *.tar | xargs -n1 tar xvf
+
+[calculate tcp status]
+netstat -n|awk '/^tcp/{++S[$NF]}END{for (key in S) print key,S[key]}'
+>ESTABLISHED 51
+>TIME_WAIT 38
+
+[calculate tcp status]
+compare file and print:
+grep maxFilesToCache gpfs.snap*unpack/dx*/internaldump.*/* |sed 's/\./ /g' |awk '{print $(NF-3)" "$(NF-1)" "$NF}' 

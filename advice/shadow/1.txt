@@ -1,0 +1,190 @@
+【common】
+vi */mmfs
+vi {1} {2}
+:n 切换
+shift+* 查找光标所在
+
+enable/disable icmp
+>>disable
+sysctl -w net.ipv4.icmp_echo_ignore_all=1
+>>enable
+sysctl -w net.ipv4.icmp_echo_ignore_all=0
+
+截取sorted文件
+cut -d: -f1,6- mmfslogs.sorted | more
+从sorted的log里只找fpttokoft01文件：
+grep fpttokoft01: mmfslogs.sorted | cut -d: -f1,6- 
+
+
+
+#查看所有的locks
+mmcommon showlocks
+
+
+zgrep 不用解压，-i意思是igorecase
+
+
+【源代码】
+/afs/apd/u/liguangl/bigvol/bak/
+4-1以后无法下载
+
+查看方法：
+用ctrl+]跳转，ctrl+t返回
+
+查找所有引用需要生成cscope：
+执行cscope -Rb方法生成cscope.out文件
+
+:cs f s {xxx}
+:cs
+:cs f f {xxx.C}
+
+:ts DEFree::check
+
+
+查找定义需要ctags：
+ctags -R * 生成ctags文件
+
+sample pmr:74484,999,766
+
+【grep 窍门】
+grep " 46\>" xxx.log
+grep "\<46\>" xxx.log
+
+截取trace超过15s的
+awk '$1 >= 15 {print $0 }' trace.gs1ensds14206  | head -n 100
+
+查找特定文件的文本：
+find . -name mmfs.log* | xargs grep -r "Device not ready"
+带空格：
+find . -maxdepth 2 ! -name "." -print0 | xargs -0 du -sh
+
+文件太大，用split -b 分割。
+
+
+【PMR learning】
+====================
+
+
+33886,6D1,760:
+CCR
+gpfsClusterInit: Unexpected error from ccr fget mmsdrfs.  Return code:
+149
+1. qurom node不满足半数的话node state会变成arbitrating
+2. CCR情况下，gpfs不启动sdrfs服务启动的话也可以进行mmchconfig
+3. 此时如果mmlsconfig tiebreakerDisks=/nsd1（来自A server）设置了的话，将会把A node的更改写到tiebreakerDisks盘里，然后B node起来以后
+如果ccr版本低会从tiebreakerDisks里拿，如果A sever挂了，则会报这个错误。
+
+解决方法是启动A server以后，再启动B server即可。
+
+
+
+====================
+68890,227,000
+
+mmchdisk start failed. "device not ready" due to error code 46
+
+TRACE_PIT: start disk, restripe related thread.
+ 
+
+dev check logs
+
+
+
+
+【Common GPFS PMR Handling】
+1. move from service5 to ecurep, apply address:
+https://apps.na.collabserv.com/wikis/home?lang=en-us#!/wiki/W620a99f1a73e_4d3a_b250_40751df17b67/page/Requesting%20ECuRep%20Datastore%20and%20AIX%20debugging%20UserID
+
+2. Check WHEN error/problem/exception happened:
+Sample: 68890,227,000, customer report on 3-5 mmchdisk failed.
+
+[1:jerrycai@itclin34]:/ecurep/pmr/6/8/68890,227,000 $ find . -name mmfs.log* | xargs grep "mmchdisk"
+./2018-03-12/68890.227.000.2018-03-10-sr97283.ctl.snaps.tar.gz_unpack/gs1nsds13723_0311012747/mmfs.logs.gs1nsds13723:Mon Mar  5 20:14:21.395 2018: [E] Command: err 46: mmchdisk /dev/nawest1 start -a -N gs1ensds14206.wdc12,gs1ensds14207.wdc12,gs1ensds14208.wdc12,gs1nsds13723.tus1,gs1wnsds19306.tus1,gs1wnsds19307.tus1,gs1wnsds19308.tus1
+or
+cd 2018-03-10
+vi */mmfs.log*
+
+
+3. Check the following files, from xiantao:
+
+xiantao
+
+mmlsmgr 
+
+
+
+mmlsnsd 
+nsd server
+
+-X
+not found 有问题
+
+
+
+mmlsdisk
+1）desc盘就是disk的quorum，可以通过mmfsctl来控制
+2）有时候mount不起来是quorum盘不可用导致。
+3）availability是down的就有问题。
+
+mmlsconfig 关注的配置
+1）pagepool 如果是ESS的话60% of mem差不多，如果一般的30%即可。如果page不够，trace可以看到
+2）work1Threads，maxFileToCache，doc：
+https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/General Parallel File System (GPFS)/page/Tuning Parameters
+
+mmlscluster
+1）ccr集中存配置信息，在quorum node直接共享。其他从这些node去读即可。
+2）server-base只有primary和secondary两个，一旦这两个节点挂了，其他就不能用了。
+3）ip显示的就是addnode时候dns解析node时候地址。
+
+mmlsfs 
+
+waiters.sorted
+
+【vim】
+
+显示所有编辑的文件
+:ls
+跳转到第几个文件
+:b 5
+打开某个文件
+:e filename
+切换
+:e#/:ctrl+6
+分屏
+:sp/:vsp
+
+【vi 搜索】
+/err\|error
+
+
+highlight：
+mark.vim
+拷贝过去即可
+\m即可标记
+
+highlight2：
+配置文件地址：
+ecurep
+~/.vim/plugin/highlights.csv
+~/.vim/plugin/highlights.vim
+启用方式：
+在要高亮的word上按
+:Highlight 1{2.3.4}
+参考：
+http://vim.wikia.com/wiki/Highlight_multiple_words
+
+比较，最多比4个文件
+vim -d
+vim -do
+
+
+
+
+
+
+ bc -l
+
+ for f in *
+ > do 
+ > gunzip $f
+ > done
