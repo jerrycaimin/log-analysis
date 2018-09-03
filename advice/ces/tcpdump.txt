@@ -1,0 +1,6 @@
+# tshark -Ynfs.status!=0 -r TS001024849_10.13.16.61_solaris_nfs.out.gz | grep DQUOT | head -1
+Running as user "root" and group "root". This could be dangerous.
+363          0  10.13.16.61 -> 10.13.16.40  NFS 190 [TCP ACKed unseen segment] V3 WRITE Reply (Call In 359) Error: NFS3ERR_DQUOT
+[root@server1 TS001024849]# tshark -Tfields -e rpc.auth.flavor -e rpc.auth.uid -e rpc.auth.gid -Y'frame.number==359' -r TS001024849_10.13.16.61_solaris_nfs.out.gz
+Running as user "root" and group "root". This could be dangerous.
+1,0 900 200,200

@@ -1,0 +1,19 @@
+1. Suboptimal performance can be experienced due to file system being fully utilized. 
+As a file system nears full utilization, it becomes difficult to find free space for new blocks, 
+this will impact the performance of write, append and create operations. According to your mmdf output, 
+t24backup is 95% used, and 3 NSDs (out of total 4) are with 0% free full blocks. To avoid performance downgrade, 
+you can add more disks to that FS, and rebalance the FS using mmrestripefs when system is idle. 
+
+2. Unbalanced disk usage can also limit bandwidth. It can result in hot spots in one or a few disks. 
+Presence of hot spots within a system can also cause performance degradation. For a better performance, 
+it is better to use uniformed disk speeds, equal LUN sizes, and balanced access to storage. 
+According to your mmdf output, FS t24backup has 4 disks with different sizes, 2 4T + 1 512G + 1 1T, 
+3 of them 0% free full blocks left, and 1 of them 48% free. Fs t24data01 has 11 disks, all 1T in size, 
+but some 1% free, some 17~18% free and some 71~85%. Both FS are not well balanced. Note that, after you add, 
+change or delete disks in a file system, you can run "mmrestripefs -b" to rebalance the FS. 
+Balancing of files is an IO intensive and time-consuming operation, you are recommend to run it during system idle time. 
+And it is important only for file systems with large files that are mostly invariant, in many cases, 
+normal file update and creation will rebalance your file system over time, without the cost of the re-balancing. 
+
+Pls refer to the command reference: 
+https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1adm_mmrestripefs.htm

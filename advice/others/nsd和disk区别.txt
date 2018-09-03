@@ -1,0 +1,32 @@
+lsdisk命令后面接一个文件系统的名字做参数 
+
+12:04:52 PM: 列出来的时候某个文件系统里的nsd disk 
+
+12:05:33 PM: lsnsd列出来的是所有nsd disk，包括已经加入某个文件系统的使用的nsd disk，也包括还没被任何文件系统使用的nsd disk 
+
+12:05:55 PM: deldisk是把nsd disk从文件系统中删除 
+
+12:06:12 PM: delnsd是把nsd disk从gpfs的控制下删除 
+
+12:06:40 PM: deldisk删除完之后nsd disk就会变成未使用的nsd disk 
+
+12:06:45 PM: 但是还在gpfs的控制之下 
+
+Cai Min: 
+12:07:03 PM: 哦哦，是这样啊 
+
+12:08:16 PM: 我就是经常会在nsd和disk之间卡壳哈哈 
+
+12:09:37 PM: 那加回来的时候是先addnsd，再adddisk么 
+
+Xin Wang: 
+12:09:46 PM: 我们要把disk完全删除，重新加入，这样gpfs会重新写nsd disk上的关键数据结构 
+
+12:09:47 PM: 是的 
+
+12:09:54 PM: addnsd/adddisk 
+
+Cai Min: 
+12:11:57 PM: 那清楚了，addnsd是增加储备，adddisk是真正上战场使用了。单纯addnsd是不会被fs用的 
+
+12:12:10 PM: 要adddisk才可以 

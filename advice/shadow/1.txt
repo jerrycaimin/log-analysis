@@ -23,6 +23,34 @@ mmcommon showlocks
 
 zgrep 不用解压，-i意思是igorecase
 
+find openfile with lsof:
+sh-3.00# lsof -a -p 605 -d ^txt
+COMMAND  PID USER   FD   TYPE  DEVICE SIZE/OFF     NODE NAME
+sendmail 605 root  cwd   VDIR  136,8     1024    23554 /var/spool/mqueue
+sendmail 605 root    0r  VCHR  13,2            6815752 /devices/pseudo/mm@0:null
+sendmail 605 root    1w  VCHR  13,2            6815752 /devices/pseudo/mm@0:null
+sendmail 605 root    2w  VCHR  13,2            6815752 /devices/pseudo/mm@0:null
+sendmail 605 root    3r  DOOR             0t0       58
+        /var/run/name_service_door(door to nscd[81]) (FA:->0x30002b156c0)
+sendmail 605 root    4w  VCHR  21,0           11010052 
+                        /devices/pseudo/log@0:conslog->LOG
+sendmail 605 root    5u  IPv4 0x300010ea640      0t0      TCP *:smtp (LISTEN)
+sendmail 605 root    6u  IPv6 0x3000431c180      0t0      TCP *:smtp (LISTEN)
+sendmail 605 root    7u  IPv4 0x300046d39c0      0t0      TCP *:submission (LISTEN)
+sendmail 605 root    8wW VREG         281,3       32  8778600 /var/run/sendmail.pid
+
+bash-3.00# umount /export/home
+umount: /export/home busy
+bash-3.00# lsof /export/home
+COMMAND  PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+bash    1943 root  cwd   VDIR  136,7     1024    4 /export/home/sean
+bash    2970 sean  cwd   VDIR  136,7     1024    4 /export/home/sean
+ct      3030 sean  cwd   VDIR  136,7     1024    4 /export/home/sean
+ct      3030 sean    1w  VREG  136,7        0   25 /export/home/sean/output
+
+https://www.ibm.com/developerworks/aix/library/au-lsof.html#listing1
+http://linuxtools-rst.readthedocs.io/zh_CN/latest/tool/lsof.html
+
 
 【源代码】
 /afs/apd/u/liguangl/bigvol/bak/
@@ -188,3 +216,26 @@ vim -do
  > do 
  > gunzip $f
  > done
+ 
+ 
+ 
+ 
+ screen:
+screen -S pmrNo
+screen -t 
+ 
+ 
+C-a A       (title)       Allow the user to enter a name for the current window.
+C-a space
+C-a n
+C-a C-n     (next)        Switch to the next window.
+C-a "       (windowlist -b)
+                          Present a list of all windows for selection.
+C-a :sessionname mySessionName rename session name
+
+
+ sed:
+ 参考：
+ http://sed.sourceforge.net/sed1line_zh-CN.html
+ 
+ 

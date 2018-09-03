@@ -1,0 +1,34 @@
+######################################################################
+Wed Jul 11 11:52:46 BRT 2018: Output for mmlsnsd -L on u613 - timeout=60
+######################################################################
+
+ File system   Disk name    NSD volume ID      NSD servers
+---------------------------------------------------------------------------------------------
+ SAPMNT_BIP    NSD_SAPMNT_BIP AC1B2FD256B223EA   u629,u613
+ (free disk)   NSD_TIEBREAKER AC1B2FC856B22562   u613,u629,u614,u681,u615
+
+ ######################################################################
+Wed Jul 11 11:52:47 BRT 2018: Output for mmlsnsd -X on u613 - timeout=60
+######################################################################
+
+ Disk name    NSD volume ID      Device         Devtype  Node name                Remarks
+---------------------------------------------------------------------------------------------------
+ NSD_SAPMNT_BIP AC1B2FD256B223EA   /dev/hdisk7    hdisk    u613                     server node
+ NSD_SAPMNT_BIP AC1B2FD256B223EA   /dev/hdisk6    hdisk    u629                     server node
+ 
+ ######################################################################
+Wed Jul 11 11:52:58 BRT 2018: Output for /usr/lpp/mmfs/bin/mmlsdisk /dev/SAPMNT_BIP -L on u613 - timeout=60
+######################################################################
+disk         driver   sector     failure holds    holds                                    storage
+name         type       size       group metadata data  status        availability disk id pool         remarks
+------------ -------- ------ ----------- -------- ----- ------------- ------------ ------- ------------ ---------
+NSD_SAPMNT_BIP nsd         512           1 yes      yes   ready         up                 1 system        desc
+ 
+ 
+ 
+ 
+ 说明：
+ 1. Volume ID是唯一disk路径，SAPMNT_BIP只挂了一块盘就是AC1B2FD256B223EA
+ 2. 能访问他的nsd server有两个，一个是u613，一个是u629，path分别是/dev/hdisk7和/dev/hdisk6，随便重启任意一个不影响访问。
+ 3. mmlsnsd列出来的是所有gpfs可见的盘，不管是不是已经挂上fs的。而mmlsdisk是所有已经挂上fs的盘。
+ 

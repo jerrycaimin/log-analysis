@@ -1,0 +1,25 @@
+Hello,
+ 
+From the mmfs logs the mmbackup seems to be failing from 27July2018 , can you please confirm this -
+ 
+grep "Unable to acquire admin lock" mmfslogs.sorted | head -3
+nucpstotsm02: /var/adm/ras/mmfs.log.2018.07.12.10.03.14.nucpstotsm02:2018-07-27_10:58:11.065+0000:2018-07-27_20:58:11.065+1000: [E] mmbackup: Unable to acquire admin lock
+nucpstotsm02: /var/adm/ras/mmfs.log.2018.07.12.10.03.14.nucpstotsm02:2018-07-28_11:23:01.105+0000:2018-07-28_21:23:01.105+1000: [E] mmbackup: Unable to acquire admin lock
+nucpstotsm02: /var/adm/ras/mmfs.log.2018.07.12.10.03.14.nucpstotsm02:2018-07-29_11:05:37.606+0000:2018-07-29_21:05:37.606+1000: [E] mmbackup: Unable to acquire admin lock
+ 
+Can you please run the following command and share us the output to check if there are any locks being held :
+mmcommon showlocks
+ 
+Please run the mmbackup with the following env variables levels so we will have more information to debug :
+ 
+export DEBUGmmbackup=7
+export MM_POLICY_DEBUG_BITS=017
+export DEBUGtsbuhelper=3
+ 
+Capture the stdout and stderr of mmbackup as follows :
+mmbackup ...... > log.mmbackup 2>&1
+ 
+Once the mmbackup completes please upload the following files :
+log.mmbackup
+dsmerror.log
+gpfs.snap --deadlock

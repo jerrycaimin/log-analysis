@@ -1,5 +1,5 @@
 [check smb throughput]
-for i in smb*/CommandOutput/mmlsperfdata_smb2Throughput_n_1440_b_60; do node=$(echo $i | cut -f 3 -d "."); echo $node; grep "2018-03-07-21" $i | awk '{sum_read+=$3; sum_write+=$4} END {print "total read = ", sum_read, "total write = ", sum_write, "avg read = ", sum_read/3600/1024, "avg write = ", sum_write/3600/1024}'; done
+for i in smb*/CommandOutput/mmlsperfdata_smb2Throughput_n_1440_b_60; do node=$(echo $i | cut -f 3 -d "."); echo $node; grep "2018-08-22" $i | awk '{sum_read+=$3; sum_write+=$4} END {print "total read = ", sum_read, "total write = ", sum_write, "avg read = ", sum_read/3600/1024, "avg write = ", sum_write/3600/1024}'; done
 
 d1pfsscal01
 total read = 1447797249 total write = 1219148472 avg read = 392.74 avg write = 330.715
@@ -19,7 +19,7 @@ d2pfsscal04
 total read = 224255975 total write = 225750299 avg read = 60.8333 avg write = 61.2387
 
 [check smb IO rate]
-for i in smb*/CommandOutput/mmlsperfdata_smb2IORate_n_1440_b_60; do node=$(echo $i | cut -f 3 -d "."); echo $node; grep "2018-03-07-21" $i | awk '{sum_read+=$3; sum_write+=$4} END {print "total read = ", sum_read, "total write = ", sum_write, "avg read =", sum_read/3600, "avg write = ", sum_write/3600}'; done
+for i in smb*/CommandOutput/mmlsperfdata_smb2IORate_n_1440_b_60; do node=$(echo $i | cut -f 3 -d "."); echo $node; grep "2018-08-22" $i | awk '{sum_read+=$3; sum_write+=$4} END {print "total read = ", sum_read, "total write = ", sum_write, "avg read =", sum_read/3600, "avg write = ", sum_write/3600}'; done
 
 d1pfsscal01
 total read = 42353 total write = 29520 avg read = 11.7647 avg write = 8.2
@@ -60,3 +60,9 @@ on each protocol node for that last 24 hours at a 1 minute interval from the per
 
 =======> There are other commands that can be used to compare the CES nodes workloads.. Eg CPU usage.. FYI.
 https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/General%20Parallel%20File%20System%20(GPFS)/page/Protocol%20Node%20-%20Tuning%20and%20Analysis
+
+[collect trace of smb]
+# mmprotocoltrace clear smb
+# mmprotocoltrace start smb -c <clientIP>
+<recreate>
+#mmprotocoltrace stop smb

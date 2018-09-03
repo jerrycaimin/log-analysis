@@ -1,0 +1,10 @@
+two points to be added (or maybe just clarified), i think : 
+1. mmrestripefs -r will handle data from suspended disks (migrating off the disk) but i think there are no suspended disks in your environment currently. it will also look at replication factors, and make sure they match the settings on the filesystem. So if they are incorrect it will rearrange the blocks of replicated data/metadata to the correct disks.
+Thus, if you change failure groups AND have replicated data or metadata, chances are, that the reduction of FGs will cause both copies to be on the same FG and a need to correct that. In that case data movement is needed. 
+
+2. With no replication, no data movement will take place (given there are no suspended NSDs). However, the scan naturally will still take place over the whole FS and all inodes. 
+disks with only 1% free will cause a performance hit, since the distribution of blocks will try to stripe blocks over all NSDs with space (no matter how little). As far as i understood the algorithm to allocate a block on a NSD is using the alloc cursor, and has potentially more work to do on disks with so little free blocks , that it is simply slower, than on disks with more free space. 
+There are tables distributed over the system, that need to be synched in order to keep track where free blocks are available and in order to synchornize parallel work to fetch out of these ... 
+
+As your Filesystem is far from being full (even with some disks beingf nearly used up) this misbalanced state is causing performance issues and needs to be corrected, preferrably in a short term timeframe.
+This is not causing the hang, only use of alloc cursors is more time consuming, thus the resource contention is more likely. 

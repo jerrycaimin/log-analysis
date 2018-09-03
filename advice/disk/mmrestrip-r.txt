@@ -1,0 +1,8 @@
+1. I think you should suspect this disk and migrate out, suggested step:
+1) mmchdisk bigpfs stop -d gpfs38nsd
+2) mmchdisk bigpfs suspend -d gpfs38nsd
+3) mmrestripefs /dev/bigpfs -r
+After migrate all data off suspend disk we can check if bigpfs is available, as well as check if any hardware iffuse on gpfs38nsd.
+
+For your next question about is that necessary to run mmrestripefs before mmfsck, I don't think so it's necessary and most of time we do not run mmrestripefs before mmfsck.
+mmrestripefs rebalances or restores the replication factor of all the files in a file system, it's run on demand, while mmfsck is to fix the corrupt fs. For your case, let's first move out the bad disk gpfs38nsd and see if mmrestripefs can finish the migration.

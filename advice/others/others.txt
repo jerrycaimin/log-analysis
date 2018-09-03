@@ -33,8 +33,11 @@ Query for first analysis
 1. Have you noticed this issue previously or is this the first time?
 2. What is the current business impact? Is there any loss of access to
 data?
-	Page 7 of 58
 3. Have there been any changes recently?
 4. A snap on one of the nodes is fine.
 ##################
 
+
+Coredump that need reboot:
+Sat Sep 1 20:33:35.567 2018: [I] Connected to 10.116.54.214 tcc-rtbd-cogbia02p-v-dat <c0n19>
+/usr/lpp/mmfs/bin/runmmfs: line 438: 14980: Memory fault(coredump)

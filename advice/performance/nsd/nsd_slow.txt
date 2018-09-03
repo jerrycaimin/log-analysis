@@ -93,3 +93,59 @@ Could customer answer the following question and try to do:
 	a) Build follow as /usr/lpp/mmfs/samples/net/README
 	b) Run built out file.
 	c) set client and server and run.
+	
+	
+	
+	
+From client side, I take one data write of 1MB as an example. The client sends nsdMsgWriteExt via TCP to ESS. This message contains start, len, DA address etc of the message to be wrote. The whole message took 0.168925s which is quite slow:
+
+  96.354742 111021 TRACE_TS: tscSend: service 00100001 msg 'nsdMsgWriteExt' n_dest 1 data_len 104 msg_id 931061 msg 0x7F807002D200 mr 0x7F807002D020 <--- begin send NSD write request
+  96.523667 111291 TRACE_TS: service_message: enter: msg 'reply', msg_id 931061 seq 10364 ackseq 10411, from <c1n6> 10.1.0.230, active 0  <--- NSD data has been wrote into ESS IO node
+
+So let's go to server side, and see what happend:
+
+  39.368965  33184 TRACE_TS: tscHandleMsgDirectly: service 00100001, msg 'nsdMsgWriteExt', msg_id 931061, len 104, from <c0n152> 10.1.33.113 <--- get the NSD write request
+  39.368967  33184 TRACE_NSD: queueMsgReadWriteFast: trying queue GNR type NsdQueueGNR [8]
+  39.368969  33184 TRACE_NSD: mutexAcquire NsdQueueGNR[8] NsdQueueUseNsdIO 0x3fff8c4470e0
+  39.368970  33184 TRACE_NSD: initNsdReqReceiver: queueP 0x3FFF8C4470C0 nsdReqP 0x3FFE04239140 rctxP 0x3FFE30019368   <--- extract NSD write request from nsdMsgWriteExt, put it into a queue, and another thread will use RDMA to get the data from client
+  39.368972  33184 TRACE_NSD: mutexRelease NsdQueueGNR[8] NsdQueueUseNsdIO 0x3fff8c4470e0
+  39.368973  33184 TRACE_MUTEX: Signaling fast condvar for signal 0x3FFB30000F80 NSDQFastCondvar
+  39.368976  33184 TRACE_NSD: queueMsgReadWriteFast: exit: err 306
+  39.368977  33184 TRACE_NSD: nsdMsgHandler exit: err 306
+  39.368980  33184 TRACE_BASIC: cxiRecv: sock 378 buf 0x3FFDAC011D38 len 1024 flags 0 failed with err 11
+  39.368981  33184 TRACE_TS: receiverEvent exit: sock 378 err 54 newTypes 1 state reading header
+  39.368982  30079 TRACE_NSD: nsdMsgReadWriteExtFinder: extensionLen 12, receivedFlags 0x80000023
+  39.368983  30079 TRACE_NSD: nsdMsgReadWriteExtFinder: found i 0, bit 0x80000000, len 8
+  39.368985  30079 TRACE_NSD: initNsdReqWorker: NSD rdwr disknum 4 sector 16920475648 nbytes 1048576 tag1 131134 tag2 3 ck NsdCksum_Ck64
+  39.368988  30079 TRACE_NSD: mutexAcquire NsdQueueGNR[8] NsdQueueUseNsdIO 0x3fff8c4470e0
+  39.368991  30079 TRACE_NSD: mutexRelease NsdQueueGNR[8] NsdQueueUseNsdIO 0x3fff8c4470e0
+  39.368993  30079 TRACE_NSD: processRequest (0x3FFE04239140) enter: nsdId 00E60A01:592BE23B da 4:16920475648 nBytes 1048576 rdwrFlags 0x100002 ck NsdCksum_Ck64 queue GNR type NsdQueueGNR [8]
+       <---- the thread begin to pull data from NSD client to NSD server
+  39.368996  30079 TRACE_VDISK: vhLookup: vdisk ess06_da1_fs01_d43 id 00E60A01:592BE23B vtrack 4130975 bucket 0xB91F flags 0x0
+  39.368998  30079 TRACE_VDISK: vhLookup: vdisk ess06_da1_fs01_d43 id 00E60A01:592BE23B vtrack 4130975 list cleanPartial flags 0x0 found 0x1E00286576E0 hold 1 attempts 1
+  39.369022  30079 TRACE_VDISK: getWriteIovec: nBytes 1048576 numVBuffs 144
+  39.369029  30079 TRACE_RDMA: verbsServer:   enter WR <c0n152> tag 131134 3 nBytes 1048576 nRmr 1 nIov 132
+       <--- begin RDMA read
+  39.369039  30079 TRACE_RDMA: verbsServer:   rdma WR rweP 0x3FFC18004CB0 nBytes 1048576 reterr 0 currLen 794624 nSge 28 cP 0x30001740000 sP 0x3B364064000
+  39.369042  30079 TRACE_MUTEX: Waiting on fast condvar for signal 0x3FFC18004CC0 RdmaRead_Server
+  39.369671  33155 TRACE_RDMA: verbsDtoThread: add deviceCqP 0x3FFA37292558 cqP 0x3FFEC400A000 nEvents 118
+  39.369673  33155 TRACE_RDMA: verbsDtoThread: event WR rweP 0x3FFC18004CB0 cnt 794624 tag 131134 3 len 794624
+  39.369673  33155 TRACE_MUTEX: Signaling fast condvar for signal 0x3FFC18004CC0 RdmaRead_Server
+  39.369680  30079 TRACE_RDMA: verbsServer:   rdma WR rweP 0x3FFC18004CB0 nBytes 1048576 reterr 794624 currLen 253952 nSge 9 cP 0x30001802000 sP 0x2335E84E000
+  39.369682  30079 TRACE_MUTEX: Waiting on fast condvar for signal 0x3FFC18004CC0 RdmaRead_Server
+  39.369890  33155 TRACE_RDMA: verbsDtoThread: add deviceCqP 0x3FFA37292558 cqP 0x3FFEC400A000 nEvents 119
+  39.369892  33155 TRACE_RDMA: verbsDtoThread: event WR rweP 0x3FFC18004CB0 cnt 253952 tag 131134 3 len 253952
+  39.369893  33155 TRACE_MUTEX: Signaling fast condvar for signal 0x3FFC18004CC0 RdmaRead_Server
+  39.369897  30079 TRACE_RDMA: verbsServer:    exit WR <c0n152> tag 131134 3 reterr 1048576
+       <--- All the 1MB data read from NSD client side completes. The total time spent for RDMA transfer is less than 0.000932 seconds, very fast. Now data to be wrote has arrived at NSD server side.
+                    
+  39.369898  30079 TRACE_VDISK: QIO: mediumWrite data tag 131134 3 vdiskName ess06_da1_fs01_d43 startSec 16920475648 nSectors 2048 by (NSDThread)
+      <--- NSD server begin to put the IO request into queue.
+
+   <TODO: needs more analysis between QIO and FIO>                      
+  39.537600  30079 TRACE_VDISK: FIO: mediumWrite data tag 131134 3 vdiskName ess06_da1_fs01_d43 startSec 16920475648 nSectors 2048 err 0
+      <--- Finished IO
+  39.537603  30079 TRACE_VDISK: postIO: mediumWrite data tag 131134 3 vdiskName ess06_da1_fs01_d43 startSec 16920475648 nSectors 2048 err 0 duration 0.167702000
+      <--- IO duration is 0.1677020 seconds. So almost all IO time is spent on ESS IO write.
+  39.537609  30079 TRACE_TS: tscSendReply: service 00100001, msg 'nsdMsgWriteExt', msg_id 931061, replyLen 0
+      <--- ESS IO completes. Needs to write a reply to client, telling it the IO completes

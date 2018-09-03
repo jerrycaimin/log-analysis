@@ -2,6 +2,8 @@ For NFS problem, we need data collection before OS reboot,
 especially tcpdump output from both NFS server and client, like
 'tcpdump -i <iface> -s0 -w <capfile> host <ip-address>'
 ex: 
+http://www.ibm.com/support/docview.wss?uid=swg21633065
+
 
 and ganesha trace on NFS server, which can enabled by
 'ganesha_mgr set_log COMPONET_ALL FULL_DEBUG'

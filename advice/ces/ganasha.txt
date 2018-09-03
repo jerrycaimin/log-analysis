@@ -33,3 +33,10 @@ From rtc: https://jazz07.rchland.ibm.com:21443/jazz/web/projects/GPFS#action=com
 From pmr: https://w3-03.ibm.com/systems/techlink/psdb/global/viewRecord.do?category=PMR&uid=30083000858-20171123
 [Basic description on NFS]
 http://blog.51cto.com/atong/1343950
+
+[Take ganesha coredumps]
+https://ganltc.github.io/setup-to-take-ganesha-coredumps.html
+
+[update rpm]
+https://ganltc.github.io/nfs-ganesha-upgrade-instructions.html
+

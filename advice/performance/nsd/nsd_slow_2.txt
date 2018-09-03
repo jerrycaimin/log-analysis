@@ -114,7 +114,7 @@ gpfs.snap --deadlock
 
 You may need to collect above data from both ess and client clusters
 
-In addition, if you want to monitor run time perf, beside monitoring
+In addition, if you want to monitor runtime perf, beside monitoring
 waiter list, you can run mmdiag --iohist to check io statistics:
 
 The --iohist can be done on any node.  On servers it will show how fast

@@ -1,0 +1,18 @@
+Here are steps to clean stale_mount issue:
+
+1. adjust 3 file systems' mount points, making sure each fs has
+dedicated and independent mount point. Cmd is :
+
+mmchfs <fs name> -T <new mount point>                /*unmount fs from
+all nodes before issue this cmd*/
+
+2. mount all fs back and verify mmlsmount all -L
+
+3. login cluster mgr node (verify it by mmlsmgr -c) and run:
+mmsysmoncontrol restart
+
+This will create a bit load IOs in cluster wide so it is suggested not
+to run in peak hours.
+
+4. run mmhealth again and verify status
+Any question or concern... let me know
