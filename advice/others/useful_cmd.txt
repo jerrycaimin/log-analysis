@@ -9,3 +9,10 @@ netstat -n|awk '/^tcp/{++S[$NF]}END{for (key in S) print key,S[key]}'
 [calculate tcp status]
 compare file and print:
 grep maxFilesToCache gpfs.snap*unpack/dx*/internaldump.*/* |sed 's/\./ /g' |awk '{print $(NF-3)" "$(NF-1)" "$NF}' 
+
+[James tips]
+-----count all
+-bash-4.2$ for i in dmesg*;do cnt=$(grep 'I/O error' $i |wc -l); echo $i $cnt;done
+
+-----list all disk from fs
+for i in $(mmlsfs all_local | grep ^File | cut -d '/' -f 3-8 | tr ':' ' ');do echo "mmlsdisk $i"; mmlsdisk $i ; done

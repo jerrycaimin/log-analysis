@@ -23,3 +23,12 @@ For this problem I suggest you to run stop/restart which can stop the
 queue increasement. 
 
 
+
+1, AFM State
+Please refer to below link to check AFM state, it provides state description and related actions
+https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1adv_monitorafmfilesets.htm
+
+2, Enable 'auto mount' on remote file system
+In AFM solution, we need mount remote file system on source side, it is different to enable auto mount on remote file system than local file system.
+For remote file system, we need use 'mmremotefs update Device -A yes' to enable and use 'mmremotefs show Device' to check
+For local file system, we need use 'mmchfs Device -A yes' to enable and use 'mmlsfs Device -A' to check

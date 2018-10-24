@@ -1,0 +1,39 @@
+[Failover]
+If cnfs failover happens, the failover ip shall include the recovery node ip, this is the way how cnfs failover works.
+--->Before failover:
+grv-prcnfs06-gpfs, ifconfig--> 10.200.150.32
+grv-cnfs01-gpfs, ifconfig--> 10.200.150.221
+--->After failover from 01 to 06:
+grv-prcnfs06-gpfs, ifconfig--> 10.200.150.32, 10.200.150.221
+
+[Failover Logs]
+grv-prcnfs06-gpfs:Mon Sep 24 18:17:46 EDT 2018: mmcommon gpfsrecovernode invoked: myIP=10.200.58.34 recovery and failed nodes="10.200.58.34 10.200.58.21"
+grv-prcnfs06-gpfs:Mon Sep 24 18:17:46 EDT 2018: /usr/lpp/mmfs/bin/mmnfsrecovernode invoked
+grv-prcnfs06-gpfs:Mon Sep 24 18:17:46 EDT 2018: mmnfsrecovernode: Restarting lockd to start grace
+grv-prcnfs06-gpfs:Mon Sep 24 18:17:46 EDT 2018: mmnfsrecovernode: NLM grace period started for recovery of failed nodes 10.200.58.34 10.200.58.34 10.200.58.21
+grv-prcnfs06-gpfs:Mon Sep 24 18:17:46 EDT 2018: mmnfsrecovernode: Restarting lockd to start grace
+
+grv-prcnfs03-gpfs:Mon Sep 24 18:17:52 EDT 2018: mmnfsmonitor: NFS clients of node 10.200.58.28 notified to reclaim NLM locks
+grv-prcnfs06-gpfs:Mon Sep 24 18:17:52 EDT 2018: mmnfsrecovernode: Initiating IP takeover of 10.200.58.21 due to node failure/recovery
+grv-prcnfs03-gpfs:Mon Sep 24 18:17:55 EDT 2018: mmnfsrecovernode: NFS clients of node 10.200.58.28 notified to reclaim NLM locks
+grv-prcnfs04-gpfs:Mon Sep 24 18:17:55 EDT 2018: mmnfsrecovernode: NFS clients of node 10.200.58.29 notified to reclaim NLM locks
+grv-prcnfs05-gpfs:Mon Sep 24 18:17:55 EDT 2018: mmnfsrecovernode: NFS clients of node 10.200.58.30 notified to reclaim NLM locks
+grv-cnfs02-gpfs:Mon Sep 24 18:17:57 EDT 2018: mmnfsrecovernode: NFS clients of node 10.200.58.22 notified to reclaim NLM locks
+grv-prcnfs06-gpfs:Mon Sep 24 18:18:00 EDT 2018: mmnfsmonitor: Monitor detected nfsd was not running, will attempt to start it
+grv-prcnfs06-gpfs:Mon Sep 24 18:18:00 EDT 2018: mmnfsmonitor: Starting NFS services
+grv-prcnfs06-gpfs:Mon Sep 24 18:18:07 EDT 2018: mmnfsmonitor: NFS clients of node 10.200.58.34 notified to reclaim NLM locks
+grv-prcnfs06-gpfs:Mon Sep 24 18:18:09 EDT 2018: mmnfsrecovernode: NFS clients of node 10.200.58.21 notified to reclaim NLM locks
+grv-prcnfs06-gpfs:Mon Sep 24 18:18:14 EDT 2018: mmnfsrecovernode: NFS clients of node 10.200.58.34 notified to reclaim NLM locks
+
+[Debug]
+Step:
+1) mmchconfig cnfsDebug=5 -i
+2a) Wait on next failover
+2b) If it's not easy to recreae failover process, you can try manually:
+    Run on grv-cnfs01-gpfs: mmnfstakeover grv-prcnfs06-gpfs
+    *This would manually failover grv-cnfs01-gpfs to grv-prcnfs06-gpfs
+3) Collect snap and upload again.
+
+[Hang]
+cnfsctl activeIp 会调用mmcmi产生adapter上的IP配置信息，然后通过管道传递给awk处理 
+mmcmi或awk hang都会最终导致mmfsup不返回

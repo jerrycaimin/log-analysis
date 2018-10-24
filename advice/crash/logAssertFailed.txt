@@ -25,3 +25,6 @@ mmdsh -N all "/usr/lpp/mmfs/bin/mmfsadm saferdump all > /tmp/mmfs/service.\$(hos
 mmtracectl --stop -N all
 mmtracectl --off
 
+refer:
+https://www.ibm.com/support/knowledgecenter/STXKQY_5.0.0/com.ibm.spectrum.scale.v5r00.doc/bl1pdg_mmtrace.htm
+

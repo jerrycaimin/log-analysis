@@ -1,3 +1,6 @@
+[Data collection for NFS Ganesha hang or performance issue]
+https://ganltc.github.io/data-collection-for-nfs-ganesha-hang-or-performance-issue.html 
+
 [Enable ganesha trace]
 mmnfs configuration change LOG_LEVEL=FULL_DEBUG
 restore to default level
@@ -40,3 +43,14 @@ https://ganltc.github.io/setup-to-take-ganesha-coredumps.html
 [update rpm]
 https://ganltc.github.io/nfs-ganesha-upgrade-instructions.html
 
+
+[Set NOFILE]
+>> maxFilesToCache 1000000
+>> NOFILE="80000"
+
+NOFILE should be 80% of MFTC, after reboot it set automatically.
+So they must have set MTFC as 100K first and then restarted GPFS. Ganesha's NOFILE would be 80K. 
+They need restart GPFS to take the new maxFilesToCache value to compute new NOFILE.
+
+[rpc.statd permission issue "/var/lib/nfs/statd/sm/dev4: Permission denied" of /var/log/message]
+https://gpfs.almaden.ibm.com/w/index.php?title=Ganesha/Problem_Determination&section=7#clients_not_monitored

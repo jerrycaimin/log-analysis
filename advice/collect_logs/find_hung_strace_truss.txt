@@ -1,0 +1,6 @@
+[Trace run the process, to check which step hung the process]
+strace -tt -f -o /tmp/preparedisk.out tspreparedisk -s
+
+[Find which sub-process hung the mail process]
+ps -eafl
+

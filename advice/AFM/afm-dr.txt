@@ -1,0 +1,28 @@
+Failover process:
+
+1) Failover to secondary: mmafmctl fs1 failoverToSecondary -j scaletest001
+2) write data to secondary nsd#4
+3) Run failback at primary to get modified data at primary site:
+	a) mmafmctl <fs> failbackToPrimary -j <fsetName> --start
+	b) mmafmctl <fs> applyUpdates -j <fsetName>
+	-- this step needs to be run so that we can get as close to secondary site in terms of data..
+	c) When workload at the secondary site is very minimal, stop the applications on the secondary
+	-- Run "mmafmctl <fs> applyUpdates -j <fsetName>" -- one last time to get these data after application is stopped
+	d) mmafmctl <fs> failbackToPrimary -j <fsetName> --stop
+4) mmchfileset fs1 scaletest001 -p afmmode=secondary -p afmPrimaryId=xxxxxxxxx at the secondary site
+
+this is the actual failover/failback mechanism, the failover has to be complimented by the failback.
+For whole description please refer here:
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_5.0.0/com.ibm.spectrum.scale.v5r00.doc/b1lins_uc_creatingnewprimarysecnfilesets.htm
+
+
+[JunHui]
+Any customer planning to use AFM DR should contact Spectrum Scale Support at scale@us.ibm.com to have your use case reviewed. IBM will help optimize your tuning parameters and enable the feature.
+
+https://www-01.ibm.com/support/docview.wss?uid=ssg1S1005817&myns=s033&mynp=OCSTXKQY&mynp=OCSWJ00&mync=E&cm_sp=s033-_-OCSTXKQY-OCSWJ00-_-E
+
+Here's AFM Review Board wiki where all approved customers are listed.
+
+https://w3-connections.ibm.com/wikis/home?lang=en-us#!/wiki/AFM%20Review%20Board%20-%20Customers/page/Welcome%20to%20AFM%20Review%20Board%20-%20Customers
+
+

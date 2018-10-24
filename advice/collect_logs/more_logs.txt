@@ -1,0 +1,2 @@
+If Linux can we get dmesg data from all nodes as well as the /var/adm/ras/mmfs.log.latest file from each node in the cluster?
+If AIX errpt -a and the /var/adm/ras/mmfs.log.latest file from each node in the cluster?

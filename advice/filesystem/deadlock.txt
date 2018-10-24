@@ -1,0 +1,120 @@
+
+
+
+
+1) First check:
+
+https://www.ibm.com/support/knowledgecenter/STXKQY_5.0.0/com.ibm.spectrum.scale.v5r00.doc/bl1pdg_hnglcks.htm
+
+2) Ask Customer to collect logs:
+1. mmlsnode -N waiters -L > /tmp/allwaiters.$(date +%m%d%H%M%S)
+2. Edit a file called node.list, enter node names with waiters into the file (one name per line), get a "mmfsadm dump all":
+mmdsh -N /tmp/node.list '/usr/lpp/mmfs/bin/mmfsadm dump all > /tmp/mmfs/gpfs.$(uname -n).dumpall.$(date +%m%d%H%M%S)'
+3. collect a fresh gpfs.snap
+4. mmdf $fsname
+
+3) Common solution;
+a. increased MFTC
+b. check capacity of filesystem
+
+
+
+break deadlock:
+
+https://www.ibm.com/support/knowledgecenter/STXKQY_5.0.0/com.ibm.spectrum.scale.v5r00.doc/bl1pdg_deadlockbreakupdemand.htm
+
+
+a01gcbemcore4a_gpfs Oct 2 04:52:01.936 2018: [A] Deadlock detected: 2018-10-02 04:46:53: waiting 308.512 seconds on node a01gcbemcore3a_gpfs: InodePrefetchWorkerThread 93128433: on MsgRecordCondvar, reason 'RPC wait' for tmMsgRevoke
+a01gcbemcore4a_gpfs Oct 2 04:52:01.941 2018: [I] Initiate debug data collection from this node.
+a01gcbemcore4a_gpfs Oct 2 04:52:01.945 2018: [I] Calling User Exit Script gpfsDebugDataCollection: event deadlockDebugData, Async command /usr/lpp/mmfs/bin/mmcommon.
+a01gcbemapp1a_gpfs Oct 2 04:52:02.752 2018: [N] sdrServ: Received deadlock notification from 10.75.0.18
+a01gcbemapp3a_gpfs Oct 2 04:52:02.752 2018: [N] sdrServ: Received deadlock notification from 10.75.0.18
+a01gcbemapp4a_gpfs Oct 2 04:52:02.752 2018: [N] sdrServ: Received deadlock notification from 10.75.0.18
+a01gcbemcore1a_gpfs Oct 2 04:52:02.752 2018: [N] sdrServ: Received deadlock notification from 10.75.0.18
+a01gcbemcore2a_gpfs Oct 2 04:52:02.752 2018: [N] sdrServ: Received deadlock notification from 10.75.0.18
+a01gcbemgpfs1a_gpfs Oct 2 04:52:02.752 2018: [N] sdrServ: Received deadlock notification from 10.75.0.18
+a01gcbemcore3a_gpfs Oct 2 04:52:02.753 2018: [N] sdrServ: Received deadlock notification from 10.75.0.18
+a01gcbemgpfs2a_gpfs Oct 2 04:52:02.753 2018: [N] sdrServ: Received deadlock notification from 10.75.0.18
+a01gcbemapp1a_gpfs Oct 2 04:52:02.755 2018: [N] GPFS will attempt to collect debug data on this node.
+a01gcbemcore1a_gpfs Oct 2 04:52:02.755 2018: [N] GPFS will attempt to collect debug data on this node.
+a01gcbemgpfs2a_gpfs Oct 2 04:52:02.755 2018: [N] GPFS will attempt to collect debug data on this node.
+a01gcbemapp2a_gpfs Oct 2 04:52:02.755 2018: [N] sdrServ: Received deadlock notification from 10.75.0.18
+a01gcbemapp3a_gpfs Oct 2 04:52:02.756 2018: [N] GPFS will attempt to collect debug data on this node.
+a01gcbemapp4a_gpfs Oct 2 04:52:02.756 2018: [N] GPFS will attempt to collect debug data on this node.
+a01gcbemcore2a_gpfs Oct 2 04:52:02.756 2018: [N] GPFS will attempt to collect debug data on this node.
+a01gcbemcore3a_gpfs Oct 2 04:52:02.756 2018: [N] GPFS will attempt to collect debug data on this node.
+a01gcbemgpfs1a_gpfs Oct 2 04:52:02.758 2018: [N] GPFS will attempt to collect debug data on this node.
+a01gcbemapp2a_gpfs Oct 2 04:52:02.759 2018: [N] GPFS will attempt to collect debug data on this node.
+a01gcbemcore4a_gpfs Oct 2 04:53:02.238 2018: [N] Long waiters have disappeared.
+
+Looking at the RPC history for that node a01gcbemcore4a_gpfs, we see it fairly often has very slow response, while the average RPC time is less than 400 ms the max is often in the 100-300 second range. 
+
+RPC (msec) aggregated statistics for node a01gcbemcore3a_gpfs in cluster GCBEMCluster.a01gcbemgpfs1a_gpfs
+TCP RPC Latency
+hour: average = 0.393, min = 0.178, max = 315.081, count = 2996639
+hour: average = 0.399, min = 0.165, max = 112.058, count = 2852049
+hour: average = 0.395, min = 0.164, max = 247.308, count = 2657729
+hour: average = 0.393, min = 0.175, max = 124.406, count = 3080864
+hour: average = 0.390, min = 0.181, max = 200.902, count = 3352342
+hour: average = 0.385, min = 0.176, max = 77.745, count = 4392063
+hour: average = 0.379, min = 0.176, max = 100.168, count = 3664344
+hour: average = 0.389, min = 0.170, max = 132.170, count = 2965387
+hour: average = 0.387, min = 0.186, max = 81.319, count = 2756716
+hour: average = 0.384, min = 0.183, max = 88.162, count = 3366632
+hour: average = 0.377, min = 0.184, max = 53.017, count = 3357585
+hour: average = 0.387, min = 0.181, max = 106.542, count = 4292269
+hour: average = 0.378, min = 0.179, max = 92.026, count = 2422881
+hour: average = 0.386, min = 0.181, max = 92.208, count = 2998396
+hour: average = 0.400, min = 0.179, max = 74.809, count = 2910471
+hour: average = 0.382, min = 0.176, max = 47.877, count = 2636095
+hour: average = 0.381, min = 0.183, max = 119.479, count = 3095842
+hour: average = 0.378, min = 0.178, max = 117.950, count = 3089578
+hour: average = 0.389, min = 0.172, max = 70.390, count = 3467508
+hour: average = 0.376, min = 0.186, max = 148.283, count = 2172717
+hour: average = 0.384, min = 0.178, max = 96.878, count = 2721588
+hour: average = 0.382, min = 0.183, max = 81.091, count = 2618722
+hour: average = 0.452, min = 0.191, max = 15.666, count = 556152
+hour: average = 0.610, min = 0.224, max = 11.520, count = 275211
+day: average = 0.370, min = 0.159, max = 188.220, count = 22483058
+day: average = 0.389, min = 0.160, max = 208.988, count = 34274031
+day: average = 0.428, min = 0.160, max = 150.689, count = 30350727
+
+
+So now I am searching all of the internal dumps for inode mutex activity and mapping it back to the inode number and sorting all of them by the inode number. The inode pops up as interesting is the directory inode 65012 as 3 systems have waiter counts against this directory. How are the systems using files in this directory? 
+
+
+bash-4.2$ for i in intern*;do mutexContention -f $i ;done | sort -k 6
+internaldump.181002.04.52.03.10027966.deadlock.a01gcbemcore2a_gpfs mutex 0xF1000012BB522860 wait 1 1933924 -rw-rw-r-- 0A41017153F99E0E:00000000001D8264:0000000000000000 @ 0xF1000012BB522830
+internaldump.181002.04.52.03.32310038.deadlock.a01gcbemcore1a_gpfs mutex 0xF1000012A46EB100 wait 1 31385 -rw-rw-r-- 0A410172590CC6BB:0000000000007A99:0000000000000000 @ 0xF1000012A46EB0D0
+internaldump.181002.04.52.03.32310038.deadlock.a01gcbemcore1a_gpfs mutex 0xF1000012A0A2AFD0 wait 5 65012 drwxrwxr-x 0A410172590CC6BB:000000000000FDF4:0000000000000000 @ 0xF1000012A0A2AFA0
+internaldump.181002.04.52.03.16843130.deadlock.a01gcbemcore4a_gpfs mutex 0xF1000012A364A7C8 wait 255 65012 drwxrwxr-x 0A410172590CC6BB:000000000000FDF4:0000000000000000 @ 0xF1000012A364A798
+internaldump.181002.04.52.03.10027966.deadlock.a01gcbemcore2a_gpfs mutex 0xF1000012B5BF6348 wait 124 65012 drwxrwxr-x 0A410172590CC6BB:000000000000FDF4:0000000000000000 @ 0xF1000012B5BF6318
+internaldump.181002.04.52.03.9634580.deadlock.a01gcbemcore3a_gpfs mutex 0xF1000012B73C9418 wait 3 65012 drwxrwxr-x 0A410172590CC6BB:000000000000FDF4:0000000000000000 @ 0xF1000012B73C93E8
+internaldump.181002.04.52.03.16843130.deadlock.a01gcbemcore4a_gpfs mutex 0xF1000012BF024B28 wait 1 9949 -rw-rw-r-- 0A410172590CC6BB:00000000000026DD:0000000000000000 @ 0xF1000012BF024AF8
+-bash-4.2$ 
+
+
+
+
+1) First your need find mutex 'InodeCacheObjMutex' from internaldump in dump condvar section.
+2) Get the mutex id and waitcount.
+>>grep -A 1 -e "mutex 'InodeCacheObjMutex'" in*
+internaldump.181002.04.27.11.31654464.deadlock.a01gcbemcore1a_gpfs:    (mutex 'InodeCacheObjMutex' at 0xF1000012A0A2AFD0 (0xF1000012A0A2AFD0 PTR_OK))
+internaldump.181002.04.27.11.31654464.deadlock.a01gcbemcore1a_gpfs-    waitCount 267 condvarEventWordP 0xF1000A02A0629108
+
+3) Search the mutex id in dump files section, and you can know the inode number 
+>>grep -A 20 -e "cach.*mtx 0xF1000012A0A2AFD0" in* | grep -e "inode.*mode"
+internaldump.181002.04.27.11.31654464.deadlock.a01gcbemcore1a_gpfs-  inode 65012 snap 0 USERFILE nlink 2 genNum 0x100F6 mode 0200040775: drwxrwxr-x
+
+
+
+
+
+case:
+Problem description in customer terms:
+User may see a lot of threads are blocked at 'wait for GNR buffers from steal thread' on GNR server side. This is possible to happen when running very heavy small writes in parallel to eat up the GNR buffers very quickly.
+ 
+Wait for GNR buffers from steal thread on VBufStealCondvar¡­
+ 
+Problem Summary:
+Small writes are tested on the system and run very fast, and eat up GNR buffers very quickly. Steal threads are started to reclaim buffers. Each of them starts to flush the dirty buffers back to their home location, during which emergency buffers are reserved to complete flushing. After flush VIO completes, flusher (A) tries to free the number of reserved buffers back to the emergency pool, but given some of them have been used by flushing so it has to replenish free buffers. It doesn't try to reclaim directly from the vtrack (A) that it just flushes. Instead, it may replenish the buffers by stealing from some other vtrack (B) flushed by other flusher (B), and vise versa. Vtrack B may have much more clean buffers that flusher A needs. After replenish free buffers and give back to emergency pool, it frees other buffers to the threads waiting in normal buffer pool. While flusher B can steal vtrack A as well, the number of clean buffers may not be sufficient. This process continues and finally all steal threads may not replenish enough free buffers and are stuck. Given no free buffers can be stolen any more, all foreground VIO's with free buffer requests may block.

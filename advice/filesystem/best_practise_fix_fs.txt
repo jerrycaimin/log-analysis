@@ -13,6 +13,9 @@ Send in the typescript file for us to evaluate.
 You can also mount the filesystem after the mmfsck -n completes in service mode:
 mmmount gpfsFS1 -o rs 
 and you can run a tsfindinode giving it a file containing the list of bad inodes (see above). 
+
+/usr/lpp/mmfs/samples/util/tsfindinode -i $filename $mountpoint
+
 This will allow you to identify the bad inodes.   
 Call the support center and have them pageout the oncall to evaluate the mmfsck output,  then you can run the mmfsck -y.
 
@@ -206,4 +209,80 @@ Block allocation map of SAS7K pool file has corrupt block 9523 record 19046 (rea
 Block allocation map of SAS7K pool file has corrupt block 9523 record 19046 (reason 8).
 
 
+
+
+
+[PPT]
+==========================================
+1£©MMFS_FSSTUCT error
+	->It will be printed into system log if GPFS detect Fs corruption when access the file system.
+	->fstructk.awk(Linux) fstruct.awk(AIX) under/lpp/mmfs/samples/debugtools/to decode the MMFS_FSSTRUCT message in system log£º
+		fsstructlx.awk /var/log/messages > fsstruct.message
+	->mmhealth will report FS corruptions
+Refer to pd guide pdf for MMFS_FSSTUCT detail.
+
+2£©offline mmfsck to check file system and generate report.
+	-> GPFS file system needs to be unmounted from all nodes.
+	-> Use patch file option (from ver 4.1.1) to avoid two rounds of long running mmfsck£º
+		mmfsck -nV -patch-file /tmp/fsck.patch
+	-> Online mmfsck
+		run mmfsck with -o option while FS is mounted
+		Can only fix the lost blocks- data block marked as used but not reference by any file/dir
+3£©New mmfsck option:-estimate-only
+.osplayS estimation of offine fsck run time for given mmfsckoptions oMiors£¬coniguration of the targetfile
+¡¤The estimate is based on mmfsck commang roughput of the participating nodes system and average disk and network/o th
+
+4) Upload mmfsck output and patch file for IBM to review. Additional output may be required:
+. tsfindinode to identify the pathname for corupted inodes. Needs to mount FS
+¡¤ tsdbfs output for inode dumps
+5) Run ofline mmfsck fix under guidance of IBM support
+¡¤ If patch is used, run it with: mmfsck <fs> -V -patchfile /tmp/mmfs/fsck.patch --patch
+6) Log recovery failure
+¡¤ mmfsck <fs>-xk
+¡¤ Needs to unmount FS
+¡¤ Supported in ver>=4.2
+¡¤ Run it after confirmed with IBM support.
+7) mmfsck --status-report
+¡¤ Displays an interim status report at any time. While a long-running instance of mmfsck is in progress, you can start another instance of mmfsck with the-
+status-report paiameter to display current status information from all the nodes that are participating in the mmfsck run
+
+
+[tips]
+MMFSCK initial run: 
+When necessary to execute mmfsck on a system, the initial run should be executed with the -n option (i.,e don't repair)
+mmfsck <fsname> -nv-t/tmp/ --threads 4096 --patch-file/tmp/mmfsck.fs.patch > /tmp/mmfsck.fs_n.out 2>&1
+
+Note: Further testing on a lab system to ensure the max number of threads we can specify in ESS is required. In the meantime, if the above value doesn't work in the customer's environment, please reduce the value to 256, 128 or 64 ( default value is 16). 
+
+With respect to the -t option (temporary storage directory used by mmfsck): the default location is /tmp; however I specified it here in the event you want to change it. 
+
+Identify bad files: 
+Once the process completes, identify the bad /dupfrag inode files. Create a file that contains the inodes and then proceed with the following steps: 
+
+Mount the file system in read only:
+mmmount <fsname> -o ro
+
+Identify the bad files: 
+tsfindinode -i <inode_file> <fs mountpath> 
+
+Create a backup of the files: 
+Once the tsfindinode cmd completes, copy the affected files to a different location. 
+
+Prior to performing the next steps to run mmfsck in repair mode, please review the mmfsck.fs_n.out with Mustafa or GPFS L2 to confirm no additional steps or hidden flags should be executed along with the -y option.
+
+MMFSCK in repair mode: 
+Edit the patch files to prepare to run mmfsck with the -y option. 
+
+Once the identified files are copied, please unmount the file system: 
+mmumount <fsname>
+Edit the mmfsckfs.patch file that was created during the initial mmfsck -n run in step 1 and change the following value on the second to last line of the file:
+change 
+need_full_fsck_scan = true
+
+to 
+need_full_fsck_scan = false
+Example:
+mmfsck <fsname> -v -t/tmp/ --threads 4096 --patch-file/tmp/mmfsck.fs.patch --patch>  /tmp/mmfsck.fs_y.out 2>&1
+
+Additional information on mmfsck can be found in the attached documents, as well as the Knowledgecenter. 
 
