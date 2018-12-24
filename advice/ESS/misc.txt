@@ -1,0 +1,51 @@
+[TS001657819]
+Here is mmlsdisk, all disks are up:
+######################################################################
+Thu Nov 29 19:02:52 KST 2018: Output for /usr/lpp/mmfs/bin/mmlsdisk crldata -L on dssmgmt01 - timeout=60
+######################################################################
+disk     driver  sector   failure holds  holds                  storage
+name     type    size    group metadata data status    availability disk id pool     remarks
+------------ -------- ------ ----------- -------- ----- ------------- ------------ ------- ------------ ---------
+d01_Meta_8M_01 nsd     512     10 Yes   No  ready     up         1 system    desc
+d01_Data_8M_01 nsd     512     60 No    Yes  ready     up         2 data     desc
+d02_Meta_8M_01 nsd     512     10 Yes   No  ready     up         3 system
+d02_Data_8M_01 nsd     512     60 No    Yes  ready     up         4 data
+d03_Meta_8M_01 nsd     512     10 Yes   No  ready     up         5 system
+d03_Data_8M_01 nsd     512     60 No    Yes  ready     up         6 data
+d04_Meta_8M_01 nsd     512     10 Yes   No  ready     up         7 system
+d04_Data_8M_01 nsd     512     60 No    Yes  ready     up         8 data
+d05_Meta_8M_01 nsd     512     10 Yes   No  ready     up         9 system
+d05_Data_8M_01 nsd     512     60 No    Yes  ready     up        10 data
+d06_Meta_8M_01 nsd     512     10 Yes   No  ready     up        11 system
+d06_Data_8M_01 nsd     512     60 No    Yes  ready     up        12 data
+d07_Meta_8M_01 nsd     512     10 Yes   No  ready     up        13 system
+<....log truncated...>
+ 
+And from gnr logs of dss01 node:
+######################################################################
+Thu Nov 29 19:11:03 KST 2018: Output for tslsrecgroup dss01 -Y on dss01 - timeout=60
+######################################################################
+mmlsrecoverygroup:pdisk:0:1:::e1d1s01ssd:2:SSD:399968829440:399431958528:ok:normal:4:
+mmlsrecoverygroup:pdisk:0:1:::e1d1s02:2:DA1:9998683865088:231928233984:ok:normal:4:
+mmlsrecoverygroup:pdisk:0:1:::e1d1s03:2:DA1:9998683865088:231928233984:ok:normal:4:
+mmlsrecoverygroup:pdisk:0:1:::e1d1s04:2:DA1:9998683865088:231928233984:ok:normal:4:
+mmlsrecoverygroup:pdisk:0:1:::e1d1s05:2:DA1:9998683865088:231928233984:ok:normal:4:
+mmlsrecoverygroup:pdisk:0:1:::e1d1s06:2:DA1:9998683865088:231928233984:ok:normal:4:
+mmlsrecoverygroup:pdisk:0:1:::e1d1s07:2:DA1:9998683865088:231928233984:ok:normal:4:
+mmlsrecoverygroup:pdisk:0:1:::e1d1s15:2:DA1:9998683865088:231928233984:ok:normal:4:
+mmlsrecoverygroup:pdisk:0:1:::e1d1s16:2:DA1:9998683865088:231928233984:ok:normal:4:
+mmlsrecoverygroup:pdisk:0:1:::e1d1s17:2:DA1:9998683865088:231928233984:ok:normal:4:
+mmlsrecoverygroup:pdisk:0:1:::e1d1s18:2:DA1:9998683865088:223338299392:ok:normal:4:
+<....log truncated...>
+ 
+And no more failed logs found in mmfs.logs from GPFS perspective, either of long waiters. So currently the system is okay but there are some warnings on your expanders.
+ 
+Reviewed your detail enclosure:
+[Output for topsummary on dss01/dss02]
+GNR server: name dss01-ib arch x86_64 model 8871AC3 serial J33GC3R
+GNR enclosures found: J33GC45 J33GC4A J33GC8V J33GC4F J33GC4K J33GC4V
+Enclosure J33GC45 (LENOVO 5U84ENC5U12GESM, number 1):
+Enclosure J33GC45 IOM 0 sg542[513E][scsi8 port 4] IOM 1 sg186[513E][scsi6 port 4]
+Enclosure J33GC45 Drawer 1 IOM sg542 42 disks diskset "00121" IOM sg186 42 disks diskset "00121"
+Enclosure J33GC45 Drawer 2 IOM sg542 42 disks diskset "24932" IOM sg186 42 disks diskset "24932"
+Enclosure J33GC45 sees 84 disks (2 SSDs, 82 HDDs)

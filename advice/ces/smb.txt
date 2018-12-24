@@ -53,7 +53,7 @@ v6pqnscal01_c_0307214823/netstat_a:0
 
 [check performance of ces]
 Could you execute the following command for each protocol node:
-    mmlsperfdata smbConnections -n 1460 -b 60 -N <protocol node name> > /var/tmp/<protocol node name>.perfdata
+    mmlsperfdata smbConnections -n 1440 -b 60 -N <protocol node name> > /var/tmp/<protocol node name>.perfdata
 
 and upload all /var/tmp/<protocol node name>.perfdata files to us. This command will pull the number of SMB connections 
 on each protocol node for that last 24 hours at a 1 minute interval from the performance data database. 
@@ -65,4 +65,12 @@ https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/General%2
 # mmprotocoltrace clear smb
 # mmprotocoltrace start smb -c <clientIP>
 <recreate>
-#mmprotocoltrace stop smb
+# mmprotocoltrace stop smb
+
+
+[debug log for smb]
+# smbcontrol smbd debug 10
+# smbcontrol smbd debug 1
+
+# smbcontrol winbindd debug 10
+find log in: /var/adm/ras/log.smbd

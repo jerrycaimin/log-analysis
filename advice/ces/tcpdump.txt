@@ -4,3 +4,10 @@ Running as user "root" and group "root". This could be dangerous.
 [root@server1 TS001024849]# tshark -Tfields -e rpc.auth.flavor -e rpc.auth.uid -e rpc.auth.gid -Y'frame.number==359' -r TS001024849_10.13.16.61_solaris_nfs.out.gz
 Running as user "root" and group "root". This could be dangerous.
 1,0 900 200,200
+
+
+tcpdump -i any -w ./smb.pcap
+
+tshark -r ./smb.pcap -V > output.txt
+
+Open output.txt

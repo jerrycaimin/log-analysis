@@ -25,11 +25,63 @@ all.(timestamp).tar please rename it to 02597.077.724.gpfs.tar
 3. upload options are available here:
 http://www-05.ibm.com/de/support/ecurep/send.html
 
+
+Upload case process:
+################
+Could you please help to upload a gpfs.snap?
+
+/usr/lpp/mmfs/bin/gpfs.snap
+ 
+There will be a tar file created in the following folder: 
+/tmp/gpfs.snapOut
+ 
+Rename the tar file there to TSXXXXXXXXX.gpfs.snap.tar 
+(Where TSXXXXXXXXX is your case number) 
+Then send it by anonymous ftp to our testcase site: 
+ 
+sftp anonymous@testcase.software.ibm.com (password is your email address)
+sftp> cd toibm/linux
+sftp> put TSXXXXXXXXX.gpfs.snap.tar
+It will automatically copy this file to TSXXXXXXXXX with your case. 
+
+Alternatively you could upload it to ECuRep:
+http://www.ecurep.ibm.com/app/upload
+or
+https://www.secure.ecurep.ibm.com/app/upload_sf 
+###################
+
+
+Ask for data template:
+
+Hi, this is China L2 support for your case, I see there is no much description for this case, could you please help to elaborate your problem and upload a gpfs.snap with it?
+ 
+1) run:
+/usr/lpp/mmfs/bin/gpfs.snap,  there will be a tar file created in the following folder:
+/tmp/gpfs.snapOut
+ 
+2) Rename the tar file there to TSXXXXXXXXX.gpfs.snap.tar
+(Where TSXXXXXXXXX is your case number)
+ 
+3) Then you could upload it to ECuRep:
+https://www.secure.ecurep.ibm.com/app/upload_sf
+ 
+Thanks.
+
+
+###################If gpfs is stocked#################
+Hello,
+in case you have issued the standard gpfs.snap and it hangs, you might want to try with the following flag on the selected node:
+ 
+# gpfs.snap -z
+ 
+This will gather a snap from the local node without querying anything else.
+Please let us know if it works.
+  
+
 Your PMR number is 02597,077,724
 ##################
 
-Query for first analysis
-##################
+##################Query for first analysis#############
 1. Have you noticed this issue previously or is this the first time?
 2. What is the current business impact? Is there any loss of access to
 data?
@@ -41,3 +93,121 @@ data?
 Coredump that need reboot:
 Sat Sep 1 20:33:35.567 2018: [I] Connected to 10.116.54.214 tcc-rtbd-cogbia02p-v-dat <c0n19>
 /usr/lpp/mmfs/bin/runmmfs: line 438: 14980: Memory fault(coredump)
+
+
+
+So far GPFS 3.5 is Eond-of-Service since 30.04.2017 - therefor i`m kindly asking:
+       a) please provide us with the (real) used GPS/Spectrum Scale release (check: mmfsadm dump version)
+       b) if really GPFS 3.5 is running we do need a prove for a Service-Extension (SE)
+ 
+If there is a valid SE or a still supported release in use please also collect and attach:
+       a) gpfs.snap
+       b) date/time this happened
+       c) what has been done during the storage migration and what has done to solve the issue
+One of the team engineers will review this Case together w/ you as soon as the data become available.
+
+No access to case:
+################################
+Hi, this is L2 Support GPFS team. For your access to ticket problem, do you have SaleForce admin account? If you have that admin account you can add any member to access to your case.
+If you have no idea about admin account that might you don't have it. Please do this:
+1) Go to page: https://www.ibm.com/mysupport/s/
+2) Scroll down to bottom of page, you can see "Having problem with this website? Got a suggestion for improvement? Provide feedback." click "Provide feedback" link.
+3) Select Topic:"No access to case"
+4) Input your case number in title, and all account you need to add.
+5) You shall get response in 1 working day.
+
+Thanks. 
+
+
+############## Downgrade severity ##################
+I have to reduce the severity of the case to S3 since it doesn't meet S1 requirement and that won't impact we support your case. 
+ this case  is not  cluster down issue but about mmperfmon query command output concerns. 
+ Duty engineer is monitoring S1 queue and received alert.
+ 
+ 
+##### recreate process#########3
+1) On any ces node, start GPFS trace:
+mmtracectl --start -N all
+2) Start smb trace(again):
+mmprotocoltrace clear smb
+mmprotocoltrace start smb -c <clientIP>
+3) Start tcpdump
+    detail refer to: http://www.ibm.com/support/docview.wss?uid=swg21633065
+4) receate to run the "dd" from client to server
+    a) During the copy period, collect internaldump file:
+            mmfsadm dump all > internaldumps.all
+5) stop tcpdump
+6) Stop smb trace:
+mmprotocoltrace stop smb
+7) Stop GPFS trace 
+mmtracectl --stop -N all
+8) collect gpfs snap, if you start pmcollector service as following, */CommandOutput/mmlsperfda* is also included:
+​systemctl start pmcollector
+9) upload the dd output and internaldumps.all and *.trc file to us for analysis.​\
+
+
+######### trace on selected nodes ###########
+a) Start GPFS trace on 182 and 180
+mmtracectl --start -N rdcw-3-19-nsd1,rdcw-3-19-nsd3
+b) receate to run the "dd" from client to server:
+      Test write speed:
+ dd if=/dev/zero bs=1M count=10000 of=/vol/dev-fs1/mweil/Active/test2
+    c) In the middle of wirte period, collect internaldump file on both 180 and 182 nodes:
+            mmdsh -N rdcw-3-19-nsd1,rdcw-3-19-nsd3 "/usr/lpp/mmfs/bin/mmfsadm dump all > /tmp/mmfs/service.\$(hostname -s).dumpall.\$(date +"%m%d%H%M%S")"
+    d) Stop GPFS trace
+            mmtracectl --stop -N rdcw-3-19-nsd1,rdcw-3-19-nsd3
+    e) upload the dd output and /tmp/mmfs/service.dumpall and trc* file to us for analysis.
+
+######### More detail trace(Yu Lin): ######### 
+1) mmchconfig debugDataControl=heavy -N all -i   
+  mmchconfig traceGenDump=yes -i -N all
+​
+2) Start tracing
+    mmtracectl --set --trace=def --trace-file-size=1G --tracedev-buffer-size=64M --trace-recycle=global -N all
+    mmtracectl --start -N all    
+​
+3) mmchdisk bigpfs start -a
+​
+4) (in another window ) run
+   mmdsh -N all '/usr/lpp/mmfs/bin/mmfsadm dump all > /tmp/mmfs/internaldump.$(uname -n).$(date +%s).gpfs.dump.all'
+​
+5) sleep at least 60s ... stop tracing
+   mmtracectl --stop -N all
+   mmtracectl --off -N all
+​
+6) Revert the traceGenDump back to default
+     mmchconfig traceGenDump=no -i -N all    
+    mmchconfig debugDataControl=light -N all -i   
+​
+7) Take a snap
+     gpfs.snap -a
+     
+######### More detail trace(Yan Zhang): #########
+1. start trace
+mmchconfig debugDataControl=heavy
+mmchconfig traceGenDump=yes
+mmtracectl --set --trace-file-size=512m --tracedev-overwrite-buffer-size=256M --tracedev-write-mode=overwrite --aix-trace-buffer-size=255m --trace=def
+mmtracectl --start -N fs_manager
+ 
+2. Recreate the issue
+Open 3 terminals
+In terminal 1, run:
+mmchdisk bigpfs start -a
+ 
+in terminal 2, run:
+while [ 1 ]; do mmtracectl --start -N fs_manager; sleep 5; done;
+ 
+in terminal 3:
+run
+mmlsnode -N waiters -L | grep -i chdisk
+ 
+If you see following messages stop the while in terminal 2, and continue with step 3.
+waiting for stripe group to recover
+ 
+3. Turn off trace
+mmtracectl --stop -N fs_manager
+mmtracectl --off
+mmchconfig debugDataControl=light
+
+
+

@@ -1,0 +1,15 @@
+1. Go to this page to start citrix desktop:
+https://mscictx.svl.ibm.com/vpn/index.html
+
+2. Get uploaded files
+	a. Open H:
+	files are under sample: H:\sf\ts001\738\ts001738643\63551.227.000.all.1223155613
+	OR
+	putty to rheldb01.msci.svl.ibm.com (linux), go to here: /standard/, they are the same.
+	
+	b. putty to rheldb01.msci.svl.ibm.com (linux)
+		>sftp caimin@msciftpdata.msci.svl.ibm.com
+		>/IBM/CVSCaremarkCorp/TS001738643
+	c. RDP to 2k8bd03.msci.svl.ibm.com (windows)
+	
+3. If upload cannot find in legacy pmr folder, search in sf folder.

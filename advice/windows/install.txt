@@ -1,0 +1,36 @@
+Total step:
+
+
+
+
+[Delete and install cgwin ssh]
+If report: Couldn't determine name of user running sshd service from account database, need to Delete default ssh 
+and install cgwin ssh:
+sc.exe delete sshd
+
+Tips: default sshd service is windows style, need cygwin sshd that is unix like
+Detail refer to: "Installing and configuring OpenSSH on Windows nodes"
+
+[After install, create cluster]
+mmcrcluster -N img-windows2008:quorum-manager -p IBM1 -r mmwinrsh -R mmwinrcp -C TEST
+
+troubleshooting:
+[SSH service prevent start]
+https://www.ibm.com/developerworks/community/forums/html/topic?id=709e487e-1cd8-4714-aa0e-a4df1f880da2
+
+[how to know gpfs started properly]
+https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1pdg_dnoupsp.htm
+ 
+
+
+
+[download from fix center]
+curl --ftp-ssl -u MynyygIl:TEN4nSURP ftp://delivery04.dhe.ibm.com/Spectrum_Scale_Standard-5.0.2.1-x86_64-Linux-install --output Spectrum_Scale_Standard-5.0.2.1-x86_64-Linux-install
+
+
+
+linux:
+
+ yum install kernel-devel  kernel-headers cpp gcc gcc-c++
+
+

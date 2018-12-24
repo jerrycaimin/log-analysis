@@ -1,3 +1,53 @@
+ mmdiag --afm 
+ 
+ === mmdiag: afm ===
+AFM Gateway: p7fbn10 Active
+AFM-Cache:  adrFset-4 (/gpfs/fs1/adrFset-4) in Device: fs1
+Mode: primary
+Home: p7fbn09 (nfs://p7fbn09/gpfs/fs1/adrFset-4)
+Fileset Status: Linked
+Handler-state: Mounted
+Cache-state: PrimInitInProg
+Q-state: Normal Q-length: 12126378 Q-executed: 40570
+AFM-Cache:  adrFset-5 (/gpfs/fs1/adrFset-5) in Device: fs1
+Mode: primary
+Home: p7fbn09 (nfs://p7fbn09/gpfs/fs1/adrFset-5)
+Fileset Status: Linked
+Handler-state: Mounted
+Cache-state: PrimInitInProg
+Q-state: Normal Q-length: 6164585 Q-executed: 7113648
+AFM-Cache:  adrFset-10 (/gpfs/fs1/adrFset-10) in Device: fs1
+Mode: primary
+Home: p7fbn09 (nfs://p7fbn09/gpfs/fs1/adrFset-10)
+Fileset Status: Linked
+Handler-state: Mounted
+Cache-state: PrimInitInProg
+Q-state: Normal Q-length: 16239687 Q-executed: 2415474
+
+=======================
+afm 两种协议：
+nsf：Path显示nfs://xxx
+nsd: Path显示/gpfs/xxx，可以用mmremotefs show来显示
+
+========================
+See PD Guide: Chapter 6, very detail.
+
+================
+
+10. restart AFM
+ # mmafmctl gpfs1 restart -j t7aksv092_cache01
+ # mmafmctl gpfs1 getstate|grep 092
+ ==> status turned "Unmounted"
+.
+11. resync
+ # mmafmctl gpfs1 resync -j t7aksv092_cache01
+ # mmafmctl gpfs1 getstate|grep 092
+  ==> status turned "NeedResync"
+      He monitored until it tunred to 'active' and queue length = 0 
+      
+
+
+
 mmafmctl to control the fileset of remote fs
 
 
@@ -32,3 +82,11 @@ https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.3/com.ibm.spectrum.scale.
 In AFM solution, we need mount remote file system on source side, it is different to enable auto mount on remote file system than local file system.
 For remote file system, we need use 'mmremotefs update Device -A yes' to enable and use 'mmremotefs show Device' to check
 For local file system, we need use 'mmchfs Device -A yes' to enable and use 'mmlsfs Device -A' to check
+
+============================
+
+Creating an AFM relationship by using the NFS protocol & Sample 
+Creating an AFM relationship by using GPFS protocol & Sample 
+Refer to Concepts, Planning, and Installation Guide
+
+

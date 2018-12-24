@@ -6,3 +6,6 @@ gpfsClusterInit: Unexpected error from ccr fget mmsdrfs.  Return code: 149
 mmgetstate: Command failed. Examine previous error messages to determine cause.
 
 Refer to psdb for solution.
+
+#############
+ping quorum = mmccr check 

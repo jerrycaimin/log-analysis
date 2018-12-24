@@ -17,12 +17,28 @@ https://www.ibm.com/support/knowledgecenter/en/STXKQY_5.0.0/com.ibm.spectrum.sca
 
 
 [JunHui]
-Any customer planning to use AFM DR should contact Spectrum Scale Support at scale@us.ibm.com to have your use case reviewed. IBM will help optimize your tuning parameters and enable the feature.
+Any customer planning to use AFM DR should contact Spectrum Scale Support at scale@us.ibm.com to have your use case reviewed. 
+IBM will help optimize your tuning parameters and enable the feature.
 
 https://www-01.ibm.com/support/docview.wss?uid=ssg1S1005817&myns=s033&mynp=OCSTXKQY&mynp=OCSWJ00&mync=E&cm_sp=s033-_-OCSTXKQY-OCSWJ00-_-E
 
 Here's AFM Review Board wiki where all approved customers are listed.
 
 https://w3-connections.ibm.com/wikis/home?lang=en-us#!/wiki/AFM%20Review%20Board%20-%20Customers/page/Welcome%20to%20AFM%20Review%20Board%20-%20Customers
+
+=========================================
+[Resync process]
+resync sends all creates/updates to home .. 
+Not delete/renames 
+
+hence it will tend to leave out those extra files at the home .. 
+Example : 
+we have 2 files .. file1 and file2 .. which is created at cache, and played to home.. 
+Say file1 was removed, and file2 was renamed to file3.. 
+Now without replicating the above rename/remove, if we run resync, then home will have 3 files .. file1, file2 and file3 
+
+file1 and file2 are extra files here ..
+basically resync will sync everything from cache to home - which is present at that point in time .. 
+It won't mind what extra files the home has 
 
 

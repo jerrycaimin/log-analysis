@@ -1,0 +1,14 @@
+check memory:
+ps aux | sort -nrk 3 | head
+
+#########################
+Easily you can run this on 2 ces nodes:
+systemctl start pmcollector
+Reference:
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1pdg_startpmcollector.htm
+You can start this for further performance monitor.
+
+###############
+set pmcollector parameters:
+https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1adv_configurecollector.htm
+

@@ -27,3 +27,4 @@ This problem may happen due to tpc configuration error. You may need do the foll
 If gpfs is working on Infiniband bonds with Mellanox devices:
 Also, this problem was caused by network issue. Please ask customer to involve network support to debug. 
 Since Spectrum Scale/GPFS is working on Infiniband bonds with Mellanox devices. They might need help from Mellanox.
+

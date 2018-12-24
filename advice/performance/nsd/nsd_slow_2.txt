@@ -136,11 +136,15 @@ dstat:
 mmnetverify:
 position: /usr/lpp/mmfs/bin/mmnetverify
 
+mmnetverify -N all > mmnetverify.out
+
+
 In v4.2.2 which is what you have on your cluster there is
 a new cmd called mmnetverify. You can use the mmnetverify command to
 detect network problems and to identify nodes where a network problem
 exist. (chapter 15 in the problem determination guide and and man page
 in command doc. in the following links have the detail.)
+
 
 https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.2/com.ibm.spectru
 m.scale.v4r22.doc/pdf/a7604439.pdf?view=kc
@@ -154,7 +158,19 @@ use tool in /usr/lpp/mmfs/samples/net/nsdperf.C.
 	a) Build follow as /usr/lpp/mmfs/samples/net/README
 	b) Run built out file.
 	c) set client and server and run.
-	
+Sample:
+nsdperf> server pestvm006a
+Connected to pestvm006a
+nsdperf> client pestvm002d
+Connected to pestvm002d
+nsdperf> test rw
+1-1 rw 720 MB/sec (172 msg/sec), time 10, buff 4194304
+nsdperf> test read
+1-1 read 503 MB/sec (120 msg/sec), time 10, buff 4194304
+nsdperf> test write
+1-1 write 1140 MB/sec (272 msg/sec), time 10, buff 4194304
+
+
 gpfsperf:
 /usr/lpp/mmfs/samples/perf/gpfsperf
 
@@ -208,3 +224,7 @@ worker1Threads 1024
 
 doc:
 https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/General Parallel File System (GPFS)/page/Tuning Parameters
+
+
+check ib infiniband width:
+*/ibv_devinfo_v

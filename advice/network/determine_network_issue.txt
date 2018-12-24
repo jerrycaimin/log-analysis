@@ -1,0 +1,394 @@
+Hello,
+
+I think we have a network issue here. The node ret5a341v was expelled from the cluster at 3:42 this morning
+
+Thu Nov 8 03:42:07.528 2018: [N] sdrServ: Received expel data collection request from 169.124.127.224
+Thu Nov 8 03:42:07.529 2018: [N] GPFS will attempt to collect debug data on this node.
+Thu Nov 8 03:42:17.401 2018: [N] This node will be expelled from cluster LSS_UAT_GPFS.svr.us.jpmchase.net due to expel msg from 169.124.127.224 (ret5a880v)
+Thu Nov 8 03:42:17.696 2018: [N] sdrServ: Received expel data collection request from 169.89.229.227
+Thu Nov 8 03:42:17.697 2018: [N] Debug data has not been collected. It was collected recently at 2018-11-08 03:42:07.
+Thu Nov 8 03:42:22.783 2018: [N] Node 169.89.229.227 (ret5a326v) lease renewal is overdue. Pinging to check if it is alive
+Trace started: Wait 20 seconds before cut and stop trace
+Thu Nov 8 03:42:32.066 2018: [I] Cluster Manager connection broke. Probing cluster LSS_UAT_GPFS.svr.us.jpmchase.net
+Thu Nov 8 03:42:32.090 2018: [E] Close connection to 169.124.127.224 ret5a880v <c0n2> (Connection reset by peer). Attempting reconnect.
+Thu Nov 8 03:42:42.091 2018: [E] Unable to contact enough other quorum nodes during cluster probe.
+Thu Nov 8 03:42:42.092 2018: [E] Lost membership in cluster LSS_UAT_GPFS.svr.us.jpmchase.net. Unmounting file systems.
+
+Which got us an internaldump
+-bash-4.2$ ls -l *181108.03.42*
+-rw------- 1 doherty swsupt 31311 Nov 8 09:42 extra.181108.03.42.07.28246120.expel.ret5a341v.gz
+-rw------- 1 doherty swsupt 2334287 Nov 8 09:42 internaldump.181108.03.42.07.28246120.expel.ret5a341v.gz
+-rw------- 1 doherty swsupt 104472 Nov 8 09:46 kthreads.181108.03.42.07.28246120.expel.ret5a341v.gz
+-rw------- 1 doherty swsupt 5628112 Nov 8 09:42 trcrpt.181108.03.42.07.28246120.expel.ret5a341v.gz
+-bash-4.2$ 
+
+Current time Thu Nov 8 03:42:22 2018
+0x1196735D0 (15335917) waiting 398.104885039 seconds, WritebehindWorkerThread: on ThCond 0x119B4F138 (0x119B4F138) (parallelWaitCond), reason 'wait for parallel write' for NSD I/O completion
+0x118973CF0 (44368019) waiting 398.104873803 seconds, WritebehindWorkerThread: on ThCond 0x119F4F138 (0x119F4F138) (parallelWaitCond), reason 'wait for parallel write' for NSD I/O completion
+0x119B0D4D0 (24904191) waiting 398.104694978 seconds, WritebehindWorkerThread: on ThCond 0x119CDA138 (0x119CDA138) (parallelWaitCond), reason 'wait for parallel write' for NSD I/O completion
+0x119301AF0 (111935741) waiting 398.104536687 seconds, WritebehindWorkerThread: on ThCond 0x119322138 (0x119322138) (parallelWaitCond), reason 'wait for parallel write' for NSD I/O completion
+0x1128C16F0 (61341777) waiting 398.103984522 seconds, WritebehindWorkerThread: on ThCond 0x1128E2138 (0x1128E2138) (parallelWaitCond), reason 'wait for parallel write' for NSD I/O completion
+0x1195950F0 (16777511) waiting 398.103488146 seconds, WritebehindWorkerThread: on ThCond 0x11963E138 (0x11963E138) (parallelWaitCond), reason 'wait for parallel write' for NSD I/O completion
+0x119687030 (133038287) waiting 398.103491555 seconds, WritebehindWorkerThread: on ThCond 0x11A3D4138 (0x11A3D4138) (parallelWaitCond), reason 'wait for parallel write' for NSD I/O completion
+0x119352E30 (50724945) waiting 398.103417969 seconds, WritebehindWorkerThread: on ThCond 0x119373138 (0x119373138) (parallelWaitCond), reason 'wait for parallel write' for NSD I/O completion
+0x11961D630 (124846313) waiting 398.103181004 seconds, WritebehindWorkerThread: on ThCond 0x119A79138 (0x119A79138) (parallelWaitCond), reason 'wait for parallel write' for NSD I/O completion
+0x11960E030 (18350411) waiting 398.102784988 seconds, WritebehindWorkerThread: on ThCond 0x119765138 (0x119765138) (parallelWaitCond), reason 'wait for parallel write' for NSD I/O completion
+0x119673770 (37945551) waiting 398.102283375 seconds, WritebehindWorkerThread: on ThCond 0x119B78138 (0x119B78138) (parallelWaitCond), reason 'wait for parallel write' for NSD I/O completion
+0x119A82B50 (39715213) waiting 398.102142811 seconds, WritebehindWorkerThread: on ThCond 0x11A4B5138 (0x11A4B5138) (parallelWaitCond), reason 'wait for parallel write' for NSD I/O completion
+0x119683E30 (13041941) waiting 385.768051709 seconds, Msg handler getData: on ThCond 0x118F9DF78 (0x118F9DF78) (InuseCondvar), reason 'waiting for exclusive use of connection for sending msg'
+0x11966F530 (48234903) waiting 385.768043701 seconds, Msg handler getData: on ThCond 0x118F9DFF8 (0x118F9DFF8) (InuseCondvar), reason 'waiting for exclusive use of connection for sending msg'
+0x11953E5B0 (128385129) waiting 385.768007500 seconds, Msg handler getData: on ThCond 0x118F9E278 (0x118F9E278) (InuseCondvar), reason 'waiting for exclusive use of connection for sending msg'
+0x11961D490 (134152259) waiting 385.767984576 seconds, Msg handler getData: on ThCond 0x118F9E2F8 (0x118F9E2F8) (InuseCondvar), reason 'waiting for exclusive use of connection for sending msg'
+0x119687570 (132382815) waiting 385.767921565 seconds, Msg handler getData: on ThCond 0x118F9ECF8 (0x118F9ECF8) (InuseCondvar), reason 'waiting for exclusive use of connection for sending msg'
+0x11A12F350 (47907217) waiting 385.767910687 seconds, Msg handler getData: on ThCond 0x118F9ED78 (0x118F9ED78) (InuseCondvar), reason 'waiting for exclusive use of connection for sending msg'
+0x119797D70 (132055191) waiting 385.767900121 seconds, Msg handler getData: on ThCond 0x118F9EDF8 (0x118F9EDF8) (InuseCondvar), reason 'waiting for exclusive use of connection for sending msg'
+0x1195A8790 (22282629) waiting 385.767870500 seconds, Msg handler getData: on ThCond 0x118F9EE78 (0x118F9EE78) (InuseCondvar), reason 'waiting for exclusive use of connection for sending msg'
+0x11A12FE30 (28901703) waiting 385.767644568 seconds, Msg handler getData: on ThCond 0x118F9F318 (0x118F9F318) (InuseCondvar), reason 'waiting for exclusive use of connection for sending msg'
+0x118C632D0 (97583277) waiting 385.767278474 seconds, FsyncHandlerThread: on ThCond 0x118ECD7D8 (0x118ECD7D8) (LogFileBufferDescriptorCondvar), reason 'force wait on force active buffer write'
+0x119B23F70 (120979655) waiting 385.767202782 seconds, Msg handler tmMsgTellAcquire2: on ThCond 0x118F9F438 (0x118F9F438) (InuseCondvar), reason 'waiting for exclusive use of connection for sending msg'
+0x119A81E30 (8585699) waiting 385.767130785 seconds, SGExceptionLogBufferFullThread: on ThCond 0x11A7194D8 (0x11A7194D8) (MsgRecordCondvar), reason 'RPC wait' for I/O completion on node 169.124.127.224 <c0n2>
+0x1191E5510 (110952503) waiting 385.766322062 seconds, WritebehindWorkerThread: on ThCond 0x11961B5B8 (0x11961B5B8) (MsgRecordCondvar), reason 'RPC wait' for I/O completion on node 169.124.127.224 <c0n2>
+0x1116E4B50 (57082063) waiting 385.763968547 seconds, SyncHandlerThread: on ThCond 0x118ECD7D8 (0x118ECD7D8) (LogFileBufferDescriptorCondvar), reason 'force wait for buffer write to complete'
+0x118F7FA10 (103415973) waiting 376.678563125 seconds, Msg handler mnMsgPutInode: on ThCond 0x118F95838 (0x118F95838) (InuseCondvar), reason 'waiting for exclusive use of connection for sending msg'
+0x119B245F0 (23200115) waiting 364.771723048 seconds, WritebehindWorkerThread: on ThCond 0x118E640B8 (0x118E640B8) (MsgRecordCondvar), reason 'RPC wait' for I/O completion on node 169.124.127.224 <c0n2>
+0x111B558D0 (58916871) waiting 355.199097709 seconds, UpdateMtimeHandlerThread: on ThCond 0x1195A9A98 (0x1195A9A98) (MsgRecordCondvar), reason 'RPC wait'
+0x119B26B50 (12321183) waiting 337.267365938 seconds, WritebehindWorkerThread: on ThCond 0x118E69078 (0x118E69078) (MsgRecordCondvar), reason 'RPC wait' for I/O completion on node 169.124.127.224 <c0n2>
+0x119448990 (127467719) waiting 328.262947375 seconds, WritebehindWorkerThread: on ThCond 0x118E6BE78 (0x118E6BE78) (MsgRecordCondvar), reason 'RPC wait' for I/O completion on node 169.124.127.224 <c0n2>
+0x119B26CF0 (7209317) waiting 328.262942932 seconds, Msg handler getData: on ThCond 0x118F8FD98 (0x118F8FD98) (InuseCondvar), reason 'waiting for exclusive use of connection for sending msg'
+0x118B1F970 (97321115) waiting 325.128226594 seconds, SharedHashTabFetchHandlerThread: on ThCond 0x118F73F98 (0x118F73F98) (MsgRecordCondvar), reason 'RPC wait'
+0x11196E550 (58130671) waiting 319.865678981 seconds, UpdateMtimeHandlerThread: on ThCond 0x11959DAB8 (0x11959DAB8) (MsgRecordCondvar), reason 'RPC wait'
+0x119A08270 (26345773) waiting 315.945209248 seconds, InodeRevokeWorkerThread: on ThCond 0x118F91658 (0x118F91658) (InuseCondvar), reason 'waiting for exclusive use of connection for sending msg'
+
+The dump tscomm section shows us that all of the pending IO is for c0n2 ret5a880v. 
+
+===== dump tscomm =====
+Current time Thu Nov 8 03:42:22 2018
+
+Pending messages:
+msg_id 691074, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x118A70D70, n_xhold 0, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x1196735D0)
+dest <c0n2> status pending , err 0, reply len 0
+msg_id 691075, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x118A7B350, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x118973CF0)
+dest <c0n2> status pending , err 0, reply len 0
+msg_id 691077, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x118A7A650, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x1128C16F0)
+dest <c0n2> status pending , err 0, reply len 0
+msg_id 691078, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x118A7B9D0, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x119B0D4D0)
+dest <c0n2> status pending , err 0, reply len 0
+msg_id 691206, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x1195D1D90, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x119B269B0)
+dest <c0n2> status sending , err 0, reply len 0
+msg_id 691079, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x119567890, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x119301AF0)
+dest <c0n2> status pending , err 0, reply len 0
+msg_id 691080, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x118A7C6D0, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x119687030)
+dest <c0n2> status pending , err 0, reply len 0
+msg_id 691081, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x118D95D10, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x11961D630)
+dest <c0n2> status pending , err 0, reply len 0
+msg_id 691145, service 13.1, msg_type 20 'tmMsgTellAcquire1', n_dest 1, n_pending 1
+this 0x118F73DF0, n_xhold 1, cl 0, cbFn 0x0, age 0 sec
+sent by 'SharedHashTabFetchHandlerThread' (0x118B1F970)
+dest <c0n2> status sending , err 0, reply len 0
+msg_id 691082, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x11A383230, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x1195950F0)
+dest <c0n2> status pending , err 0, reply len 0
+msg_id 691146, service 7.1, msg_type 7 'mnMsgGetMtime', n_dest 1, n_pending 1
+this 0x11959D910, n_xhold 1, cl 0, cbFn 0x0, age 0 sec
+sent by 'UpdateMtimeHandlerThread' (0x11196E550)
+dest <c0n2> status sending , err 0, reply len 0
+msg_id 691083, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x119592550, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x11960E030)
+dest <c0n2> status pending , err 0, reply len 0
+msg_id 691084, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x11959DF90, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x119A82B50)
+dest <c0n2> status pending , err 0, reply len 0
+msg_id 691085, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x118E53230, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x119673770)
+dest <c0n2> status pending , err 0, reply len 0
+msg_id 691150, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x119592BD0, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x119AB4AF0)
+dest <c0n2> status sending , err 0, reply len 0
+msg_id 691152, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x118E545B0, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x119673910)
+dest <c0n2> status sending , err 0, reply len 0
+msg_id 691217, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x118E54C30, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x119612EB0)
+dest <c0n2> status sending , err 0, reply len 0
+msg_id 691095, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+this 0x119793FF0, n_xhold 1, cl 0, cbFn 0x110142178, age 0 sec
+sent by 'WritebehindWorkerThread' (0x119352E30)
+dest <c0n2> status pending , err 0, reply len 0
+msg_id 691159, service 16.1, msg_type 14 'nsdMsgWriteExt', n_dest 1, n_pending 1
+
+<c0n2> 169.124.127.224/0 (ret5a880v)
+sndbuf 262788 rcvbuf 262788 authEnabled 0 securityEnabled 0 sameSubnet 0
+in_conn 0 need_notify 0 reconnEnabled 1
+reconnecting 0 reconnected 0 reconnCheckdup 0 reconnConnecting 0 resending 0
+disconnecting 0 shutting 0 idleCount 0 reconnects 0
+rdmaConnInProgress 0
+n_rw 1 handlerCount 18 inboundCount 0 connRetryCount 0
+sentBytes 0 thread 56819911 sendState write
+Messages being serviced:
+msg_id 3103467 thread 56819911 age 386.094 getData
+msg_id 3103468 thread 13041941 age 386.094 getData
+msg_id 3103469 thread 48234903 age 386.094 getData
+msg_id 3103470 thread 128385129 age 386.094 getData
+msg_id 3103471 thread 134152259 age 386.094 getData
+msg_id 3103472 thread 132382815 age 386.094 getData
+msg_id 3103473 thread 47907217 age 386.094 getData
+msg_id 3103474 thread 132055191 age 386.094 getData
+msg_id 3103475 thread 22282629 age 386.094 getData
+msg_id 3103477 thread 28901703 age 386.093 getData
+msg_id 3103478 thread 120979655 age 386.093 tmMsgTellAcquire2
+msg_id 3103491 thread 103415973 age 377.004 mnMsgPutInode
+msg_id 3103525 thread 7209317 age 328.589 getData
+msg_id 3103528 thread 96534659 age 316.275 tmMsgRevoke
+msg_id 3103530 thread 96534659 age 315.201 commMsgCheckMessages
+msg_id 3103549 thread 1507651 age 271.902 mnMsgGetMtime
+msg_id 3103578 thread 96731273 age 203.867 mnMsgGetMtime
+msg_id 3103687 thread 49545639 age 34.922 tmMsgTellAcquire1
+msg_id 3103696 thread 16843035 age 24.814 tmMsgTellAcquire1
+Threads waiting for exclusive use:
+13041941 48234903 128385129 134152259 132382815 47907217 132055191 22282629 28901703 120979655
+8585699 110952503 103415973 23200115 58916871 12321183 127467719 7209317 97321115 58130671
+26345773 96534659 131661839 19792145 60555321 1507651 20447507 22544805 96731273 18612667
+112525407 98893831 122880173 19530051 25952699 49545639 16843035 126222561
+unacknowledged replies:
+msg_id 3103466 seq 40858 resent 0 msg_type 252 'getData'
+rdmaNumConn 0 rdmaApi None rdmaFlags
+
+
+The dump rpcs for that node show pathetic performance.
+
+RPC (msec) aggregated statistics for node ret5a880v in cluster LSS_UAT_GPFS.svr.us.jpmchase.net
+TCP RPC Latency
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+sec: average = 12337.090, min = 12337.090, max = 12337.090, count = 1
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+sec: average = 0.000, min = 0.000, max = 0.000, count = 0
+.......................
+min: average = 9199.949, min = 0.680, max = 29510.997, count = 15
+min: average = 5253.644, min = 0.664, max = 25519.262, count = 30
+min: average = 1444.531, min = 0.641, max = 20392.696, count = 68
+min: average = 12063.226, min = 0.700, max = 29606.979, count = 18
+min: average = 12735.106, min = 0.652, max = 43525.867, count = 30
+min: average = 20956.250, min = 0.639, max = 48907.304, count = 7
+min: average = 1528.803, min = 0.637, max = 29507.258, count = 82
+min: average = 11885.200, min = 0.666, max = 37465.499, count = 41
+min: average = 1517.680, min = 0.683, max = 25504.105, count = 59
+min: average = 2602.728, min = 0.671, max = 45203.777, count = 312
+min: average = 895.548, min = 0.648, max = 25817.215, count = 218
+min: average = 677.181, min = 0.619, max = 26795.691, count = 337
+min: average = 308.948, min = 0.639, max = 8501.350, count = 632
+min: average = 1015.629, min = 0.664, max = 6002.021, count = 196
+min: average = 4306.504, min = 0.659, max = 35000.500, count = 37
+min: average = 1018.052, min = 0.658, max = 38507.980, count = 201
+min: average = 396.599, min = 0.637, max = 22505.267, count = 415
+min: average = 1192.963, min = 0.586, max = 48006.913, count = 110
+min: average = 1894.829, min = 0.668, max = 43496.533, count = 153
+min: average = 267.219, min = 0.656, max = 10502.534, count = 556
+min: average = 7327.114, min = 0.722, max = 35010.385, count = 64
+min: average = 315.909, min = 0.654, max = 16959.372, count = 372
+min: average = 8756.892, min = 0.634, max = 33001.094, count = 12
+min: average = 10463.347, min = 0.654, max = 43115.156, count = 31
+min: average = 26068.986, min = 0.542, max = 50834.320, count = 9
+min: average = 573.952, min = 0.608, max = 26508.019, count = 471
+min: average = 2099.267, min = 0.670, max = 28478.491, count = 43
+min: average = 6642.120, min = 0.690, max = 22013.093, count = 17
+min: average = 225.122, min = 0.657, max = 17379.543, count = 420
+min: average = 244.874, min = 0.652, max = 4480.123, count = 229
+min: average = 1470.927, min = 0.672, max = 21996.164, count = 52
+min: average = 2428.856, min = 0.707, max = 21678.559, count = 17
+
+
+The netstat -a data shows a bit of data in the send-queue to go to the gpfs port 1191 on ret5a880v. 
+
+
+-bash-4.2$ zcat extra.181108.03.42.07.28246120.expel.ret5a341v.gz | grep ^tcp | grep -v ' 0 0 '
+tcp4 0 246992 ret5a341v.svr.us.47189 ret5a880v.svr.us.1191 ESTABLISHED
+tcp4 122 0 ret5a341v.svr.us.afs3- psin10p666-q014..33887 CLOSE_WAIT
+tcp4 116 0 ret5a341v.svr.us.48214 ret5a326v.svr.us.9017 ESTABLISHED
+tcp 54 0 ret5a341v.svr.us.42059 ret2a996v.svr.us.52101 ESTABLISHED
+tcp:
+
+
+So we go to the internaldump data for ret5a880v where we see a lot of waiters waiting for data from ret5a341v 
+
+-bash-4.2$ ls -l *181108.03.42.*
+-rw------- 1 doherty swsupt 29971 Nov 8 09:42 extra.181108.03.42.07.34144446.expel.ret5a880v.gz
+-rw------- 1 doherty swsupt 7892817 Nov 8 09:42 internaldump.181108.03.42.07.34144446.expel.ret5a880v.gz
+-rw------- 1 doherty swsupt 106755 Nov 8 09:46 kthreads.181108.03.42.07.34144446.expel.ret5a880v.gz
+-rw------- 1 doherty swsupt 17095785 Nov 8 09:42 trcrpt.181108.03.42.07.34144446.expel.ret5a880v.gz
+-bash-4.2$ 
+
+Current time Thu Nov 8 03:42:14 2018
+0x113950010 (63504531) waiting 377.993965229 seconds, NSDThread: on ThCond 0x11B2585B8 (0x11B2585B8) (MsgRecordCondvar), reason 'RPC wait' for getData on node 169.89.229.207 <c0n1>
+0x1131DBBB0 (60358775) waiting 377.993962556 seconds, NSDThread: on ThCond 0x118E8D238 (0x118E8D238) (MsgRecordCondvar), reason 'RPC wait' for getData on node 169.89.229.207 <c0n1>
+0x113507C30 (61735005) waiting 377.993944375 seconds, NSDThread: on ThCond 0x118E8DAB8 (0x118E8DAB8) (MsgRecordCondvar), reason 'RPC wait' for getData on node 169.89.229.207 <c0n1>
+0x1139789B0 (63570069) waiting 377.993928262 seconds, NSDThread: on ThCond 0x118E8E338 (0x118E8E338) (MsgRecordCondvar), reason 'RPC wait' for getData on node 169.89.229.207 <c0n1>
+0x11380B310 (62980227) waiting 377.993909520 seconds, NSDThread: on ThCond 0x1188FB9B8 (0x1188FB9B8) (MsgRecordCondvar), reason 'RPC wait' for getData on node 169.89.229.207 <c0n1>
+0x1137E2970 (62914689) waiting 377.993888664 seconds, NSDThread: on ThCond 0x119BEC938 (0x119BEC938) (MsgRecordCondvar), reason 'RPC wait' for getData on node 169.89.229.207 <c0n1>
+0x11339A590 (61145163) waiting 377.993863375 seconds, NSDThread: on ThCond 0x118E90438 (0x118E90438) (MsgRecordCondvar), reason 'RPC wait' for getData on node 169.89.229.207 <c0n1>
+0x1137402F0 (62652537) waiting 377.993843479 seconds, NSDThread: on ThCond 0x118E90D38 (0x118E90D38) (MsgRecordCondvar), reason 'RPC wait' for getData on node 169.89.229.207 <c0n1>
+0x11348DF50 (61538391) waiting 377.993819815 seconds, NSDThread: on ThCond 0x118E91918 (0x118E91918) (MsgRecordCondvar), reason 'RPC wait' for getData on node 169.89.229.207 <c0n1>
+0x113833CB0 (63045765) waiting 377.993807094 seconds, NSDThread: on ThCond 0x119465E58 (0x119465E58) (MsgRecordCondvar), reason 'RPC wait' for getData on node 169.89.229.207 <c0n1>
+0x1132CF570 (60817473) waiting 377.993571538 seconds, NSDThread: on ThCond 0x118E93478 (0x118E93478) (MsgRecordCondvar), reason 'RPC wait' for getData on node 169.89.229.207 <c0n1>
+0x118B23810 (97124501) waiting 377.993240727 seconds, SharedHashTabFetchHandlerThread: on ThCond 0x118E93D38 (0x118E93D38) (MsgRecordCondvar), reason 'RPC wait' for tmMsgTellAcquire2 on node 169.89.229.207 <c0n1>
+0x1116E4B50 (56754375) waiting 368.904537000 seconds, SyncHandlerThread: on ThCond 0x11B3D4FF8 (0x11B3D4FF8) (MsgRecordCondvar), reason 'RPC wait' for mnMsgPutInode on node 169.89.229.207 <c0n1>
+0x1134655B0 (61472853) waiting 320.488751922 seconds, NSDThread: on ThCond 0x118E89CB8 (0x118E89CB8) (MsgRecordCondvar), reason 'RPC wait' for getData on node 169.89.229.207 <c0n1>
+0x11932C810 (109248523) waiting 308.175034297 seconds, SharedHashTabFetchHandlerThread: on ThCond 0x118E8B7F8 (0x118E8B7F8) (MsgRecordCondvar), reason 'RPC wait' for tmMsgRevoke on node 169.89.229.207 <c0n1>
+0x1118A3530 (56426707) waiting 263.802330400 seconds, UpdateMtimeHandlerThread: on ThCond 0x119CC1C98 (0x119CC1C98) (MsgRecordCondvar), reason 'RPC wait' for mnMsgGetMtime on node 169.89.229.207 <c0n1>
+0x1117871D0 (55967767) waiting 195.767291457 seconds, UpdateMtimeHandlerThread: on ThCond 0x11933F938 (0x11933F938) (MsgRecordCondvar), reason 'RPC wait' for mnMsgGetMtime on node 169.89.229.207 <c0n1>
+0x1118CBED0 (32637109) waiting 128.099372562 seconds, SharedHashTabFetchHandlerThread: on ThCond 0xF1000002B3266938 (0xF1000002B3266938) (LkObjCondvar), reason 'change_lock_shark waiting to set acquirePending flag'
+0x111B04590 (57671905) waiting 26.820981438 seconds, SharedHashTabFetchHandlerThread: on ThCond 0x11B379638 (0x11B379638) (MsgRecordCondvar), reason 'RPC wait' for tmMsgTellAcquire1 on node 169.89.229.207 <c0n1>
+0x111B7E270 (57868519) waiting 16.712071252 seconds, SharedHashTabFetchHandlerThread: on ThCond 0x11B3D5CF8 (0x11B3D5CF8) (MsgRecordCondvar), reason 'RPC wait' for tmMsgTellAcquire1 on node 169.89.229.207 <c0n1>
+0x1189C5E10 (96338045) waiting 7.362958758 seconds, EEWatchDogThread: delaying for 2.637040229 more seconds, reason: delayed
+
+And we see that it is waiting for replies from 
+
+Pending messages:
+msg_id 3103491, service 7.1, msg_type 1 'mnMsgPutInode', n_dest 1, n_pending 1
+this 0x11B3D4E50, n_xhold 1, cl 0, cbFn 0x0, age 369 sec
+sent by 'SyncHandlerThread' (0x1116E4B50)
+dest <c0n1> status pending , err 0, reply len 0
+msg_id 3103687, service 13.1, msg_type 20 'tmMsgTellAcquire1', n_dest 1, n_pending 1
+this 0x11B379490, n_xhold 1, cl 0, cbFn 0x0, age 27 sec
+sent by 'SharedHashTabFetchHandlerThread' (0x111B04590)
+dest <c0n1> status pending , err 0, reply len 0
+msg_id 3103696, service 13.1, msg_type 20 'tmMsgTellAcquire1', n_dest 1, n_pending 1
+this 0x11B3D5B50, n_xhold 1, cl 0, cbFn 0x0, age 17 sec
+sent by 'SharedHashTabFetchHandlerThread' (0x111B7E270)
+dest <c0n1> status pending , err 0, reply len 0
+msg_id 3103578, service 7.1, msg_type 7 'mnMsgGetMtime', n_dest 1, n_pending 1
+this 0x11933F790, n_xhold 1, cl 0, cbFn 0x0, age 196 sec
+sent by 'UpdateMtimeHandlerThread' (0x1117871D0)
+dest <c0n1> status pending , err 0, reply len 0
+msg_id 3103525, service 0.0, msg_type 252 'getData', n_dest 1, n_pending 1
+this 0x118E89B10, n_xhold 1, cl 0, cbFn 0x0, age 320 sec
+sent by 'NSDThread' (0x1134655B0)
+dest <c0n1> status pending , err 0, reply len 262144
+msg_id 3103528, service 13.1, msg_type 18 'tmMsgRevoke', n_dest 1, n_pending 1
+this 0x118E8B650, n_xhold 1, cl 0, cbFn 0x0, age 308 sec
+sent by 'SharedHashTabFetchHandlerThread' (0x11932C810)
+dest <c0n1> status pending , err 0, reply len 0
+msg_id 3103466, service 0.0, msg_type 252 'getData', n_dest 1, n_pending 1
+this 0x11B258410, n_xhold 1, cl 0, cbFn 0x0, age 378 sec
+sent by 'NSDThread' (0x113950010)
+dest <c0n1> status pending , err 0, reply len 262144
+msg_id 3103467, service 0.0, msg_type 252 'getData', n_dest 1, n_pending 1
+this 0x118E8D090, n_xhold 1, cl 0, cbFn 0x0, age 378 sec
+sent by 'NSDThread' (0x1131DBBB0)
+dest <c0n1> status pending , err 0, reply len 262144
+msg_id 3103468, service 0.0, msg_type 252 'getData', n_dest 1, n_pending 1
+this 0x118E8D910, n_xhold 1, cl 0, cbFn 0x0, age 378 sec
+sent by 'NSDThread' (0x113507C30)
+dest <c0n1> status pending , err 0, reply len 262144
+msg_id 3103469, service 0.0, msg_type 252 'getData', n_dest 1, n_pending 1
+this 0x118E8E190, n_xhold 1, cl 0, cbFn 0x0, age 378 sec
+sent by 'NSDThread' (0x1139789B0)
+dest <c0n1> status pending , err 0, reply len 262144
+msg_id 3103470, service 0.0, msg_type 252 'getData', n_dest 1, n_pending 1
+this 0x1188FB810, n_xhold 1, cl 0, cbFn 0x0, age 378 sec
+sent by 'NSDThread' (0x11380B310)
+dest <c0n1> status pending , err 0, reply len 262144
+msg_id 3103471, service 0.0, msg_type 252 'getData', n_dest 1, n_pending 1
+this 0x119BEC790, n_xhold 1, cl 0, cbFn 0x0, age 378 sec
+sent by 'NSDThread' (0x1137E2970)
+dest <c0n1> status pending , err 0, reply len 262144
+msg_id 3103472, service 0.0, msg_type 252 'getData', n_dest 1, n_pending 1
+this 0x118E90290, n_xhold 1, cl 0, cbFn 0x0, age 378 sec
+sent by 'NSDThread' (0x11339A590)
+dest <c0n1> status pending , err 0, reply len 262144
+msg_id 3103473, service 0.0, msg_type 252 'getData', n_dest 1, n_pending 1 
+this 0x118E90B90, n_xhold 1, cl 0, cbFn 0x0, age 378 sec
+sent by 'NSDThread' (0x1137402F0)
+dest <c0n1> status pending , err 0, reply len 262144
+msg_id 3103474, service 0.0, msg_type 252 'getData', n_dest 1, n_pending 1
+this 0x118E91770, n_xhold 1, cl 0, cbFn 0x0, age 378 sec
+sent by 'NSDThread' (0x11348DF50)
+dest <c0n1> status pending , err 0, reply len 262144
+msg_id 3103475, service 0.0, msg_type 252 'getData', n_dest 1, n_pending 1
+this 0x119465CB0, n_xhold 1, cl 0, cbFn 0x0, age 378 sec
+sent by 'NSDThread' (0x113833CB0)
+dest <c0n1> status pending , err 0, reply len 262144
+msg_id 3103477, service 0.0, msg_type 252 'getData', n_dest 1, n_pending 1
+this 0x118E932D0, n_xhold 1, cl 0, cbFn 0x0, age 378 sec
+sent by 'NSDThread' (0x1132CF570)
+dest <c0n1> status pending , err 0, reply len 262144
+msg_id 3103478, service 13.1, msg_type 21 'tmMsgTellAcquire2', n_dest 1, n_pending 1
+this 0x118E93B90, n_xhold 1, cl 0, cbFn 0x0, age 378 sec
+sent by 'SharedHashTabFetchHandlerThread' (0x118B23810)
+dest <c0n1> status pending , err 0, reply len 0
+
+<c0n1> 169.89.229.207/0 (ret5a341v)
+sndbuf 262788 rcvbuf 262788 authEnabled 0 securityEnabled 0 sameSubnet 0
+in_conn 0 need_notify 0 reconnEnabled 1
+reconnecting 0 reconnected 0 reconnCheckdup 0 reconnConnecting 0 resending 0
+disconnecting 0 shutting 0 idleCount 0 reconnects 0
+rdmaConnInProgress 0
+n_rw 0 handlerCount 0 inboundCount 0 connRetryCount 0
+sentBytes 0 thread 0 sendState initial
+Messages being serviced:
+msg_id 691074 thread 63504531 age 378.137 nsdMsgWriteExt
+msg_id 691075 thread 60358775 age 378.137 nsdMsgWriteExt
+msg_id 691077 thread 61735005 age 378.137 nsdMsgWriteExt
+msg_id 691078 thread 63570069 age 378.137 nsdMsgWriteExt
+msg_id 691079 thread 62980227 age 378.137 nsdMsgWriteExt
+msg_id 691080 thread 62914689 age 378.137 nsdMsgWriteExt
+msg_id 691081 thread 61145163 age 378.137 nsdMsgWriteExt
+msg_id 691082 thread 62652537 age 378.137 nsdMsgWriteExt
+msg_id 691083 thread 61538391 age 378.137 nsdMsgWriteExt
+msg_id 691084 thread 61472853 age 378.137 nsdMsgWriteExt
+msg_id 691085 thread 63045765 age 378.137 nsdMsgWriteExt
+msg_id 691095 thread 60817473 age 378.137 nsdMsgWriteExt
+unacknowledged replies:
+msg_id 691071 seq 40825 resent 0 msg_type 14 'nsdMsgWriteExt'
+msg_id 691072 seq 40826 resent 0 msg_type 14 'nsdMsgWriteExt'
+msg_id 691073 seq 40829 resent 0 msg_type 14 'nsdMsgWriteExt'
+rdmaNumConn 0 rdmaApi None rdmaFlags
+
+
+
+
+
+In answer, I have analyzed the expel it clearly shows that when the node was expelled GPFS had turned over 
+quite a bit of data from this node (ret5a341v) to the AIX tcp/ip stack on this node and it was sitting in the send queue. 
+This is not a GPFS issue, it is an issue communicating between ret5a341v and ret5a880v. 
+Now this type of problem could be due to anything between this system and the gpfs mmfsd on the other system. 
+A node expel is a resource issue, either network or system. 
+If these are LPARS and using a VIOS then it could be the VIOS server also. My expertise is with GPFS, 
+to investigate this issue you are going to need either networking or AIX skills. 
+If you run a perfpmr while the system is having performance issues the AIX performance team should be able to help you. 
+
+

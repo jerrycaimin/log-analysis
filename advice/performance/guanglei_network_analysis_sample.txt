@@ -1,0 +1,91 @@
+Hello,
+  I talked with Ravi over the phone. There was performance issue around Dec 21 12:40pm to 1:40pm, and there was no disk failures around that time.
+ 
+  I checked the data, and only gpfs.snap from one client node. From the gpfs log on this node:
+
+
+Fri Dec 21 11:46:42.956 2018: [D] Leave protocol detail info: LA: 25 LFLG: 33356156 LFLG delta: 25
+Fri Dec 21 12:03:32.395 2018: [E] The TCP connection to IP address 10.142.224.12 gssio1-hs <c1n3> (socket 401) state is unexpected: ca_state=0 unacked=14 rto=206000
+Fri Dec 21 12:03:32.396 2018: [I] tscCheckTcpConn: Sending debug data collection request to node 10.142.224.12 gssio1-hs
+Fri Dec 21 12:03:32.397 2018: Sending request to collect TCP debug data to gssio1-hs localNode
+Fri Dec 21 12:03:32.398 2018: [I] Calling user exit script gpfsSendRequestToNodes: event sendRequestToNodes, Async command /usr/lpp/mmfs/bin/mmcommon.
+Fri Dec 21 12:13:42.592 2018: [E] The TCP connection to IP address 10.142.224.12 gssio1-hs <c1n3> (socket 401) state is unexpected: ca_state=0 unacked=236 rto=204000
+Fri Dec 21 12:13:42.593 2018: [I] tscCheckTcpConn: Sending debug data collection request to node 10.142.224.12 gssio1-hs
+Fri Dec 21 12:13:42.594 2018: [N] Tcp data is not collected on any node. It was collected recently at 2018-12-21_12:03:32+0530.
+Fri Dec 21 12:17:42.670 2018: [E] The TCP connection to IP address 10.142.224.13 gssio2-hs <c1n4> (socket 424) state is unexpected: ca_state=0 unacked=152 rto=204000
+Fri Dec 21 12:17:42.671 2018: [I] tscCheckTcpConn: Sending debug data collection request to node 10.142.224.13 gssio2-hs
+Fri Dec 21 12:17:42.678 2018: [N] Tcp data is not collected on any node. It was collected recently at 2018-12-21_12:03:32+0530.
+Fri Dec 21 12:24:02.800 2018: [E] The TCP connection to IP address 10.142.224.15 gssio4-hs <c1n1> (socket 407) state is unexpected: ca_state=0 unacked=84 rto=201000
+Fri Dec 21 12:24:02.801 2018: [I] tscCheckTcpConn: Sending debug data collection request to node 10.142.224.15 gssio4-hs
+Fri Dec 21 12:24:02.802 2018: [N] Tcp data is not collected on any node. It was collected recently at 2018-12-21_12:03:32+0530.
+Fri Dec 21 12:46:43.326 2018: [D] Leave protocol detail info: LA: 26 LFLG: 33359755 LFLG delta: 26
+Fri Dec 21 13:38:34.283 2018: [E] The TCP connection to IP address 10.142.224.13 gssio2-hs <c1n4> (socket 424) state is unexpected: ca_state=0 unacked=73 rto=204000
+Fri Dec 21 13:38:34.284 2018: [I] tscCheckTcpConn: Sending debug data collection request to node 10.142.224.13 gssio2-hs
+Fri Dec 21 13:38:34.285 2018: Sending request to collect TCP debug data to gssio2-hs localNode
+Fri Dec 21 13:38:34.286 2018: [I] Calling user exit script gpfsSendRequestToNodes: event sendRequestToNodes, Async command /usr/lpp/mmfs/bin/mmcommon.
+Fri Dec 21 13:46:40.842 2018: [D] Leave protocol detail info: LA: 28 LFLG: 33363350 LFLG delta: 28
+Fri Dec 21 13:47:44.466 2018: [E] The TCP connection to IP address 10.142.224.12 gssio1-hs <c1n3> (socket 401) state is unexpected: ca_state=0 unacked=61 rto=204000
+Fri Dec 21 13:47:44.467 2018: [I] tscCheckTcpConn: Sending debug data collection request to node 10.142.224.12 gssio1-hs
+Fri Dec 21 13:47:44.468 2018: [N] Tcp data is not collected on any node. It was collected recently at 2018-12-21_13:38:34+0530.
+Fri Dec 21 13:48:24.479 2018: [E] The TCP connection to IP address 10.142.224.12 gssio1-hs <c1n3> (socket 401) state is unexpected: ca_state=0 unacked=353 rto=206000
+Fri Dec 21 13:48:24.480 2018: [I] tscCheckTcpConn: Sending debug data collection request to node 10.142.224.12 gssio1-hs
+
+The message like "state is unexpected: ca_state=0 unacked=152 rto=204000" is a dump of TCP_INFO structure from OS kernel directly, and the unacked number means the TCP connection was unhealthy around that time between this node, and ESS IO node. This could cause performance downgrade.
+
+from "dump rpc", the RPC time between with gssio node was also not fast, e.g.:
+
+RPC (msec) aggregated statistics for node gssio1-hs in cluster SYBASE_INGEST.gpfs.net
+...
+min 12:  average =            5.960, min =            0.062, max =          824.568, count =      4540
+min 13:  average =            3.975, min =            0.059, max =          176.069, count =      2906
+min 14:  average =            5.187, min =            0.065, max =          322.307, count =      1370
+min 15:  average =            3.521, min =            0.062, max =          206.779, count =      3438
+min 16:  average =            1.288, min =            0.058, max =          245.332, count =     11518
+min 17:  average =            1.479, min =            0.060, max =          301.564, count =      9542
+...
+hour  3: average =            2.840, min =            0.054, max =         1164.028, count =    318790
+hour  4: average =            2.868, min =            0.048, max =         1049.578, count =    292548
+hour  5: average =            3.280, min =            0.054, max =         1133.858, count =    322183
+hour  6: average =            2.725, min =            0.052, max =          764.147, count =    345378
+hour  7: average =            2.884, min =            0.054, max =         1229.349, count =    344187
+hour  8: average =            2.496, min =            0.051, max =          959.453, count =    353575
+
+from the dump, multiple nodes are access the same set of files, and there were frequent token acquire and revoke requests. So slow network could make these contentions worse.
+
+from the tcpdump capture:
+
+    10.142.224.12.gpfs > 10.142.225.77.36900: Flags [.], seq 29441:30377, ack 1733204, win 32698, options [nop,nop,TS val 2905274785 ecr 3297495923], length 936
+12:03:37.265363 IP (tos 0x0, ttl 64, id 41491, offset 0, flags [DF], proto TCP (6), length 52)
+    10.142.225.77.36900 > 10.142.224.12.gpfs: Flags [.], cksum 0x3325 (correct), ack 30377, win 1138, options [nop,nop,TS val 3297495923 ecr 2905274785], length 0
+12:03:37.265367 IP (tos 0x0, ttl 64, id 41491, offset 0, flags [DF], proto TCP (6), length 52)
+
+ The win size on this client node is small. And from ifconfig:
+ 
+== ifconfig -a @Fri Dec 21 12:03:35 IST 2018 ==
+bond1     Link encap:Ethernet  HWaddr 00:11:0A:6C:CB:41
+          RX packets:136649608414 errors:0 dropped:2129574 overruns:0 frame:0
+eth9      Link encap:Ethernet  HWaddr 00:11:0A:6C:CB:41
+          RX packets:89066309704 errors:0 dropped:2088923 overruns:0 frame:0
+eth11     Link encap:Ethernet  HWaddr 00:11:0A:6C:CB:41
+          RX packets:47583298710 errors:0 dropped:40651 overruns:0 frame:0
+          
+It looks to me the receiver side of this client node has problem. Checked RX setting for eth9 & eth11:
+
+Ring parameters for eth11:
+Pre-set maximums:
+RX:     4096
+RX Mini:    0
+RX Jumbo:   0
+TX:     4096
+Current hardware settings:
+RX:     512
+RX Mini:    0
+RX Jumbo:   0
+TX:     512
+
+And :
+grep budget sysctl_a
+net.core.netdev_budget = 300
+
+Usually a larger RX ring buffer and netdev_budge could improve the network receiving speed, e.g., increase RX to 4096, and netdev_budget to 600. But I have only data for one client node, and I don't know if something happened on switch side, so I will suggest to involve network team to monitor and optimize the client network
+ 

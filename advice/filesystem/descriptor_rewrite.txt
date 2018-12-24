@@ -1,0 +1,61 @@
+Read descriptor:
+mmfsadm test readdescraw /dev/hdisk0
+
+Write descriptor:
+mmfsadm writeDesc <device> sg 0AD81B2C:5B00F2A0 2 /var/mmfs/tmp/sg_cmlsenc_hdisk0_20181106nsd
+
+
+od -x /tmp/read.out
+
+
+dd if=/dev/hdisk0 of=/tmp/hdisk0.back count=2000 bs=512 skip=64
+
+dd if=/dev/hdisk0 of=/tmp/hdisk0.back1 count=4000 bs=512 skip=64
+
+#dd if=/dev/zero of=/dev/hdisk0 count=2000 bs=512 skip=64
+
+#dd if=/dev/hdisk0 of=/tmp/read.out  count=2000 bs=512 skip=64
+
+mmfsadm test readdescraw /dev/hdisk0
+
+mmfsadm test readdescraw=/var/mmfs/tmp/sg_cmlsenc_hdisk0_20181106nsd
+
+#mmfsadm writeDesc /dev/hdisk0 sg 0AD81B2C:5B00F2A0
+
+dd if=/dev/hdisk0 of=/tmp/backup3.out count=1 bs=1024 skip=64
+
+dd if=/dev/zero of=/dev/hdisk0 count=1 bs=1024 seek=64
+
+dd if=/dev/hdisk0 of=/tmp/read.out1 count=1 bs=1024 skip=64
+
+od -x /tmp/read.out1
+
+mmfsadm writeDesc /dev/hdisk0 sg 0AD81B2C:5B00F2A0 2 /tmp/sg_cmlsenc_hdisk0_20181106nsd 
+
+
+
+
+/usr/lpp/mmfs/bin/tspreparedisk -F -n /dev/hdisk0 -p 0AD81B29FFFFF327 -u 0AD81B0C:5BE461C3 -r 1403
+
+
+
+1.  We used the below command to restore the NSD desriptior and disk descriptor..
+ 
+/usr/lpp/mmfs/bin/tspreparedisk -F -n /dev/hdisk0 -p 0AD81B29FFFFF327 -u 0AD81B0C:5BE461C3 -r 1403
+ 
+Note:  -r 1403 should be provided to specify the NSD format 2
+Note:  -p 0AD81B29FFFFF327 has no : in between, and -u 0AD81B0C:5BE461C3 has : in between..    
+The first time I tried the command I didn't add the ":" in -u,  so the command actually failed and I didn't notice it.. My bad.
+ 
+2.  node sp03 got a deadlock that prevent it from mount FS..  we had to reboot it, and FS mounted after that.
+ 
+3.  All the other nodes get FS mounted properly now.
+ 
+Next Action:   RCA for the issue
+why the NSD can't be found
+why the other nodes got FS unmounted,  and some nodes even got all FS umounted.
+ 
+ 
+ 
+
+https://w3-connections.ibm.com/wikis/home?lang=en-us#!/wiki/W72425d1a413f_4e38_944c_6384651f96ea/page/EMEA%20SW%20Prod%20GPFS_Spectrum%20Scale

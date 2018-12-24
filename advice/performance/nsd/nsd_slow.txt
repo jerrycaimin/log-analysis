@@ -149,3 +149,12 @@ So let's go to server side, and see what happend:
       <--- IO duration is 0.1677020 seconds. So almost all IO time is spent on ESS IO write.
   39.537609  30079 TRACE_TS: tscSendReply: service 00100001, msg 'nsdMsgWriteExt', msg_id 931061, replyLen 0
       <--- ESS IO completes. Needs to write a reply to client, telling it the IO completes
+     
+     
+#####check output#########
+$ for i in */mmfsadm*
+> do
+> sys=$(echo $i| cut -f 1 -d '_')
+> iohist=$(dumpsome $i | grep iohist:)
+> echo "$sys: $iohist"
+> done 

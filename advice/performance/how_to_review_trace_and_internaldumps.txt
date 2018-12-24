@@ -1,0 +1,116 @@
+1. trsum.awk trcxxx > output.trc
+2. Search VFS and check output, check which part was costing time:
+############This one is okay###########
+Elapsed trace time:                                   43.267410000 seconds
+Elapsed trace time from first VFS call to last:       43.183933999
+Time idle between VFS calls:                           1.647694000 seconds
+
+Operations stats:             total time(s)  count    avg-usecs        wait-time(s)    avg-usecs
+  read_inode2                0.045623000      2592       17.601
+  rdwr                      24.921507000    259384       96.080
+  pagein                     2.181476000     15501      140.731
+  revalidate                 0.000156000        20        7.800
+  write_inode                0.000115000        21        5.476
+  create                     0.001131000         1     1131.000
+  link                       0.000076000         1       76.000
+  open                       0.099441000       517      192.342
+  unlink                     0.000361000         2      180.500
+  setattr                    0.000014000        15        0.933
+  lookup                     5.925464000      3034     1953.020
+  delete_inode               0.055062000      2531       21.755
+  release                    0.008361000       518       16.141
+  write_super                0.000197000         7       28.143
+  mkdir                      0.002841000         6      473.500
+  getxattr                   0.000050000         4       12.500
+  readdir                    0.001249000        27       46.259
+  mmap                       0.016709000       651       25.667
+  llseek                     0.000007000        24        0.292
+  statfs                     0.001252000       151        8.291
+Ops    285007 Secs      41.536239999  Ops/Sec     6861.647
+#######################
+3. Ex, rdwr costing time, seach at top of "rdwr", and find in original trace file by "timestamp" and "process id":
+    "2219"       "0.464876000" WRITE: gnP 0xFFFF8818078A9E90 inode 4302101 snap 0 oiP 0xFFFFC90037308AF8 offset 0x4971CC len 162 blkSize 262144 opt 0
+    2219       0.464889000 rdwr                       17.000 us
+    2219       0.464897000 rdwr                              ext        8.000 us
+[Original trace file]
+   0.464876   2219 TRACE_VNOP: WRITE: gnP 0xFFFF8818078A9E90 inode 4302101 snap 0 oiP 0xFFFFC90037308AF8 offset 0x4971CC len 162 blkSize 262144 opt 0
+   0.464876   2219 TRACE_FS: updateAccessHistoryM: FETCH oiP 0xFFFFC90037308AF8 newOffset 0x4971CC len 162 blockNum 18 oldPattern seq newPattern seq pa
+   
+4. Besides trace file, you can also find something from internaldumps file:
+===== dump fs =====
+  OpenFile counts: total created 4254 (in use 4000, free 254 q 0)
+    cached 4000, currently open 474+3, cache limit 4000 (min 10, max 4000), eff limit 4000
+  OpenInstance counts: in use 1270 free 778 total 2048 using 1344K memory
+  NFS instance limit: 4000
+  fileCacheMemUsed 27776000, openFileMemUsed 3291456, limit 129010707520, eff limit 129010707520
+    stats: ins 425584 rem 421584 creat 41970 destr 37716 free 236054 reuse 235800
+           steals 220421 (clean 216343, dirty 4078)
+
+Explain:
+1) maxFilesToCache --> cache limit 4000
+2) total 2048 --> current using, if < 4000, then maxFilesToCache is okay, or need increase maxFilesToCache value.
+3) steals 220421 (clean 216343, dirty 4078) --> when exceed maxFilesToCache, need steal more to gain space for new
+	if this value too large, also need increase maxFilesToCache value.
+	
+===== dump mb =====
+Worker1Threads: max 48 current limit 48 in use 0 waiting 0
+
+Explain:
+1) Worker1Threads --> Worker1Threads: max 48
+2) in use 0 waiting 0 --> If too large need to increase Worker1Threads
+
+
+===== dump waiters =====
+1) Check if any Locker threads, if yes review carefully on each process. Find lock on what.
+2) Check if any nsd complete waiting threads, find any disk problem.
+
+
+===== dump rpc/dump tscomm =====
+network related.
+
+
+===== dump iohist =====
+
+I/O history:
+
+ I/O start time RW    Buf type disk:sectorNum     nSec  time ms      tag1      tag2           Disk UID typ      NSD node context   thread
+--------------- -- ----------- ----------------- -----  ------- --------- --------- ------------------ --- --------------- --------- ----------
+17:44:36.327163  W        data    3:1435806208     512    1.624   5497036     12541  0A057F1A:5BD546A2 cli   192.168.12.29 Cleaner   CleanBufferThread
+17:44:36.327553  W        data    2:1435779072     512    1.551   5497036     12480  0A057F1A:5BD546A0 cli   192.168.12.24 Cleaner   CleanBufferThread
+17:44:36.327723  W        data    1:1435747840     512    1.959   5497036     12227  0A057F1A:5BD546A4 cli   192.168.12.29 Cleaner   CleanBufferThread
+
+Explanation:
+1) No need to use iohist.awk, check "time ms", if local write large than 200ms, consider a problem, if remote access, add the value.
+2) Search "0A057F1A" In "dump nsd"
+===== dump nsd =====
+
+NSD configuration:
+
+  Disk name   NsdId              Cl  St F Local dev  Dev type Dev Usage       Servers                          Addr/rcfg
+  ----------  -----------------  --  -- - ---------- -------- --------------- -------------------------------- ----
+  nsd1        0A057F1F:5BD545D9   0  N  1             generic dataAndMetadata <c0n2> <c0n0> 0x2B07041FF000/0x0
+  nsd2        0A057F1A:5BD54633   0  N  1             generic dataAndMetadata <c0n0> <c0n2> 0x2B07041FF120/0x0
+  nsd3        0A057F1F:5BD545DC   0  N  1             generic dataAndMetadata <c0n2> <c0n0> 0x2B07041FF6B0/0x0
+
+then find "<c0n0> <c0n2>" from dump cfgmgr:
+===== dump cfgmgr =====
+node     node                primary          admin  OS --status---   join fail  SGs cnfs   rcksum   wcksum other ip addrs,
+  no  address host name      ip address        func     tr p    rpc  seqNo  cnt mngd  grp mismatch mismatch last failure
+---- -------- -------------- -------------- ------- --- ----------- ------ ---- ---- ---- -------- -------- -------------------
+   2   "<c0n0>" tbpnode1       192.168.12.24  qQm--l-- Lnx -- J     up      3    0   0     0        0        0
+   3   <c0n1> tbpnode2       192.168.12.25  qQ---l-- Lnx -- J     up      3    0   0     0        0        0
+   4   <c0n3> tbpnode3       192.168.12.26  -----l-- Lnx -- J     up      3    0   0     0        0        0
+   5   <c0n4> tbpnode4       192.168.12.27  -----l-- Lnx -- J     up      4    0   0     0        0        0
+   1   "<c0n2>" manager1       192.168.12.29  q-m--l-- Lnx -- J     up      3    0   0     0        0        0
+
+my address is <c0n3>, so this is a remote write.
+
+
+
+
+
+
+
+
+
+

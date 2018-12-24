@@ -1,0 +1,10 @@
+[root@storage0-gui1 ~]#‌ /usr/lpp/mmfs/gui/bin/debug memory
+1:
+Systems Management JVM environment runtime:
+ Free memory in the JVM: 434MB
+ Total memory in the JVM: 1855MB
+ Available memory in the JVM: 627MB
+ Max memory that the JVM will attempt to use: 2048MB
+ Number of processors available to JVM: 4
+ 
+ 
