@@ -35,3 +35,21 @@ any failed or downgrade type event happened on that time
 5. Enable and check ganesha log
 6. If ganesha crashed, you can enable ABRT to check:
 https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1pdg_configchangescoredumpdata.htm
+
+
+[How to debug live]
+mmhealth node show
+
+mmces service list
+
+wbinfo -p
+wbinfo -P
+测试连接AD server
+
+mmces node suspend -N {node}
+节点踢出去再慢慢看。然后可以再resume
+mmces node resume -N {node}
+
+
+
+

@@ -1,3 +1,4 @@
+import sys
 import utils
 from datetime import datetime
 import re
@@ -19,6 +20,11 @@ import re
 #line = "2017-06-02_14:18:57.279: [E]sdfdsfsdfdsfs"
 line = "Wed Jun 21 07:32:00.457 2017:  [E]sdfdsfsdfdsfs"
 #line = "2017-02-15_15:30:38.802+0900: [E]sdfdsfsdfdsfs"
+
+x = "ss,"
+print x[:-2]
+
+sys.exit()
 
 convertor_map = {re.compile("[a-zA-Z]{3} [a-zA-Z]{3} .*201[5-8]"):["%a %b %d %H:%M:%S.%f %Y","%a %b %d %H:%M:%S %Z %Y"],
                  re.compile("201[5-8]-.*\+[0-9]{4}"):"%Y-%m-%d_%H:%M:%S.%f%z",
