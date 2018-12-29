@@ -16,3 +16,10 @@ the format customer@company.com.
 
 The tarball ?????.x86_64-linux-core.tar.gz includes a README file,
 containing instructions how to install the efix build.
+
+how to send customer eFix package:
+1) sftp caimin@cn.ibm.com@testcase.software.ibm.com
+2) put to /fromibm/linux
+3) send link to customer:
+wget ftp://testcase.boulder.ibm.com/fromibm/linux/g423p5e27.ppc64le-linux-core.tar.gz
+
