@@ -23,3 +23,12 @@ how to send customer eFix package:
 3) send link to customer:
 wget ftp://testcase.boulder.ibm.com/fromibm/linux/g423p5e27.ppc64le-linux-core.tar.gz
 
+
+Notes:
+1) We¡¯ve tested this fix on both code level and production level, and this fix is low risk but still need to warning that all eFix are not well tested, hence it might introduce other severe problem.
+2) Even though this specific fix is low risk, some other fixes in the same efix stack may be high risk, detail you can refer to README
+
+Please apply this fix and monitor if still hit memory issue.
+
+./eBuild -b ttn423ptf5 -e 27 --case TS001720941f
+
