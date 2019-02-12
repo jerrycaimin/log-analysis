@@ -28,3 +28,7 @@ mmtracectl --off
 refer:
 https://www.ibm.com/support/knowledgecenter/STXKQY_5.0.0/com.ibm.spectrum.scale.v5r00.doc/bl1pdg_mmtrace.htm
 
+
+[How to disable logAssertion in 5.0.2]
+https://tuna.pok.stglabs.ibm.com/wiki/Assert_consolidation
+±»»Á£∫mmchconfig disableAssert="sharkd.C:7000-8000:*test assert*"

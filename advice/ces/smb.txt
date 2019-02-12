@@ -74,3 +74,169 @@ https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/General%2
 
 # smbcontrol winbindd debug 10
 find log in: /var/adm/ras/log.smbd
+
+
+
+[How to disable smb]
+1) smbstatus to check:
+[root@SJSCALE01 ~]# /usr/lpp/mmfs/bin/smbstatus
+
+Samba version 4.4.9-gpfs-15
+PID     Username     Group        Machine                                   Protocol Version  Encryption           Signing
+----------------------------------------------------------------------------------------------------------------------------------------
+1:26267 NLH\karseyad NLH\domain users 172.21.5.21 (ipv4:172.21.5.21:60559)      SMB2_10           -                    -
+1:24458 NLH\mikwhiog NLH\domain users 172.21.3.100 (ipv4:172.21.3.100:63964)    SMB3_02           -                    partial(AES-128-CMAC)
+1:28797 NLH\karseyit NLH\domain users 172.17.10.128 (ipv4:172.17.10.128:59084)  SMB2_10           -                    -
+1:32300 NLH\mikwhiog NLH\domain users 172.21.5.2 (ipv4:172.21.5.2:56041)        SMB2_10           -                    -
+1:31330 NLH\karseyad NLH\domain users 172.21.5.21 (ipv4:172.21.5.21:60563)      SMB2_10           -                    -
+1:37629 NLH\karseyad NLH\domain users 172.21.5.21 (ipv4:172.21.5.21:60539)      SMB2_10           -                    -
+1:42303 NLH\nicmonog NLH\domain users 172.21.5.35 (ipv4:172.21.5.35:55206)      SMB2_10           -                    -
+1:14462 NLH\davnorog NLH\domain users 172.21.5.22 (ipv4:172.21.5.22:58521)      SMB2_10           -                    -
+1:22279 NLH\vicmitog NLH\domain users 172.21.5.37 (ipv4:172.21.5.37:56614)      SMB2_10           -                    -
+1:30872 NLH\mikwhiog NLH\domain users 172.21.5.2 (ipv4:172.21.5.2:55730)        SMB2_10           -                    -
+1:30557 NLH\karseyit NLH\domain users 172.18.110.33 (ipv4:172.18.110.33:53470)  SMB3_02           -                    AES-128-CMAC
+1:3657  NLH\davnorog NLH\domain users 172.21.5.22 (ipv4:172.21.5.22:58509)      SMB2_10           -                    -
+1:43910 NLH\karseyad NLH\domain users 172.21.5.21 (ipv4:172.21.5.21:60303)      SMB2_10           -                    -
+1:10790 NLH\mikwhiog NLH\domain users 172.17.10.142 (ipv4:172.17.10.142:60593)  SMB2_10           -                    -
+1:17016 NLH\nicmonog NLH\domain users 172.21.5.35 (ipv4:172.21.5.35:49322)      SMB2_10           -                    -
+1:9971  NLH\nicmonog NLH\domain users 172.21.5.35 (ipv4:172.21.5.35:49226)      SMB2_10           -                    -
+1:44012 NLH\karseyad NLH\domain users 172.21.5.21 (ipv4:172.21.5.21:60541)      SMB2_10           -                    -
+1:7374  NLH\carboyad NLH\domain users 172.21.5.4 (ipv4:172.21.5.4:50681)        SMB2_10           -                    -
+1:4771  NLH\karseyad NLH\domain users 172.21.5.21 (ipv4:172.21.5.21:60546)      SMB2_10           -                    -
+1:10013 NLH\karseyad NLH\domain users 172.21.5.21 (ipv4:172.21.5.21:60551)      SMB2_10           -                    -
+1:15300 NLH\karseyad NLH\domain users 172.21.5.21 (ipv4:172.21.5.21:60553)      SMB2_10           -                    -
+1:20787 NLH\karseyad NLH\domain users 172.21.5.21 (ipv4:172.21.5.21:60557)      SMB2_10           -                    -
+1:8745  NLH\davnorog NLH\domain users 172.21.5.22 (ipv4:172.21.5.22:58512)      SMB2_10           -                    -
+1:27940 NLH\vicmitog NLH\domain users 172.21.5.37 (ipv4:172.21.5.37:56621)      SMB2_10           -                    -
+1:36891 NLH\karseyad NLH\domain users 172.21.5.21 (ipv4:172.21.5.21:60575)      SMB2_10           -                    -
+1:40230 NLH\davnorog NLH\domain users 172.21.5.22 (ipv4:172.21.5.22:58501)      SMB2_10           -                    -
+
+Service      pid     Machine       Connected at                     Encryption   Signing
+---------------------------------------------------------------------------------------------
+common       1:14462 172.21.5.22   Mon Jan  7 04:42:36 PM 2019 NST  -            -
+common       1:27940 172.21.5.37   Mon Jan  7 04:47:55 PM 2019 NST  -            -
+IPC$         1:10013 172.21.5.21   Mon Jan  7 09:12:28 PM 2019 NST  -            -
+common       1:3657  172.21.5.22   Mon Jan  7 04:38:12 PM 2019 NST  -            -
+common       1:7374  172.21.5.4    Mon Jan  7 09:11:23 PM 2019 NST  -            -
+IPC$         1:22279 172.21.5.37   Mon Jan  7 04:45:35 PM 2019 NST  -            -
+IPC$         1:43910 172.21.5.21   Mon Jan  7 09:03:28 PM 2019 NST  -            -
+IPC$         1:42303 172.21.5.35   Mon Jan  7 04:36:24 PM 2019 NST  -            -
+common       1:4771  172.21.5.21   Mon Jan  7 09:10:16 PM 2019 NST  -            -
+common       1:37629 172.21.5.21   Mon Jan  7 09:05:52 PM 2019 NST  -            -
+common       1:30872 172.21.5.2    Mon Jan  7 07:22:06 PM 2019 NST  -            -
+common       1:43910 172.21.5.21   Mon Jan  7 05:09:12 PM 2019 NST  -            -
+common       1:42303 172.21.5.35   Mon Jan  7 04:36:23 PM 2019 NST  -            -
+common       1:8745  172.21.5.22   Mon Jan  7 04:40:24 PM 2019 NST  -            -
+common       1:36891 172.21.5.21   Mon Jan  7 09:23:28 PM 2019 NST  -            -
+common       1:30557 172.18.110.33 Mon Jan  7 09:03:01 PM 2019 NST  -            AES-128-CMAC
+common       1:22279 172.21.5.37   Mon Jan  7 04:45:35 PM 2019 NST  -            -
+common       1:26267 172.21.5.21   Mon Jan  7 09:19:04 PM 2019 NST  -            -
+common       1:40230 172.21.5.22   Mon Jan  7 04:36:01 PM 2019 NST  -            -
+common       1:32300 172.21.5.2    Mon Jan  7 09:03:41 PM 2019 NST  -            -
+IPC$         1:9971  172.21.5.35   Mon Jan  7 04:41:23 PM 2019 NST  -            -
+common       1:20787 172.21.5.21   Mon Jan  7 09:16:52 PM 2019 NST  -            -
+common       1:28797 172.17.10.128 Mon Jan  7 09:02:21 PM 2019 NST  -            -
+common       1:31330 172.21.5.21   Mon Jan  7 09:21:16 PM 2019 NST  -            -
+common       1:10013 172.21.5.21   Mon Jan  7 09:12:28 PM 2019 NST  -            -
+common       1:24458 172.21.3.100  Mon Jan  7 05:19:35 PM 2019 NST  -            -
+common       1:9971  172.21.5.35   Mon Jan  7 04:40:52 PM 2019 NST  -            -
+common       1:44012 172.21.5.21   Mon Jan  7 09:08:04 PM 2019 NST  -            -
+common       1:10790 172.17.10.142 Mon Jan  7 08:55:01 PM 2019 NST  -            -
+common       1:15300 172.21.5.21   Mon Jan  7 09:14:40 PM 2019 NST  -            -
+common       1:17016 172.21.5.35   Mon Jan  7 04:43:31 PM 2019 NST  -            -
+
+Locked files:
+Pid          Uid        DenyMode   Access      R/W        Oplock           SharePath   Name   Time
+--------------------------------------------------------------------------------------------------
+1:22279      12093702   DENY_NONE  0x120089    RDONLY     EXCLUSIVE+BATCH  /gpfs1/fileset/smb   Data by Project/Bay du Nord/Models_Operator/Petrel Models/Dec18_2018_Pre Sanction Data Received_Equinor/BdN_Bacc_Nalcor.ptd/desktop.ini   Mon Jan  7 16:45:37 2019
+1:32300      12082965   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Data by Project/Hibernia Southern Extension/HSE_7 USBs/Buffalo_USB5   Mon Jan  7 21:44:01 2019
+1:42303      12102926   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration   Mon Jan  7 16:36:28 2019
+1:9971       12102926   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration   Mon Jan  7 16:41:31 2019
+1:22279      12093702   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration   Mon Jan  7 16:45:47 2019
+1:43910      12073587   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration   Mon Jan  7 21:03:36 2019
+1:30872      12082965   DENY_WRITE 0x120089    RDONLY     EXCLUSIVE+BATCH  /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users/Mike White/Long Range 3D_Intercept Gradient for Nick.pet   Mon Jan  7 21:01:39 2019
+1:30872      12082965   DENY_WRITE 0x120089    RDONLY     EXCLUSIVE+BATCH  /gpfs1/fileset/smb   Projects/STUDIO/Development/Users/Mike White/Hebron_Checkshots_msl reference.pet   Mon Jan  7 21:01:39 2019
+1:42303      12102926   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users   Mon Jan  7 16:36:30 2019
+1:8745       12091697   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users   Mon Jan  7 16:40:23 2019
+1:9971       12102926   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users   Mon Jan  7 16:41:32 2019
+1:22279      12093702   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users   Mon Jan  7 16:45:49 2019
+1:22279      12093702   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users   Mon Jan  7 16:45:49 2019
+1:22279      12093702   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users   Mon Jan  7 16:45:49 2019
+1:10013      12073587   DENY_NONE  0x100080    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users   Mon Jan  7 21:12:27 2019
+1:43910      12073587   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users   Mon Jan  7 21:03:39 2019
+1:4771       12073587   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users   Mon Jan  7 21:10:16 2019
+1:30872      12082965   DENY_WRITE 0x120089    RDONLY     EXCLUSIVE+BATCH  /gpfs1/fileset/smb   Projects/STUDIO/Development/Template Petrel Projects/Template Project_NAD83_Z22N.pet   Mon Jan  7 21:01:39 2019
+1:30872      12082965   DENY_WRITE 0x120089    RDONLY     EXCLUSIVE+BATCH  /gpfs1/fileset/smb   Projects/Petrel Projects/Hibernia/Nalcor Projects/1_Master Reference Project/HSE_Master_QC ONLY_Feb20_2018.pet   Mon Jan  7 21:01:39 2019
+1:40230      12091697   DENY_NONE  0x80        RDONLY     NONE             /gpfs1/fileset/smb   .   Mon Jan  7 16:36:01 2019
+1:42303      12102926   DENY_ALL   0x100080    RDONLY     NONE             /gpfs1/fileset/smb   .   Mon Jan  7 16:36:24 2019
+1:30557      12070287   DENY_NONE  0x100080    RDONLY     NONE             /gpfs1/fileset/smb   .   Mon Jan  7 21:03:00 2019
+1:8745       12091697   DENY_ALL   0x100080    RDONLY     NONE             /gpfs1/fileset/smb   .   Mon Jan  7 16:40:23 2019
+1:9971       12102926   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   .   Mon Jan  7 16:41:25 2019
+1:17016      12102926   DENY_NONE  0x80        RDONLY     NONE             /gpfs1/fileset/smb   .   Mon Jan  7 16:43:31 2019
+1:22279      12093702   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   .   Mon Jan  7 16:45:43 2019
+1:32300      12082965   DENY_ALL   0x100080    RDONLY     NONE             /gpfs1/fileset/smb   .   Mon Jan  7 21:03:40 2019
+1:43910      12073587   DENY_ALL   0x100080    RDONLY     NONE             /gpfs1/fileset/smb   .   Mon Jan  7 21:03:27 2019
+1:24458      12082965   DENY_NONE  0x80        RDONLY     NONE             /gpfs1/fileset/smb   .   Mon Jan  7 17:19:35 2019
+1:22279      12093702   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO   Mon Jan  7 16:45:45 2019
+1:40230      12091697   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users/Nick Montevecchi   Mon Jan  7 16:36:01 2019
+1:3657       12091697   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users/Nick Montevecchi   Mon Jan  7 16:38:11 2019
+1:8745       12091697   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users/Nick Montevecchi   Mon Jan  7 16:40:23 2019
+1:17016      12102926   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users/Nick Montevecchi   Mon Jan  7 16:43:31 2019
+1:31330      12073587   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users/Nick Montevecchi   Mon Jan  7 21:21:16 2019
+1:36891      12073587   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Exploration/Users/Nick Montevecchi   Mon Jan  7 21:23:27 2019
+1:22279      12093702   DENY_NONE  0x120089    RDONLY     EXCLUSIVE+BATCH  /gpfs1/fileset/smb   Estimage_VelocityModel_Pilot Project/Petrel Project/Estimage working project.ptd/desktop.ini   Mon Jan  7 16:45:42 2019
+1:32300      12082965   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Data by Project/Hibernia Southern Extension   Mon Jan  7 21:42:37 2019
+1:30872      12082965   DENY_WRITE 0x120089    RDONLY     EXCLUSIVE+BATCH  /gpfs1/fileset/smb   Data by Project/Bay du Nord/Models_Operator/Petrel Models/Dec18_2018_Pre Sanction Data Received_Equinor/BdN_Bacc_Nalcor.pet   Mon Jan  7 21:01:39 2019
+1:22279      12093702   DENY_NONE  0x120089    RDONLY     EXCLUSIVE+BATCH  /gpfs1/fileset/smb   Estimage_VelocityModel_Pilot Project/Petrel Project/Estimage working project_V2_Nov5th_2018.ptd/desktop.ini   Mon Jan  7 16:45:42 2019
+1:32300      12082965   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Data by Project/Hibernia Southern Extension/Seismic   Mon Jan  7 21:42:21 2019
+1:30872      12082965   DENY_WRITE 0x120089    RDONLY     EXCLUSIVE+BATCH  /gpfs1/fileset/smb   Projects/STUDIO/Development/Users/Mike White/Bay du Nord/Bay Du Nord_Pre Sanction.pet   Mon Jan  7 21:01:39 2019
+1:42303      12102926   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Projects/STUDIO/Development/Seismic Petrel Projects_TAPE DATA REFERENCE/Hebron   Mon Jan  7 16:36:27 2019
+1:30872      12082965   DENY_WRITE 0x120089    RDONLY     EXCLUSIVE+BATCH  /gpfs1/fileset/smb   Projects/STUDIO/Development/Users/Mike White/HSE/HSE_LoadingProject.pet   Mon Jan  7 21:01:39 2019
+1:22279      12093702   DENY_NONE  0x120089    RDONLY     EXCLUSIVE+BATCH  /gpfs1/fileset/smb   Estimage_VelocityModel_Pilot Project/Petrel Project/Estimage working project_V3_Nov26th_2018.ptd/desktop.ini   Mon Jan  7 16:45:42 2019
+1:22279      12093702   DENY_NONE  0x120089    RDONLY     EXCLUSIVE+BATCH  /gpfs1/fileset/smb   Estimage_VelocityModel_Pilot Project/Petrel Project/Estimage working project_V2_Nov13th_2018.ptd/desktop.ini   Mon Jan  7 16:45:42 2019
+1:32300      12082965   DENY_NONE  0x100081    RDONLY     NONE             /gpfs1/fileset/smb   Data by Project/Hibernia Southern Extension/HSE_7 USBs   Mon Jan  7 21:44:08 2019
+
+2) [host]# /usr/lpp/mmfs/bin/net conf setparm global ¡°hosts deny¡± ¡°172.29.92.53¡±
+[host]# smbcontrol smbd reload-config
+
+to disable:
+[host]# /usr/lpp/mmfs/bin/net conf setparm global ¡°hosts deny¡± ¡°
+[host]# smbcontrol smbd reload-config
+[host]# smbstatus
+
+3) Windows automount could automount on it.
+
+[How to export smb]
+1) Add user: useradd caimin
+2) export can be only done on "-k nfs4" filesystem, use mmlsfs to check.
+3) export smb share:
+mmsmb export add smbexport2 /gpfs2/smbexport2
+4) verify by "mmsmb export list"
+5) Goto windows, input this to open the share:
+\\9.114.182.193\smbexport
+
+[CTDB]
+Used only by ces/smb to share the config and file lock. No other components using.
+
+How to debug:
+check ps:
+    ps -eafl|grep -i ctdb
+check status:
+    ctdb status
+check logs:
+    cd /var/run/ctdb/CTDB_DBDIR
+    ltdbtool dump -p serverid.tdb.0
+    * tdbtool is original and not wrapped by GPFS
+check config:
+    /etc/sysconfig/ctdb
+ctdb home:
+    /usr/lpp/mmfs/lib/ctdb/
+log position:
+    /var/adm/ras/log.smbd
+    * snap will contain this.
+For any other debug, run ctdb cmd:
+ctdb status
+ctdb nodestate
+......
+
+

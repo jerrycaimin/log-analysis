@@ -7,6 +7,7 @@ Running as user "root" and group "root". This could be dangerous.
 
 
 tcpdump -i any -w ./smb.pcap
+tcpdump -i bond0:1 -w /tmp/samba.pcap 
 
 tshark -r ./smb.pcap -V > output.txt
 

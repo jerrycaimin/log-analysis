@@ -33,14 +33,17 @@ any failed or downgrade type event happened on that time
 3. Check sysmonitor log.
 4. check ces folder
 5. Enable and check ganesha log
-6. If ganesha crashed, you can enable ABRT to check:
+6. If ganesha cras  hed, you can enable ABRT to check:
 https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1pdg_configchangescoredumpdata.htm
 
 
 [How to debug live]
-mmhealth node show
 
-mmces service list
+ip link
+check ip network status
+
+ces shareRoot should be mounted
+
 
 wbinfo -p
 wbinfo -P
@@ -50,6 +53,7 @@ mmces node suspend -N {node}
 节点踢出去再慢慢看。然后可以再resume
 mmces node resume -N {node}
 
-
-
-
+systemctl status rpcbind
+rpcinfo
+rpcinfo -s {node}
+rpcinfo -u {node} nfs

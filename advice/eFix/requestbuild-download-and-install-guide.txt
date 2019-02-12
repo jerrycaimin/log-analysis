@@ -21,7 +21,14 @@ how to send customer eFix package:
 1) sftp caimin@cn.ibm.com@testcase.software.ibm.com
 2) put to /fromibm/linux
 3) send link to customer:
-wget ftp://testcase.boulder.ibm.com/fromibm/linux/g423p5e27.ppc64le-linux-core.tar.gz
+wget ftp://testcase.boulder.ibm.com/fromibm/linux/g502p2e3.x86_64-linux-core.tar.gz
+
+send customer in ecurep:
+  scp caimin@service5.pok.stglabs.ibm.com:/u/images/SPECTRUM_SCALE/5.0.2_tac502/ganesha/efixes/PTF2/2019_01_23_15_14/x86_64-linux/gpfs.nfs-ganesha-2.5.3-ibm030.01.el7.x86_64.rpm .
+  scp caimin@service5.pok.stglabs.ibm.com:/u/images/SPECTRUM_SCALE/5.0.2_tac502/ganesha/efixes/PTF2/2019_01_23_15_14/x86_64-linux/gpfs.nfs-ganesha-debuginfo-2.5.3-ibm030.01.el7.x86_64.rpm .
+  scp caimin@service5.pok.stglabs.ibm.com:/u/images/SPECTRUM_SCALE/5.0.2_tac502/ganesha/efixes/PTF2/2019_01_23_15_14/x86_64-linux/gpfs.nfs-ganesha-gpfs-2.5.3-ibm030.01.el7.x86_64.rpm .
+  scp caimin@service5.pok.stglabs.ibm.com:/u/images/SPECTRUM_SCALE/5.0.2_tac502/ganesha/efixes/PTF2/2019_01_23_15_14/x86_64-linux/gpfs.nfs-ganesha-utils-2.5.3-ibm030.01.el7.x86_64.rpm .
+
 
 
 Notes:
@@ -31,4 +38,10 @@ Notes:
 Please apply this fix and monitor if still hit memory issue.
 
 ./eBuild -b ttn423ptf5 -e 27 --case TS001720941f
+eBuild -b tac502ptf2 -e 3 --case TS001773430
 
+[revert to old ifix]
+rpm -Uvh --oldpackage /root/kernel-devel-3.10.0-862.el7.x86_64.rpm
+
+Reference:
+https://w3-connections.ibm.com/wikis/home?lang=en-us#%21/wiki/W72425d1a413f_4e38_944c_6384651f96ea/page/eBuild%20efix%20Procedure

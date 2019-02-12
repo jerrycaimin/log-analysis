@@ -1,3 +1,32 @@
+Linux kernal export, and GPFS provide HA for it.
+
+[bring up]
+To query the current CNFS configuration, enter:
+mmlscluster --cnfs
+To temporarily disable CNFS on one or more nodes, enter:
+mmchnode --cnfs-disable -N NodeList
+To re-enable previously-disabled CNFS member nodes, enter:
+mmchnode --cnfs-enable -N NodeList
+To permanently remove nodes from the CNFS cluster, enter:
+mmchnode --cnfs-interface=DELETE -N NodeList
+A sample CNFS configuration
+Here is a CNFS configuration example, which assumes the following:
+v Your GPFS cluster contains three nodes: fin18, fin19, and fin20
+v The host names for NFS serving are: fin18nfs, fin19nfs, and fin20nfs
+To define a CNFS cluster made up of these nodes, follow these steps:
+1. Add the desired GPFS file systems to /etc/exports on each of the nodes. 2. Create a directory called ha in one of the GPFS file systems by entering:
+    mkdir /gpfs/fs1/ha
+3. Create a temporary file called /tmp/hanfs-list, which contains the following lines:
+
+fin18 --cnfs-interface=fin18nfs
+    fin19 --cnfs-interface=fin19nfs
+    fin20 --cnfs-interface=fin20nfs
+4. Set the CNFS shared directory by entering: mmchconfig cnfsSharedRoot=/gpfs/fs1/ha
+5. Create the CNFS cluster with the mmchnode command, by entering: mmchnode -S /tmp/hanfs-list
+6. Access the exported GPFS file systems over NFS. If one or more GPFS nodes fail, the NFS clients should continue uninterrupted.
+
+-----Chapter 28. Implementing a clustered NFS environment on Linux 431
+
 [Failover]
 If cnfs failover happens, the failover ip shall include the recovery node ip, this is the way how cnfs failover works.
 --->Before failover:

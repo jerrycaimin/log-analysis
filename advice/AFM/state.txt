@@ -90,3 +90,13 @@ Creating an AFM relationship by using GPFS protocol & Sample
 Refer to Concepts, Planning, and Installation Guide
 
 
+===== create fileset and link =======
+//mmcrfileset gpfs1 singlewriterCache -p afmtarget=gpfs:///remote_gpfs1/singlewriterHome -p afmmode=single-writer --inode-space=new
+mmcrfileset gpfs1 independentwritercache -p afmtarget=gpfs:///remote_gpfs1/independentwriterHome -p afmmode=independent-writer --inode-space new
+mmlinkfileset gpfs1 independentwritercache -J /gpfs1/independentwritercache
+mmafmctl gpfs1 getstate
+
+show home cluster info:
+mmremotefs show all
+
+

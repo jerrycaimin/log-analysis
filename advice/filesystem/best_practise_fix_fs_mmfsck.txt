@@ -1,0 +1,362 @@
+###################
+In /var/log/messages there are fsstruct errors indicating metadata corruption for 61 inodes.
+$ fsstructlx.awk  */var/log/messages | grep lookup | cut -f 2 -d '(' | cut -f 1 -d ')' | sort | uniq | wc -l
+61
+
+I recommend that you unmount the filesystem on all nodes and run an offline mmfsck.  
+
+# script 
+# mmfsck gpfsFS1  -v -n | tee mmfsck_gpfsFS1_n.out
+# exit 
+
+Send in the typescript file for us to evaluate.  
+You can also mount the filesystem after the mmfsck -n completes in service mode:
+mmmount gpfsFS1 -o rs 
+and you can run a tsfindinode giving it a file containing the list of bad inodes (see above). 
+
+/usr/lpp/mmfs/samples/util/tsfindinode -i $filename $mountpoint
+
+This will allow you to identify the bad inodes.   
+Call the support center and have them pageout the oncall to evaluate the mmfsck output,  then you can run the mmfsck -y.
+
+# script
+# mmfsck gpfsFS1 -v -y | tee mmfsck_gpfsFS1_y.out
+# exit
+
+Send in the new typescript file for us to evaluate it.
+###################
+
+1. Check fs with fsstructlx.awk on /var/log/message if any "errorcode=lookup", by this cmd:
+$ fsstructlx.awk  */var/log/messages | grep lookup
+
+2. If fs corrupt identified, try to unmount all the fs:
+# mmumount /gpfsFS1 -a
+# mmlsmount all -L
+
+3. run the mmfsck gpfsFS1 -v -n to check the output(not to fix), Policy: 
+>>>>>>>>>>>If no inode in reserved problem, can run mmfsck -y, else involve dev to check. 
+Analysis gpfsFS1 -v -n report, sample:
+#######################
+There are total 182 bad entries from the mmfsck -n output, include the duplicated address, bad indirect block and bad directory enties:
+InodeProblemList: 182 entries
+iNum           snapId     status keep delete noScan new error
+-------------- ---------- ------ ---- ------ ------ --- ------------------
+       125402          0      1    0      0      0   0 0x00000008 AddrDuplicate
+       123556          0      1    0      0      0   0 0x00001408 AddrDuplicate FullBlocksBad SubblocksBad
+       123682          0      1    0      0      0   0 0x00000008 AddrDuplicate
+       371708          0      1    0      0      0   0 0x00000008 AddrDuplicate
+       145090          0      1    0      0      0   0 0x10001408 AddrDuplicate FullBlocksBad SubblocksBad IndblockBad
+       145441          0      1    0      0      0   0 0x00000008 AddrDuplicate
+...
+        27094          0      1    1      0      0   0 0x10000000 IndblockBad
+       439413          0      1    1      0      0   0 0x10000000 IndblockBad
+...
+         6950          0      1    0      0      0   0 0x00010000 DirEntryBad
+         6955          0      1    0      0      0   0 0x00010000 DirEntryBad
+
+You need run the offline fsck -y to fix above problems. 
+Some files will be moved into lost+found directory after fsck -y, 
+and fsck will punch a hole for the duplicated address, the application will hit input/output errors when access the hole. 
+grep these iNum to ./inode.list
+
+Following are the steps of the offline fsck:
+1. Mount the file system in read only mode on a node, for example az18u3257
+   # mmmount gpfsFS1 -o ro
+
+2. Run tsfindinode to find out the corrupted files
+   # tsfindinode -i ./inode.list /gpfsFS1
+
+3. Backup the files found in step 2 to other place, for example, the local fs.
+
+4. unmount the file system
+   # mmumount gpfsFS1 -a
+   # mmlsmount gpfsFS1 -L
+
+4. Run mmfsck -y to fix the problem
+   # mmfsck gpfsFS1 -v -y | tee mmfsck_gpfsFS1_y.out
+
+5. If you have backup, recover the corrupted files from backup
+
+6. Send the mmfsck_gpfsFS1_y.out to us for check
+ 
+Please run above steps in the 'script' command. Thanks.
+#######################
+
+The file system is clean from the mmfsck -y output:
+===================================================
+               500736 inodes
+               165114   allocated
+                  164   repairable
+                  164   repaired
+                   16   damaged
+                   11   deallocated
+                  234   orphaned
+                  234   attached
+                    0   corrupt ACL references
+
+            285696000 subblocks
+             58004662   allocated
+               185005   unreferenced
+                    0   deletable
+               191326   deallocated
+
+              1898702 addresses
+                    0   suspended
+
+...
+File system is clean.
+===================================================
+
+I think you can mount the file system of all the nodes and start your application. Thanks.
+
+
+
+
+
+Looks like the log file is corrupt. Like you said, there are not fsstruct errors logged, but that is no guarantee that fs is not corrupt. You will need to run offline fsck to at least repair log files -
+
+mmfsck <fs> -xk
+
+- if ct has time to run full offline fsck, then that is preferable -
+
+mmdsh -N all mmfsadm test fsck usePatchQueue 0
+mmfsck <fs> -Vnm -xc -xsc --threads 128 -N <nsd server nodes> --patch-file <patch-file-name>  2>&1 | tee /tmp/fsckn.out
+
+(--threads 128 to fasten the process)
+
+=========================================================================
+
+Hello,
+
+An online mmfsck does not do everything that an offline mmfsck does.
+I would recommend an offline mmfsck be run using a patchfile.  While
+some FSSTRUCT errors indicate that file system metadata is corrupt,
+users can avoid the downtime of running offline fsck to fix these
+corruptions by looking closer at the FSSTRUCT errors.
+If the errors are in a snapshot, then it is much easier to delete the
+snapshot and its ancestors. Also some snapshot errors may not be fixable
+by fsck. So deleting the snapshot would be the only options in such
+cases.
+
+Running fsck on selective nodes in the cluster:
+This is done using the -N option of mmfsck command. The nodes specified
+in this option only decide the fsck worker nodes. The stripe group
+manager for the file system being scanned will always be the fsck master
+node and it is selected implicitly. If users want to exclude the current
+stripe group manager node from fsck run, then they have to first change
+the stripe group manager node using mmchmgr and then run mmfsck.
+
+Speeding up multi-pass fsck:
+If there is insufficient memory to allow fsck to complete its scan in a
+single pass, fsck would need multiple scan over the inodes. This can
+significantly slow down fsck. To avoid this,  increase the pagepool size
+(mmchconfig pagepool=<n>).
+
+From your mmlsconfig output,  there are only 4 nodes that have a decent
+amount of pagepool which is required to reduce the amount of time the
+scan will take,  I would recommend limiting the mmfsck to just utilizing
+these 4 nodes.
+
+[io01-ib,io02-ib,io03-ib,io04-ib]
+pagepool 32G
+#  mmfsck /dev/work -v -n --patch-file /tmp/work.patchfile --threads 128
+-N io01-ib,io02-ib,io03-ib,io04-ib  > mmfsck_n.out 2>&1
+Once the mmfsck -n completes, upload /tmp/work.patchfile  and the
+mmfsck_n.out file for review  then we can check it for problems and you
+can run the mmfsck command to patch the filesystem using the patchfile
+created by the mmfsck -n.
+#  mmfsck /dev/work -v  --patch  --patch-file /tmp/work.patchfile
+--threads 128  -N io01-ib,io02-ib,io03-ib,io04-ib  > mmfsck_patch.out
+2>&1
+
+You may want to check out multipathd before doing anything
+
+Dec 26 21:21:54 gpfs01 multipathd: HOME_CAPA_01: sdah - tur checker
+reports path is down
+Dec 26 21:21:58 gpfs01 multipathd: HOME_CAPA_02: sdai - tur checker
+reports path is down
+Dec 26 21:21:58 gpfs01 multipathd: HOME_CAPA_02: sdds - tur checker
+reports path is down
+Dec 26 21:21:58 gpfs01 multipathd: HOME_CAPA_01: sddr - tur checker
+reports path is down
+Dec 26 21:21:59 gpfs01 multipathd: HOME_CAPA_01: sdah - tur checker
+reports path is down
+Dec 26 21:22:03 gpfs01 multipathd: HOME_CAPA_02: sdai - tur checker
+reports path is down
+Dec 26 21:22:03 gpfs01 multipathd: HOME_CAPA_02: sdds - tur checker
+reports path is down
+Dec 26 21:22:03 gpfs01 multipathd: HOME_CAPA_01: sddr - tur checker
+reports path is down
+
+$ grep multipathd io01-ib_*/var/log/messages | wc -l
+188388
+$ grep multipathd io02-ib_*/var/log/messages | wc -l
+189761
+$ grep multipathd io03-ib_*/var/log/messages | wc -l
+188225
+$ grep multipathd io04-ib_*/var/log/messages | wc -l
+188524
+$
+
+[How to read mmfsck report]
+=========identify corruption=============
+Search of "Block allocation map of **"
+example:
+Block allocation map of SAS7K pool file inode 40 has one or more block corruptions.
+Fix all block corruptions in the file? Yes
+Block allocation map of SAS7K pool file has corrupt block 9523 record 19046 (reason 5).
+Block allocation map of SAS7K pool file has corrupt block 9523 record 19046 (reason 7).
+Block allocation map of SAS7K pool file has corrupt block 9523 record 19046 (reason 8).
+
+
+
+
+
+[PPT]
+==========================================
+1£©MMFS_FSSTUCT error
+	->It will be printed into system log if GPFS detect Fs corruption when access the file system.
+	->fstructk.awk(Linux) fstruct.awk(AIX) under/lpp/mmfs/samples/debugtools/to decode the MMFS_FSSTRUCT message in system log£º
+		fsstructlx.awk /var/log/messages > fsstruct.message
+	->mmhealth will report FS corruptions
+Refer to pd guide pdf for MMFS_FSSTUCT detail.
+
+2£©offline mmfsck to check file system and generate report.
+	-> GPFS file system needs to be unmounted from all nodes.
+	-> Use patch file option (from ver 4.1.1) to avoid two rounds of long running mmfsck£º
+		mmfsck -nV -patch-file /tmp/fsck.patch
+	-> Online mmfsck
+		run mmfsck with -o option while FS is mounted
+		Can only fix the lost blocks- data block marked as used but not reference by any file/dir
+3£©New mmfsck option:-estimate-only
+.osplayS estimation of offine fsck run time for given mmfsckoptions oMiors£¬coniguration of the targetfile
+¡¤The estimate is based on mmfsck commang roughput of the participating nodes system and average disk and network/o th
+
+4) Upload mmfsck output and patch file for IBM to review. Additional output may be required:
+. tsfindinode to identify the pathname for corupted inodes. Needs to mount FS
+¡¤ tsdbfs output for inode dumps
+5) Run ofline mmfsck fix under guidance of IBM support
+¡¤ If patch is used, run it with: mmfsck <fs> -V -patchfile /tmp/mmfs/fsck.patch --patch
+6) Log recovery failure
+¡¤ mmfsck <fs>-xk
+¡¤ Needs to unmount FS
+¡¤ Supported in ver>=4.2
+¡¤ Run it after confirmed with IBM support.
+7) mmfsck --status-report
+¡¤ Displays an interim status report at any time. While a long-running instance of mmfsck is in progress, you can start another instance of mmfsck with the-
+status-report paiameter to display current status information from all the nodes that are participating in the mmfsck run
+
+
+[tips]
+MMFSCK initial run: 
+When necessary to execute mmfsck on a system, the initial run should be executed with the -n option (i.,e don't repair)
+mmfsck <fsname> -nv-t/tmp/ --threads 4096 --patch-file/tmp/mmfsck.fs.patch > /tmp/mmfsck.fs_n.out 2>&1
+
+Note: Further testing on a lab system to ensure the max number of threads we can specify in ESS is required. In the meantime, if the above value doesn't work in the customer's environment, please reduce the value to 256, 128 or 64 ( default value is 16). 
+
+With respect to the -t option (temporary storage directory used by mmfsck): the default location is /tmp; however I specified it here in the event you want to change it. 
+
+Identify bad files: 
+Once the process completes, identify the bad /dupfrag inode files. Create a file that contains the inodes and then proceed with the following steps: 
+
+Mount the file system in read only:
+mmmount <fsname> -o ro
+
+Identify the bad files: 
+tsfindinode -i <inode_file> <fs mountpath> 
+
+Create a backup of the files: 
+Once the tsfindinode cmd completes, copy the affected files to a different location. 
+
+Prior to performing the next steps to run mmfsck in repair mode, please review the mmfsck.fs_n.out with Mustafa or GPFS L2 to confirm no additional steps or hidden flags should be executed along with the -y option.
+
+MMFSCK in repair mode: 
+Edit the patch files to prepare to run mmfsck with the -y option. 
+
+Once the identified files are copied, please unmount the file system: 
+mmumount <fsname>
+Edit the mmfsckfs.patch file that was created during the initial mmfsck -n run in step 1 and change the following value on the second to last line of the file:
+change 
+need_full_fsck_scan = true
+
+to 
+need_full_fsck_scan = false
+Example:
+mmfsck <fsname> -v -t/tmp/ --threads 4096 --patch-file/tmp/mmfsck.fs.patch --patch>  /tmp/mmfsck.fs_y.out 2>&1
+
+Additional information on mmfsck can be found in the attached documents, as well as the Knowledgecenter. 
+
+
+##########  online check is not okay ##############
+Hi, I received update from the developer and he confirmed we need to run offline fsck to fix it.
+
+1. These fsstructs indicate that you some bad dir entries due to which lookup on these dir entries is throwing fsstructs.
+2. If one of the replica was good then gpfs would read the good one and not throw fsstructs, so if you are seeing fsstructs then that means both the replica copies are corrupted.
+3. Online fsck does not do dir scan so it will not report such corruptions and is only reporting lost blocks.
+
+You will need to run offline fsck to repair this corruption. Please schedule some maintenance time.
+
+######## how many times it would cost when run -n ############
+>> Does that mean the offline mmfsck will run very fast since the scope of the issue is limited? /projectb has close to
+200 millions files (and 7 snapshots). We know the speed of offline mmfsck has been reduced greatly with newer versions
+but we are still concern the length of the outage. Any suggestion how long it would take to clear the issue?
+
+Yes. There are several improvements on the time taken for the mmfsck to run in recent releases.
+It is not possible to give exact estimate of the time taken as it would depend on several factors and would still
+take some good amount of time. As it does several checks like unallocated blocks, orphaned files,
+incorrectly formed directories incorrect link counts, invalid policy files, etc.
+
+#########  online fix corruption since 5.0.2.1 by tsdbfs detachinode ############
+Actually you will need to use a newly added option of tsdbfs to remove the bad directory entry here.
+The command is:
+tsdbfs <fs> detachinode <inode_number_or_name_of_damaged_file_or_dir> <inode_number_of_parent_directory>
+Here:
+<inode_number_or_name_of_damaged_file_or_dir> would be the inode numbers they are seeing in fsstructs
+i.e.
+245113552
+350143872
+497186512
+9845430
+9845431
+<inode_number_of_parent_directory> would be the inode number of the affected directory i.e.
+"/projectb/sandbox/fungal/INC0129886/Lenrap1_155/fgenesh.fgenesh1/TMP_PM/TMP_13"
+Please save all the output above and upload it.
+
+Run below cmd to confirm if the bad dir entries are removed
+ tsdbfs <fs> lsdir <inode number of /projectb/sandbox/fungal/INC0129886/Lenrap1_155/fgenesh.fgenesh1/TMP_PM/TMP_13>
+
+To check if we still have bad dir entry in "/projectb/scratch/gdsweb/blast/15/36" can you provide output of below command:
+tsdbfs <fs> lsdir 411032897
+
+
+
+###########   Found problem by -n and fix them by -y, upgrade 5.0.1 to online fix single directory  #############
+===> I checked your data, looks like we have some bad directory entry left that are pointing to deleted inodes.
+12/11@07:24:34 quorum-disk FSSTRUCT fs01 124 FSErrInodeCorrupted errorcode=lookup inodeNum=00000000002769DC(2583004) Gen=00000003 Snapid=00000000 Fileset=00000000
+12/11@07:24:34 quorum-disk FSSTRUCT fs01 124 FSErrInodeCorrupted errorcode=lookup inodeNum=0000000000184D34(1592628) Gen=0000000B Snapid=00000000 Fileset=00000000
+12/11@07:24:34 quorum-disk FSSTRUCT fs01 124 FSErrInodeCorrupted errorcode=lookup inodeNum=0000000000127612(1209874) Gen=0000000D Snapid=00000000 Fileset=00000000
+12/11@07:24:34 quorum-disk FSSTRUCT fs01 124 FSErrInodeCorrupted errorcode=lookup inodeNum=000000000019FD7B(1703291) Gen=0000000B Snapid=00000000 Fileset=00000000
+12/11@07:24:34 quorum-disk FSSTRUCT fs01 124 FSErrInodeCorrupted errorcode=lookup inodeNum=00000000001085B6(1082806) Gen=00000015 Snapid=00000000 Fileset=00000000
+===> You can run an offline mmfsck to fix them.
+* Please unmount FS fs01 cluster wide.
+* mmfsck fs01 -n -v --threads 64 --patch-file /tmp/fsck.patch > mmfsck_n.$(date +%m%d%H%M%S) 2>&1
+Note: Please provide the both the report and patch files for us to review before next step to fix the corruptions.
+
+* mmfsck fs01 -y -v --threads 64 --patch --patch-file /tmp/fsck.patch> mmfsck_y.$(date +%m%d%H%M%S) 2>&1
+====> You can also upgrade to our latest release 5.0.2.2. After GPFS 5.0.1, we can use -xid <dir inode> option of mmfsck to fix a single directory online.
+====> I noticed your cluster is still running on an older GPFS level 4.2.3.2, I would recommend to upgrade to 4.2.3.11+ to avoid any known issue (list a few as below) that can cause data corruption.
+
+https://www-01.ibm.com/support/docview.wss?uid=ssg1S1010668
+https://www-01.ibm.com/support/docview.wss?uid=ssg1S1012054
+http://www-01.ibm.com/support/docview.wss?uid=ssg1S1010223
+https://www-01.ibm.com/support/docview.wss?uid=ssg1S1010487
+https://www-01.ibm.com/support/docview.wss?uid=ssg1S1010293
+http://www-01.ibm.com/support/docview.wss?uid=ssg1S1010130
+http://www-01.ibm.com/support/docview.wss?uid=ssg1S1010130
+
+#########sample############
+TS001668902: Fixed by mmfsck -y and then fs clean.
+TS001647033: FSErrInodeCorrupted problem,  "tsdbfs tlprojectb detachinode 27154 245113552" can fix the problem and delete successfully.
+TS001637442: Customer closed the case because he need approval to unmount the fs to give mmfsck -n offline.
+
+

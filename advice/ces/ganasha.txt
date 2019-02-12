@@ -1,3 +1,15 @@
+Bring up:
+--check ces status
+mmlscluster --ces
+--check node status
+mmhealth node show -v
+--check ces service
+mmces service list
+--show nfs export
+mmnfs export list
+
+
+
 [Data collection for NFS Ganesha hang or performance issue]
 https://ganltc.github.io/data-collection-for-nfs-ganesha-hang-or-performance-issue.html 
 
@@ -54,3 +66,27 @@ They need restart GPFS to take the new maxFilesToCache value to compute new NOFI
 
 [rpc.statd permission issue "/var/lib/nfs/statd/sm/dev4: Permission denied" of /var/log/message]
 https://gpfs.almaden.ibm.com/w/index.php?title=Ganesha/Problem_Determination&section=7#clients_not_monitored
+
+[export folder for ganesha or default nfs]
+If you are using CES NFS -
+1. Create a directory path (For example - /gpfs/fshome/fset001) and export this path.
+2. Run the command mmnfs export add /ibm/gpfs0/export1 -c "<client Nodes IP/ range>(Access_Type=RO,Squash=root_squash". For more information about the command, see mmnfs in IBM Spectrum Scale: Command and Programming Reference.
+If you are using default NFS, enter the following in /etc/export:
+          /gpfs/fshome/fset001 node2(rw,no_root_squash,no_subtree_check,fsid=101)
+          node4:/gpfs # exportfs -rva
+          node4:/gpfs # exportfs
+          /gpfs/fshome/fset001
+
+          systemctl restart nfs-server
+
+[Add export]
+mmnfs export add /gpfs1/independentwritercache --client "*(Access_Type=RW,Squash=no_root_squash,SecType=sys)"
+
+[remove forcely]
+mmnfs export remove /gpfs1/independentwritercache --force
+
+[change ces loglevel,default=0]
+mmchconfig cesLoglevel=1 -i
+
+[upgrade ganesha issue]
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_5.0.0/com.ibm.spectrum.scale.v5r00.doc/bl1ins_updatingnfs.htm

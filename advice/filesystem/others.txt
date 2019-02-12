@@ -7,3 +7,6 @@ monitor the system, and as
 soon as any FSSTRUCT-related messages are observed in the logs, we can
 take a quick trace for a review. I don't think it should happen again
 though if everything is working fine.
+
+unmountOnDiskFail:
+Important: Set the value of unmountOnDiskFail to meta for FPO deployment or when the file system metadata and data replica are more than one.
