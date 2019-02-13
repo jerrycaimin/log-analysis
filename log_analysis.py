@@ -241,7 +241,7 @@ def _write_refine_log(target_folder, filepath, exclude_str, rule, node_name, des
                                     plane_writer_title = True
                             
                             if not set_exp:
-                                print_and_write_line(plane_writer, line)
+                                print_and_write_line(plane_writer, "[" + node_name + "]" + line)
                             else:
                                 print_and_write_line(plane_writer, "[" + node_name + "]/[" + reg_rule.pattern + "]: " + line, True)
                         else:
