@@ -59,13 +59,13 @@ def get_basename(full_path):
 
 
 # TODO Generate env log, need refine
-def refine_log(output_file=None, target_folders=None, specified_configs=None):
+def refine_log2(output_file=None, target_folders=None, specified_configs=None):
     os.system(
-        "find . -name *master* -type d  | xargs bash -c \'echo \"Generate report from $0 to ./env.txt\";cat \"$0\"/mmlscluster \"$0\"/mmlsmgr \"$0\"/df_k \"$0\"/mmlsnsd \"$0\"/mmlsfs \"$0\"/mmlsfileset \"$0\"/mmlsdisk \"$0\"/mmlsconfig \"$0\"/date.sorted \"$0\"/waiters.sorted \"$0\"/etc/hosts> env.txt;head \"$0\"/mmfsadm_dump_some >> env.txt'")
+        "find .. -name *master* -type d  | xargs bash -c \'echo \"Generate report from $0 to ./env.txt\";cat \"$0\"/mmlscluster \"$0\"/mmlsmgr \"$0\"/df_k \"$0\"/mmlsnsd \"$0\"/mmlsfs \"$0\"/mmlsfileset \"$0\"/mmlsdisk \"$0\"/mmlsconfig \"$0\"/date.sorted \"$0\"/waiters.sorted \"$0\"/etc/hosts> env.txt;head \"$0\"/mmfsadm_dump_some >> env.txt'")
 
 
 # analyze the log files according to the rules
-def refine_log2(output_file=None, target_folders=None, specified_configs=None):
+def refine_log(output_file=None, target_folders=None, specified_configs=None):
     if output_file is None:
         output_file = log_folder + "Log-Refined.csv"
     csvfile = file(output_file, 'wb')
@@ -739,7 +739,7 @@ if __name__ == "__main__":
 
     print ""
     print "######## Generate Environment Report to env.txt ########"
-    refine_log(log_folder + "environment-report.txt", target_folders, ["./environment-report.xml"])
+    refine_log2(log_folder + "environment-report.txt", target_folders, ["./environment-report.xml"])
     print ""
     
     print "############### Analysing gpfs.snap from existed knowledge ##############"
