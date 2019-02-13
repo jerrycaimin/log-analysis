@@ -67,7 +67,7 @@ def refine_log2(output_file=None, target_folders=None, specified_configs=None):
 # analyze the log files according to the rules
 def refine_log(output_file=None, target_folders=None, specified_configs=None):
     if output_file is None:
-        output_file = log_folder + "Log-Refined.csv"
+        output_file = log_folder + "Log-Refined.txt"
     csvfile = file(output_file, 'wb')
     writer = csv.writer(csvfile)
     head_written = False
@@ -719,7 +719,7 @@ if __name__ == "__main__":
         if options.nodes:
             print "    : -n enable, only collect log in folders that name contains " + options.nodes
             
-        output_file = log_folder + "Log-Refined.csv"
+        output_file = log_folder + "Log-Refined.txt"
         refine_log(output_file, target_folders)
         print "succeeded, refer to output file: " + output_file
     else:
