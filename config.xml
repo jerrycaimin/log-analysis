@@ -2,7 +2,7 @@
 <root>
     <warning-hittimes>1</warning-hittimes>
     <define-times>1</define-times>
-    <refine-log>
+    <refine-log type="plane">
     	<item>
             <filepath>./mmfs.logs*</filepath>
             <exclude-str>sorted</exclude-str>

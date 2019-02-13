@@ -1,4 +1,5 @@
 import sys
+import os
 import utils
 from datetime import datetime
 import re
@@ -21,10 +22,13 @@ import re
 line = "Wed Jun 21 07:32:00.457 2017:  [E]sdfdsfsdfdsfs"
 #line = "2017-02-15_15:30:38.802+0900: [E]sdfdsfsdfdsfs"
 
-x = "ss,"
-print x[:-2]
+
+os.system("find . -name *master* -type d  | xargs bash -c \'echo \"Generate report from $0 to ./env.txt\";cat \"$0\"/mmlscluster \"$0\"/mmlsmgr \"$0\"/df_k \"$0\"/mmlsnsd \"$0\"/mmlsfs \"$0\"/mmlsfileset \"$0\"/mmlsdisk \"$0\"/mmlsconfig \"$0\"/date.sorted \"$0\"/waiters.sorted \"$0\"/etc/hosts> env.txt;head \"$0\"/mmfsadm_dump_some >> env.txt'")
+
 
 sys.exit()
+
+
 
 convertor_map = {re.compile("[a-zA-Z]{3} [a-zA-Z]{3} .*201[5-8]"):["%a %b %d %H:%M:%S.%f %Y","%a %b %d %H:%M:%S %Z %Y"],
                  re.compile("201[5-8]-.*\+[0-9]{4}"):"%Y-%m-%d_%H:%M:%S.%f%z",
