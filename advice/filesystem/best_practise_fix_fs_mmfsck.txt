@@ -1,5 +1,10 @@
 ###################
 In /var/log/messages there are fsstruct errors indicating metadata corruption for 61 inodes.
+
+For Aix: /usr/lpp/mmfs/samples/debugtools/fsstruct.awk
+For Linux: /usr/lpp/mmfs/samples/debugtools/fsstructlx.awk
+
+
 $ fsstructlx.awk  */var/log/messages | grep lookup | cut -f 2 -d '(' | cut -f 1 -d ')' | sort | uniq | wc -l
 61
 
@@ -360,3 +365,68 @@ TS001647033: FSErrInodeCorrupted problem,  "tsdbfs tlprojectb detachinode 27154 
 TS001637442: Customer closed the case because he need approval to unmount the fs to give mmfsck -n offline.
 
 
+================= GuangLei Tips ====================
+1. --patch won't work if there is reserved file corruptions, like allocation map. To fix such errors, we need mmfsck -y
+  But full -y needs to scan FS again and it could be very slow. So in the past when ct ran with patch file and fsck showed reserved file corruption, we had to use workarounds like aborting -y run after reserved file repair and then using patch file to complete the rest repair
+
+2. If customer can't run offline mmfsck, we could run online fsck in read only mode(-onV) - it will tell us if there are any inode corruptions. Online fsck will not check reserved files, duplicate block corruptions, directories and orphan inodes. Basically it has to read all inodes and indirect blocks to find lost blocks and during that time if it finds any inode or indirect block corruption, it will report it
+
+3. You can use -xsc to skip expensive check for directory cycles, which means cross hard links between directories. It never happened in real cases, so we can skip to speed up offline mmfsck
+
+4. -xc is to suppress replica compare(data blocks) in case log recovery fails. So if there is no log recovery failure, you can skip it too. So -xc is just a way to make sure to not do expensive data replica compare under any condition
+
+
+=============== other tips to find corrupted files ==================
+ /usr/lpp/mmfs/samples/debugtools/fsstructlx.awk /var/log/messages >
+fsstructlx.out
+
+Once you have generated the output file, GREP for the error:
+
+ cat fsstructlx.out | grep FSSTRUCT
+
+Errors will appear similar to:
+2016-03-24T16:37:31.218578-04:00 int002st001 FSSTRUCT gpfs 124
+FSErrInodeCorrupted       errorcode=00000001
+inodeNum=00000001073A3224(4416221732) Gen=00010038 value=00000000
+value=00000032
+
+NOTE:
+Color-coded guide on error output:
+inodeNum=00000001073A3224(4416221732)
+ - 00000001073A3224 = HEX
+ - 4416221732 = DEC
+
+Next, determine if there are files associated with the affected inodes
+(need to run this command for each inode found):
+
+[node]# tsfindinode -i <INODE NUMBER in DEC Form> <FULL MOUNT POINT -
+/ibm/filesystem...>
+
+Alternatively, you can batch the job by creating a file with each inode
+on a new line and run against the file:
+[node]# tsfindinode -i <path to the file> <FULL MOUNT POINT -
+/ibm/filesystem>
+
+Example from above output:
+[node]# tsfindinode -i 4416221732 /ibm/gpfs0
+OR
+[node]# tsfindinode -i /ftdc/inodefilelist.out /ibm/gpfs0
+
+Next, validate any files found from the above output:
+The output you are going to get is either "(not found)" or the full path
+to the file.
+
+  NOTE: Any inode that gets the "(not found)" result does not require
+further action.
+
+For any inode for which you get a file and path name, please run command
+below:
+
+[node]# ls -lia <full path and file name>
+
+ - If you get a result without any question marks (?) the associated
+MMFS-FSSTRUCT error is a false positive.
+ - If your result contains question marks (?) or if you get some kind of
+error further investigation by GPFS is necessary.
+
+Let me know if you have any additional questions."

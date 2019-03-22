@@ -8,4 +8,7 @@ NA340375, please upload following files:
 2. files under /var/mmfs
 3. df output
 
+When ccr unavailable, run:
+gpfs.snap -z
+
 Please let me know the result.

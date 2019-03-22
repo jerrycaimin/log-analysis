@@ -100,3 +100,5 @@ show home cluster info:
 mmremotefs show all
 
 
+========= monitor dirty fileset =========
+echo afm_s | mmpmon

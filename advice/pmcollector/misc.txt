@@ -1,0 +1,82 @@
+介绍：
+需要配置pmcollector，每个node配置pmsensors，装了sensors的node需要enable：
+
+enable/disable perfmon:
+mmchnode --perfmon -N all
+mmchnode --nonperfmon -N all
+查看：
+mmlscluster | grep perf
+(ps -ef| grep ZIMon)
+
+查看服务进程：
+mmdsh -N all systemctl status pmcollector | grep Active
+mmdsh -N all systemctl status pmsensors | grep Active
+
+配置文件位置：
+/opt/IBM/zimon/ZIMonCollector.cfg
+/opt/IBM/zimon/ZIMonSensor.cfg
+
+多个collector在配置文件里用peers连接。
+
+zimon log:
+/var/log/zimon/*.log
+
+
+check memory:
+ps aux | sort -nrk 3 | head
+
+#########################
+Easily you can run this on 2 ces nodes:
+systemctl start pmcollector
+Reference:
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1pdg_startpmcollector.htm
+You can start this for further performance monitor.
+
+###############
+set pmcollector parameters:
+https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1adv_configurecollector.htm
+
+#################
+gui installation guide:
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_4.2.2/com.ibm.spectrum.scale.v4r22.doc/bl1adv_guienableperfmon.htm
+
+
+
+monitor:
+
+nc -v perfmon-node1 4739/9084/9085
+mmperfmon config show
+mmperfmon query cpu
+mmchnode --perfmon -N all
+
+
+install package:
+/usr/lpp/mmfs/5.0.1.0/zimon_rpm/
+
+install sensor:
+rpm -i gpfs.pm-ganesha-5.0.1-0.el7.x86_64.rpm
+mmpefmon config add —sensors /opt/IBM/zimon/defaults/GaneshaProxy.conf
+
+config sensor:
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_5.0.0/com.ibm.spectrum.scale.v5r00.doc/bl1adv_configuringthePMT.htm
+
+
+Debug命令可以看到内部??
+DEBUGmmlscluster=1 mmlscluster
+
+[Dev debug]
+tail -f /var/log/zimon/ZIMonSensors.log
+grep f2gpfs04 /var/log/zimon/ZIMonSensors.log
+mmperfmon query cpu
+netstat -nlp | grep -u $(pidof pmcollector)
+getent hosts f2gpfs04
+grep ipfixinterface perfmon.snap.f2gpfs04.20190315_153928/opt/IBM/zimon/ZIMonCollector.cfg
+ipfixinterface = "0.0.0.0"
+host -a f2gpfs04
+host -v f2gpfs04
+nslookup f2gpfs04
+
+
+
+
+

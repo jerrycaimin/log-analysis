@@ -63,6 +63,51 @@ Step:
     *This would manually failover grv-cnfs01-gpfs to grv-prcnfs06-gpfs
 3) Collect snap and upload again.
 
+[Performance tuning]
+关于cNFS性能的问题，可以在模拟环境里做一下测试，并搜集一下数据：
+1. 打开GPFS trace
+# mmtracectl --set --trace=def -N all
+# mmtracectl --start
+
+2. 在server上搜集tcpdump的输出，
+# tcpdump -i any -W 10 -C 500 -s 512 -w /bigdir/cnfs.pcap
+
+3. 重现问题
+
+4. 搜集GPFS internal dump
+# mmdsh -N all "/usr/lpp/mmfs/bin/mmfsadm dump all > /tmp/mmfs/service.\$(hostname -s).dumpall.\$(date +"%m%d%H%M%S")"
+
+5. 使用Ctrl-C停止tcpdump
+
+6. 停止GPFS trace
+# mmtracectl --stop -N all
+# mmtracectl --off -N all
+
+7. gpfs.snap
+
+然后把gpfs snap和搜集到的tcpdump发给我们看一下。建议在server上也做一次find，两个结果做个对比。在server上做find的时候需要执行上面的step 1, 3, 4, 6, 7。
+
+
 [Hang]
 cnfsctl activeIp 会调用mmcmi产生adapter上的IP配置信息，然后通过管道传递给awk处理 
 mmcmi或awk hang都会最终导致mmfsup不返回
+
+
+[Failover]
+use mmnfsmonitor to monitor and failover:
+mmnfsmonitor status
+and will update in mmfs.logs
+
+[Switch from ces to nfs]
+0. cat /etc/hosts
+172.29.92.57 gpfs-cnfs1
+172.29.92.58 gpfs-cnfs2
+1. mmchnode --ces-disable -N gpfs-serv1,gpfs-serv2
+2. enable cnfs:
+[root@gpfs-serv1 ~]# cat cnfs_nodes
+gpfs-serv1      --cnfs-interface=gpfs-cnfs1
+gpfs-serv2      --cnfs-interface=gpfs-cnfs2
+[root@gpfs-serv1 ~]# mmchnode -S cnfs_nodes
+3. ps -ef| grep nfs
+For detail migration steps:
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_5.0.2/com.ibm.spectrum.scale.v5r02.doc/bl1adv_ces_migrationcnfstoces.htm
