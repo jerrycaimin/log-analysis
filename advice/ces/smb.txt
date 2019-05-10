@@ -72,6 +72,14 @@ https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/General%2
 # smbcontrol smbd debug 10
 # smbcontrol smbd debug 1
 
+
+# smbcontrol smbd debug 2
+open debug to 2 you can see the files opened closed:
+[2019/04/23 03:33:40.735262,  2] ../source3/smbd/open.c:1362(open_file)
+  smbuser opened file 1.txt read=No write=No (numopen=4)
+[2019/04/23 03:33:40.755651,  2] ../source3/smbd/close.c:804(close_normal_file)
+  smbuser closed file 1.txt (numopen=3) NT_STATUS_OK
+
 # smbcontrol winbindd debug 10
 find log in: /var/adm/ras/log.smbd
 
@@ -214,6 +222,24 @@ mmsmb export add smbexport2 /gpfs2/smbexport2
 4) verify by "mmsmb export list"
 5) Goto windows, input this to open the share:
 \\9.114.182.193\smbexport
+
+[How to access smb]
+1) Change acl type for ces:
+# mmuserauth service create --type userdefined --data-access-method file
+File Authentication configuration completed successfully.
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_5.0.2/com.ibm.spectrum.scale.v5r02.doc/bl1adm_userdefinedauth.htm
+
+2) Add UNIX user:
+useradd smbuser
+3) Add smb user:
+smbpasswd -a smbuser
+
+4) Access by windows:
+\\{ip}\smbexport2
+5) Access by linux smbclient:
+smbclient //172.29.92.50/smb -U smbuser%caimin -m smb3
+
+
 
 [CTDB]
 Used only by ces/smb to share the config and file lock. No other components using.

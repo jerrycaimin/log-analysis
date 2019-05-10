@@ -45,3 +45,6 @@ rpm -Uvh --oldpackage /root/kernel-devel-3.10.0-862.el7.x86_64.rpm
 
 Reference:
 https://w3-connections.ibm.com/wikis/home?lang=en-us#%21/wiki/W72425d1a413f_4e38_944c_6384651f96ea/page/eBuild%20efix%20Procedure
+
+[How to create APAR]
+see mac notes: APAR

@@ -108,9 +108,39 @@ https://www.ibm.com/support/knowledgecenter/en/STXKQY_5.0.0/com.ibm.spectrum.sca
     To decrease grace period, follow the steps below depending on the type of environment.
 
 
+[Here is the tips that to workaround mmnfs config update manually]
+# mmccr fget idmapd.conf idmapd.conf.tmp
+
+Edit idmapd.conf.tmp and change the "Local-Realms" and "Domain" or other parameters lines to what you want.
+
+If no Local-Realms add a new line in [General] and update it.
+
+Make sure there is only one line for each parameter (if there are multiple, delete the others)
+
+# mmccr fput idmapd.conf idmapd.conf.tmp
 
 
 
+Note: This only needs to be done on one protocol node.
+Note: This procedure will restart Ganesha on the protocol nodes.
 
 
+[How to analysis tcpdump]
+The tcpdump indicates that Ganesha is responding quite well to the incoming requests
+(Ganesha replied within 0.0005 - 0.0009 sec) 13.467624-13.466763
+In fact it is the NFS client which is not sending requests quite fast,
+I could see that there is gap of almost 0.80 / 0.85 sec
+14.327254-13.466763
+ between 2 requests from client side. See below data
+[26:in919576@ecurep]:/ecurep/sf/TS002/189/TS002189626/0-all_data $ tshark -r stor13pgc4n6_new_bond1.PCAP | grep NFS | grep -i write
+309 13.466763 10.206.54.150 ¡ú 10.206.63.145 NFS 9014 V3 WRITE Call, FH: 0xcc4c6362 Offset: 0 Len: 1048576 UNSTABLE[TCP segment of a reassembled PDU]
+312 13.467624 10.206.63.145 ¡ú 10.206.54.150 NFS 194 V3 WRITE Reply (Call In 309) Len: 1048576 UNSTABLE
+494 14.327254 10.206.54.150 ¡ú 10.206.63.145 NFS 9014 V3 WRITE Call, FH: 0xcc4c6362 Offset: 1048576 Len: 1048576 UNSTABLE[TCP segment of a reassembled PDU]
+497 14.327665 10.206.63.145 ¡ú 10.206.54.150 NFS 194 V3 WRITE Reply (Call In 494) Len: 1048576 UNSTABLE
+677 15.191695 10.206.54.150 ¡ú 10.206.63.145 NFS 9014 V3 WRITE Call, FH: 0xcc4c6362 Offset: 2097152 Len: 1048576 UNSTABLE[TCP segment of a reassembled PDU]
+680 15.192236 10.206.63.145 ¡ú 10.206.54.150 NFS 194 V3 WRITE Reply (Call In 677) Len: 1048576 UNSTABLE
+857 16.052079 10.206.54.150 ¡ú 10.206.63.145 NFS 9014 V3 WRITE Call, FH: 0xcc4c6362 Offset: 3145728 Len: 1048576 UNSTABLE[TCP segment of a reassembled PDU]
+860 16.052753 10.206.63.145 ¡ú 10.206.54.150 NFS 194 V3 WRITE Reply (Call In 857) Len: 1048576 UNSTABLE
 
+
+In summary, Ganesha is working fine. It may be the network which is causing delay to reach NFS server intermittently.

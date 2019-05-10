@@ -12,3 +12,46 @@ tcpdump -i bond0:1 -w /tmp/samba.pcap
 tshark -r ./smb.pcap -V > output.txt
 
 Open output.txt
+
+
+[ganesha related]
+$ tshark -q -zrpc,srt,100003,3 -r igrid4045-cap
+
+=======================================================
+NFS Version 3 SRT Statistics:
+Filter:
+Procedure        Calls    Min SRT    Max SRT    Avg SRT
+GETATTR             54   0.000116   0.002923   0.001390
+SETATTR              1   0.002973   0.002973   0.002973
+ACCESS              27   0.000124   0.003030   0.001294
+WRITE               64   0.074887   1.177812   0.569866
+COMMIT               2   0.035541   0.710477   0.373009
+=======================================================
+
+
+$ tshark -Yrpc -r igrid4045-cap|grep 10.206.63.144 | tail
+50633        113 10.206.54.165 -> 10.206.63.144 NFS 9014 V3 WRITE Call, FH: 0x231de014 Offset: 61865984 Len: 1048576 UNSTABLE
+50787        114 10.206.63.144 -> 10.206.54.165 NFS 194 V3 WRITE Reply (Call In 50633) Len: 1048576 UNSTABLE
+50838        114 10.206.54.165 -> 10.206.63.144 NFS 9014 V3 WRITE Call, FH: 0x231de014 Offset: 62914560 Len: 1048576 UNSTABLE
+51038        115 10.206.63.144 -> 10.206.54.165 NFS 194 V3 WRITE Reply (Call In 50838) Len: 1048576 UNSTABLE
+51117        115 10.206.54.165 -> 10.206.63.144 NFS 9014 V3 WRITE Call, FH: 0x231de014 Offset: 63963136 Len: 1048576 UNSTABLE
+51215        115 10.206.54.165 -> 10.206.63.144 NFS 4910 V3 WRITE Call, FH: 0x231de014 Offset: 65011712 Len: 524288 UNSTABLE
+51274        115 10.206.63.144 -> 10.206.54.165 NFS 194 V3 WRITE Reply (Call In 51117) Len: 1048576 UNSTABLE
+51330        116 10.206.63.144 -> 10.206.54.165 NFS 194 V3 WRITE Reply (Call In 51215) Len: 524288 UNSTABLE
+51332        116 10.206.54.165 -> 10.206.63.144 NFS 222 V3 COMMIT Call, FH: 0x231de014
+51333        116 10.206.63.144 -> 10.206.54.165 NFS 186 V3 COMMIT Reply (Call In 51332)
+
+Also check:
+== 1 =======mmfsadm vfsstats show ========
+Mon Apr 29 11:05:36 EDT 2019
+vfs statistics currently enabled
+started at: Mon Apr 29 11:05:26.932 2019
+  duration: 10.168 sec
+
+ name                      calls  time per call     total time
+ -------------------- ---------- -------------- --------------
+ getattr                      12       0.000000       0.000001
+ open                          1       0.000031       0.000031
+ read                         15       0.007160       0.107398
+ write                         7       0.000363       0.002538
+

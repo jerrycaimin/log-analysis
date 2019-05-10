@@ -1,3 +1,14 @@
+Could you please run the following command and send us the output?
+mmccr check -e -Y
+
+
+Also could you please upload the tarball of
+- /var/mmfs/ccr
+- /var/adm/ras/mmfs.log.*
+on each node?
+#################
+
+
 Once our CCR configuration can not be decided, almost all GPFS commands will fail with such message. For more details, please search in PSDB.
 
 c80f5m5n04 Mon Aug 31 00:25:06 0]~# mmgetstate -a
@@ -46,3 +57,6 @@ https://www.ibm.com/support/knowledgecenter/en/STXKQY_5.0.2/com.ibm.spectrum.sca
 
 5) startup
 
+##############
+Check ccr pdf
+#############

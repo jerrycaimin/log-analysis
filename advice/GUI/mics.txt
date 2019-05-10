@@ -6,5 +6,8 @@ Systems Management JVM environment runtime:
  Available memory in the JVM: 627MB
  Max memory that the JVM will attempt to use: 2048MB
  Number of processors available to JVM: 4
- 
+
+
+ log:
+ /var/log/cnlog/mgtsrv
  

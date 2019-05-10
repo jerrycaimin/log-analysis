@@ -42,6 +42,18 @@
         </item>
         <advice from="advice/disk/disk_nsd_io_pending_20ms.txt" />
     </issue>
+    <issue name="disk failure or network issue to nsd server">
+       <item>
+    		<filepaths sortable="True">
+	            <filepath>./mmfs.logs*</filepath>
+            </filepaths>
+            <exps>
+				<exp>Disk failure.*rc = 5.</exp>
+			</exps>
+            <desc>disk failure due to hardware issue or network issue to nsd server.</desc>
+    	</item>
+        <advice from="advice/disk/disk_nsd_io_pending_20ms.txt" />
+    </issue>
     <issue name="network problem from rto raise to 2min">
         <item>
             <filepaths sortable="False">

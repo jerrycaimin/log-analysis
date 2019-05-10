@@ -10,3 +10,32 @@ though if everything is working fine.
 
 unmountOnDiskFail:
 Important: Set the value of unmountOnDiskFail to meta for FPO deployment or when the file system metadata and data replica are more than one.
+
+metadata and inode:
+[TS002085087]
+
+First of all, we do not recommended you to preallocate inode number unless you mean to, which you can use following cmd instead:
+mmchfs /dev/mobile --inode-limit 3500000
+
+The metadata space is not only consumed by inodes, it also for indirect blocks, Extended Attribute (EA) blocks, directory blocks and recovery logs. So normally we do not preallocate the inode number unless you want to, otherwise the allocated inodes will unnecessarily consume metadata space that cannot be reclaimed.
+
+Answer your question:
+
+>>1. What is the maximum number of inode that I can increase on this filesystem?
+There is a formula for this, please refer here for guide:
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_4.2.0/com.ibm.spectrum.scale.v4r2.ins.doc/bl1ins_maxnfle.htm
+
+But normally we don't care about the max set number, as we only increase it as estimated.
+
+>>2. What is the best practice for setting Maximum number of inode?
+The better practice is to add 50% of current maximum number, if in mmfs.log the Expand inode times are very frequently, increase more.
+Also check mmdf fs output, if capacity is exhausted, expand it.
+
+>>3. What will it happen if increase too much Maximum number of inode?
+Per stated previously, metadata space is not only for inodes, Inodes cannot be de-allocated so don't preallocate all of the space in a Metadata-only System pool as inodes. There needs to be metadata space available for other uses. Otherwise performance will be impacted or other unexpected behaviour appears. Refer to this for metadata and inodes detail in GPFS:
+https://www.ibm.com/developerworks/community/wikis/home?lang=en#%21/wiki/General%20Parallel%20File%20System%20%28GPFS%29/page/Data%20and%20Metadata
+
+?
+mmchfs /dev/mobile --inode-limit 3500000
+only for root fileset
+use mmlsfileset -L to check all the inode space usage.

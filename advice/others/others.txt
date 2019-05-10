@@ -39,7 +39,7 @@ Rename the tar file there to TSXXXXXXXXX.gpfs.snap.tar
 (Where TSXXXXXXXXX is your case number) 
 Then send it by anonymous ftp to our testcase site: 
  
-sftp anonymous@testcase.software.ibm.com (password is your email address)
+sftp anonymous@testcase.software.ibm.com (password is your email address)c
 sftp> cd toibm/linux
 sftp> put TSXXXXXXXXX.gpfs.snap.tar
 It will automatically copy this file to TSXXXXXXXXX with your case. 
