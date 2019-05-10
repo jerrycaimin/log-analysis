@@ -1,0 +1,11 @@
+This is GPFS L2 support for your case, did some investigation that it seems your lspv information was not refreshed,
+to force refresh is to just remove file /var/mmfs/gen/nsdpvol and then run mmlspv, it will generate the new nsdpvol
+file and then mmlspv will return the new cached data. Then try lspv again.
+
+
+
+Tips:
+
+1) mmlspv is to find out which disks have been formatted as GPFS NSDs, it read data from /var/mmfs/gen/nsdpvol,
+if the mmlspv script cannot find the file, it will re-scan the local disks and recreate it.
+2) If mmlspv shows correctly but still get the wrong answer from lspv, you need to talk with AIX guys.

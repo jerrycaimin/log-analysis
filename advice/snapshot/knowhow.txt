@@ -1,0 +1,24 @@
+Hi Arturo,
+
+This is GPFS L2 support for your case, from your question I know ?you want to know more about GPFS snapshots and how to
+backup snapshot, here I can give some explanation.
+
+?
+?By default if you run mmcrsnapshot it will create a folder under /gpfs/.snapshot/, example:
+mmcrsnapshot gpfs1 snap1
+
+
+There will be /gpfs1/.snapshot/snap1 created and contains all the foloders/files at the time you capture the snapshot.
+At the very beginning the size you can see this folder is several K like 50K, this is because the snapshot data and
+original online fs data share the same data address, once the online fs gets changed, the snapshot size becomes bigger,
+example, if you delete a 10G file: /gpfs1/test10Gfile, then the size of folder /gpfs1/.snapshot/snap1 will increase from
+ 50K to 10G, we call it "copy on write" feature.
+
+But you cannot do mmcrsnapshot on a existed snapshot, however that snapshot folder contains all the files at at the
+time you capture the snapshot, you can just directly copy this folder to another place for your backup purpose, or use
+"mmbackup -S snapshot" to backup to TSM backup server.
+
+
+
+For any more about snapshot you can refer here:
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_5.0.2/com.ibm.spectrum.scale.v5r02.doc/bl1adv_crlogic.htm

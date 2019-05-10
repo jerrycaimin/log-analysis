@@ -1,0 +1,22 @@
+1, Login service5.pok.stglabs.ibm.com with GSA id.
+
+2, GPFS defect
+2.1 Find GPFS PTFS version for the defect
+grep defect-id /u/images/gpfs*/conf/infi*
+
+2.2 Find GPFS efix for the defect
+grep defect-id /u/images/*/efix*/dlist
+
+3, SMB defect (most defect id uses STG as prefix)
+3.1 Find SMB PTFS version for the defect
+grep defect-id /u/images/SPECTRUM_SCALE/*/samba/PTFS/*/*/samba*.txt
+
+3.2 Find SMB efix for the defect
+grep defect-id /u/images/SPECTRUM_SCALE/*/samba/efix*/*/*/*/samba*.txt
+
+4, GUI defect
+4.1 Find GUI PTFS version for the defect
+grep defect-id /u/images/SPECTRUM_SCALE/*/gui/PTFS/*/*/changelog*
+
+4.2 Find GUI efix for the defect
+grep defect-id /u/images/SPECTRUM_SCALE/*/gui/efix*/*/*/changelog*

@@ -1,0 +1,28 @@
+We used the header from 401 to overwrite the heads of other 4 meta nodes:
+1. read from node401:
+
+dd if=/dev/sde1 of=FS_desc_node401.out iflag=direct oflag=direct skip=2048 seek=2048 bs=512 count=4082
+
+2. copy FS_desc_node401.out to other nodes, and then write the header on each node:
+
+dd if=FS_desc_node401.out of=/dev/sde1 iflag=direct oflag=direct skip=2048 seek=2048 bs=512 count=4082
+
+====================
+
+1. backup headers:
+
+mmdsh -N sl73caehdp1801,sl73caehdp1803,sl73caehdp1805,sl73caehdp1807,sl73caehdp2003 "dd if=/dev/sda3 of=/tmp/`hostname -s`.sda3.header.backup iflag=direct oflag=direct skip=2048 seek=2048 bs=512 count=4082"
+
+2. copy FS_desc_node401.out to /tmp under sl73caehdp1801,sl73caehdp1803,sl73caehdp1805,sl73caehdp1807,sl73caehdp2003, and run this command on each of these nodes:
+
+dd if=/tm/FS_desc_node401.out of=/dev/sda3 iflag=direct oflag=direct skip=2048 seek=2048 bs=512 count=4082
+
+
+======  Find desc disk ==========
+By search quorumWeight in trace, quorum weight {1,1} = desc disk:
+liguangl:/ecurep/sf/TS001/913/TS001913822/2019-02-16> zgrep quorumWeight TS001913822.trcrpt.2019-02-16_12.39.10.14581.sl73caehmpc402.gz | awk '{print $10}' | sort | uniq | grep -v ssadfsm040
+ssadda1801a
+ssadda1803a
+ssadda1805a
+ssadda1807a
+ssadda2003a

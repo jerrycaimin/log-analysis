@@ -1,0 +1,45 @@
+
+[common rpcinfo]
+The rpcbind[3] utility maps RPC services to the ports on which they listen.
+RPC processes notify rpcbind when they start, registering the ports they are listening on and the RPC program numbers they expect to serve.
+The client system then contacts rpcbind on the server with a particular RPC program number.
+The rpcbind service redirects the client to the proper port number so it can communicate with the requested service
+
+[Ganesha]
+Ganesha use common rpcbind and can be viewed by rpcinfo -p
+c866f2u25:~ # rpcinfo -p
+   program vers proto   port  service
+    100000    4   tcp    111  portmapper
+    100000    3   tcp    111  portmapper
+    100000    2   tcp    111  portmapper
+    100000    4   udp    111  portmapper
+    100000    3   udp    111  portmapper
+    100000    2   udp    111  portmapper
+    100024    1   udp  58950  status
+    100024    1   tcp  40261  status
+    100003    3   udp   2049  nfs
+    100003    3   tcp   2049  nfs
+    100003    4   udp   2049  nfs
+    100003    4   tcp   2049  nfs
+    100005    1   udp  44938  mountd
+    100005    1   tcp  41903  mountd
+    100005    3   udp  44938  mountd
+    100005    3   tcp  41903  mountd
+    100021    4   udp  33967  nlockmgr
+    100021    4   tcp  32844  nlockmgr
+    100011    1   udp  45110  rquotad
+    100011    1   tcp  33060  rquotad
+    100011    2   udp  45110  rquotad
+    100011    2   tcp  33060  rquotad
+2049 is its port.
+ganesha is common rpc, you can see it from tcpdump
+you can find corresponding rpc from ganesha log by xid.
+
+
+[GPFS]
+GPFS uses its own rpc mechanism, port is 1191, to view rpc message just enable the trace you can see the detail. Should be like:
+
+    12.150528611  12543 TRACE_TS: sendMessage msg_id 42684: dest <c0n1> 172.29.92.51 gpfs-serv2
+    12.150528805  12543 TRACE_TS: sendMessage dest <c0n1> 172.29.92.51 gpfs-serv2: msg_id 42684 type 14 tagP 0x7F04400068B0 seq 30832, state initial
+
+

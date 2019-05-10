@@ -1,0 +1,1534 @@
+#!/usr/lpp/mmfs/bin/mmksh
+# IBM_PROLOG_BEGIN_TAG
+# This is an automatically generated prolog.
+#
+#
+#
+# Licensed Materials - Property of IBM
+#
+# (C) COPYRIGHT International Business Machines Corp. 1997,2017
+# All Rights Reserved
+#
+# US Government Users Restricted Rights - Use, duplication or
+# disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+#
+# IBM_PROLOG_END_TAG
+# @(#)15 1.241.1.1 src/avs/fs/mmfs/ts/admin/mmaddnode.sh, mmfs, avs_rttn423, rttn423s003a 6/22/17 11:23:51
+###############################################################################
+#
+# Usage:
+#
+#   mmaddnode -N {NodeDesc[,NodeDesc...] | NodeFile}
+#
+# where:
+#
+#   -N NodeDesc,NodeDesc,...  specifies a comma-separated list of node
+#                             descriptors that detail the node interfaces
+#                             to be added to the cluster.  The nodes must not
+#                             presently belong to the cluster.
+#
+#   -N NodeFile    specifies a file of node descriptors that detail
+#                  the node interfaces to be added to the cluster.
+#                  The nodes must not presently belong to the cluster.
+#
+# Obsolete but still supported options:
+#
+#   NodeDesc,NodeDesc,...   specifies a comma-separated list of node
+#                           descriptors that detail the node interfaces
+#                           to be added to the cluster.  The nodes must not
+#                           presently belong to the cluster.
+#
+#   -n NodeFile    specifies a file of node descriptors that detail
+#                  the node interfaces to be added to the cluster.
+#                  The nodes must not presently belong to the cluster.
+#
+# Each node descriptor has the format:
+#
+_IFDEF AlternateID_externals
+#   nodeName:nodeRoles:adminNodeName:adminLoginName:
+_ELSE  AlternateID_externals
+#   nodeName:nodeRoles:adminNodeName:
+_ENDIF AlternateID_externals
+#
+# where
+#
+#   nodeName        is either a short or fully-qualified hostname,
+#                   or an IP address for the primary GPFS network
+#                   to be used for daemon-to-daemon communications.
+#
+#   nodeRoles       is a '-' separated list of node roles.  Unless changed
+#                   on the mmconfig or mmaddnode commands, these roles will
+#                   be associated with the node when it becomes a member of
+#                   a nodeset.
+#
+#   adminNodeName   is either a short or fully-qualified hostname, or an IP
+#                   address to be used by the admin scripts to communicate
+#                   between nodes.  This is an optional parameter; if it
+#                   is not specified, the nodeName value is used.
+#
+_IFDEF AlternateID_externals
+#   adminLoginName  is an optional login name to be used on remote commands
+#                   that are to be executed on this node.
+#
+_ENDIF AlternateID_externals
+###############################################################################
+# Include global declarations and service routines.
+. /usr/lpp/mmfs/bin/mmglobfuncs
+. /usr/lpp/mmfs/bin/mmsdrfsdef
+. /usr/lpp/mmfs/bin/mmfsfuncs
+
+sourceFile="mmaddnode.sh"
+[[ -n $DEBUG || -n $DEBUGmmaddnode ]] && set -x
+$mmTRACE_ENTER "$*"
+
+
+# Local work files.  Names should be of the form:
+#   fn=${cmdTmpDir}fn
+allnodes=${cmdTmpDir}allnodes
+allnodenames=${cmdTmpDir}allnodenames
+goodnodes=${cmdTmpDir}goodnodes
+processedNodes=${cmdTmpDir}processedNodes
+inputNodes=${cmdTmpDir}inputNodes
+diskLines=${cmdTmpDir}diskLines
+cleanupList=${tmpDir}cleanupList.${mmcmd}.$$
+allNodeClasses=${cmdTmpDir}allNodeClasses
+
+LOCAL_FILES=" $cleanupList "
+
+
+# Local declarations
+
+usageMsg=355
+integer nodeCount=0
+integer nodeNumber=0
+integer totalNodeCount=0
+integer quorumNodeCount=0
+integer nodesAddedToCluster=0
+integer highestNodeNumber=0
+rc=0
+typeset -l role
+propagateOptions=rereadNodeList
+
+
+# Local routines
+
+
+#####################################################################
+#
+# Function:  Verifies that a command executed successfully.
+#            If the return code from the command is not zero,
+#            the function issues a message and sets a failure flag.
+#            It returns with the same return code that was specified
+#            on input.
+#
+# Input:     $1 - name of the command to check
+#            $2 - return code from the execution of the command
+#
+#####################################################################
+function checkForErrorsAndReturn
+{
+  typeset sourceFile="mmaddnode.sh"
+  $mmTRACE_ENTER "$*"
+  if [ $2 != "0" ]
+  then
+    fatalError=yes
+    # Unexpected error
+    printErrorMsg 171 "$mmcmd" "$1" $2
+  fi
+
+  return $2
+
+}  #------ end of function checkForErrorsAndReturn --------------
+
+
+
+#######################
+# Mainline processing
+#######################
+
+
+#################################
+# Process the command arguments.
+#################################
+[[ $arg1 = '-?' || $arg1 = '-h' || $arg1 = '--help' || $arg1 = '--' ]] &&  \
+  syntaxError "help" $usageMsg
+
+while getopts :n:N: OPT
+do
+  case $OPT in
+
+    n) # node descriptors file
+       [[ -n $narg ]] && syntaxError "multiple" $noUsageMsg "-$OPT"
+       narg=$OPTARG
+       argc=argc-2
+       ;;
+
+    N) # node descriptors list or file
+       [[ -n $Narg ]] && syntaxError "multiple" $noUsageMsg "-$OPT"
+       Narg=$OPTARG
+       argc=argc-2
+       ;;
+
+    +[nN]) # Invalid option
+       syntaxError "invalidOption" $usageMsg $OPT
+       ;;
+
+    :) # Missing argument
+       syntaxError "missingValue" $usageMsg $OPTARG
+       ;;
+
+    *) # Invalid option
+       syntaxError "invalidOption" $usageMsg $OPTARG
+       ;;
+
+  esac
+
+done  # end of while getopts :n:N: OPT do
+
+# Drop the processed options from the parameter list.
+shift OPTIND-1
+
+
+# Complete the parameter checking.
+[[ -n $narg && -n $Narg ]] &&  \
+  syntaxError "invalidCombination" $usageMsg "-n" "-N"
+
+if [[ -n $Narg ]]
+then
+  # If -N is specified, there should be no other parms.
+  [[ $argc -gt 0 ]] &&  \
+    syntaxError "extraArg" $usageMsg "$1"
+
+  # The -N parameter may be either a list or a file.  Which is it?
+  if [[ -f $Narg ]]
+  then
+    # It is a file; verify its existence and create our own copy.
+    checkUserFile "$Narg" $inputNodes
+    [[ $? -ne 0 ]] && cleanupAndExit
+  else
+    # It is not a file, so it must be a list.
+    # Convert the input node list into a file.
+    $rm -f $inputNodes
+    IFS=','
+    for nodeDesc in $Narg
+    do
+      IFS="$IFS_sv"    # Restore the default IFS setting.
+      print -- "$nodeDesc" >> $inputNodes
+      checkForErrors "writing to $inputNodes" $?
+    done
+    IFS="$IFS_sv"    # Restore the default IFS setting.
+  fi  # end of if [[ -f $Narg ]]
+
+elif [[ -z $narg ]]
+then
+  # If neither the -N nor the -n option is not used,
+  # a list of node names is required.
+  if [[ $argc -eq 1 ]]
+  then
+    # If there is exactly one string left,
+    # it is assumed to be the list of nodes to add.
+    arglist=$1
+  elif [[ $argc -gt 1 ]]
+  then
+    # If more than one string is left,
+    # we have a syntax error.
+    syntaxError "extraArg" $usageMsg "$2"
+  else
+    # If there are no more parameters,
+    # a required parameter is missing.
+    syntaxError "missingArgs" $usageMsg
+  fi
+
+  # Convert the input node list into a file.
+  $rm -f $inputNodes
+  IFS=','
+  for nodeDesc in $arglist
+  do
+    IFS="$IFS_sv"    # Restore the default IFS setting.
+    print -- "$nodeDesc" >> $inputNodes
+    checkForErrors "writing to $inputNodes" $?
+  done
+  IFS="$IFS_sv"    # Restore the default IFS setting.
+
+else
+  # If -n is specified, there should be no other parms.
+  [[ $argc -gt 0 ]] &&  \
+    syntaxError "extraArg" $usageMsg "$1"
+
+  # Check the node names file parameter and create our own copy.
+  checkUserFile "$narg" $inputNodes
+  [[ $? -ne 0 ]] && cleanupAndExit
+fi   # end of if [[ -z $narg ]]
+
+
+######################################################################
+# Set up trap exception handling and call the gpfsInit function.
+# It will ensure that the local copy of the mmsdrfs and the rest of
+# the GPFS system files are up-to-date and will obtain the sdr lock.
+######################################################################
+trap "cleanupAndExit 2 unlock 20" HUP INT QUIT TERM PIPE
+gpfsInitOutput=$(gpfsInit $lockId)
+setGlobalVar $? $gpfsInitOutput
+
+if [[ $MMMODE != lc ]]
+then
+  # Command is not valid in the user's environment.
+  printErrorMsg 376 $mmcmd $MMMODE
+  cleanupAndExit
+fi
+
+###########################################################################
+# Determine the minimum GPFS version that is acceptable for this cluster.
+###########################################################################
+minRequiredDaemonVersion=$(findRequiredDaemonVersion $sdrfsFormatLevel)
+[[ -z $minRequiredDaemonVersion ]] && cleanupAndExit
+
+
+####################################################
+# Find out if disk-based quorum is in effect.
+####################################################
+diskQuorumInEffect=$(showCfgValue tiebreakerDisks)
+[[ $diskQuorumInEffect = no ]] && diskQuorumInEffect=""
+
+
+############################################################
+# Go through the current mmsdrfs file.
+# Increment the gen number and collect needed information.
+############################################################
+$rm -f $newsdrfs $allnodenames $allnodes $diskLines $allNodeClasses
+$touch $allNodeClasses
+
+[[ -z $backupServer ]] && backupServer="_NOSECONDARY_"
+
+IFS=":"         # Change the field separator to ':'.
+exec 3<&-
+exec 3< $mmsdrfsFile
+while read -u3 sdrfsLine
+do
+  # Parse the line.
+  set -f ; set -A v -- - $sdrfsLine ; set +f
+  IFS="$IFS_sv"    # Restore the default IFS settings.
+  printLine=true   # Assume the line will be printed.
+
+  # Change some of the fields depending on the type of line.
+  case ${v[$LINE_TYPE_Field]} in
+
+    $VERSION_LINE )  # This is the global header line.
+      # Save the line for updating later.
+      versionLine=$(print_newLine)
+      printLine=false
+
+      # Retrieve the current key generation numbers and other information.
+      newKeyGenNumber=${v[$NEW_KEY_Field]}
+      [[ -z $newKeyGenNumber ]] && newKeyGenNumber=0
+      committedKeyGenNumber=${v[$COMMITTED_KEY_Field]}
+      [[ -z $committedKeyGenNumber ]] && committedKeyGenNumber=0
+      secLevel=${v[$SECLEVEL_Field]}
+      [[ -z $secLevel ]] && secLevel=0
+      ccrState=${v[$CCR_STATE_Field]}
+      [[ -z $ccrState ]] && ccrState=$ccrDeleted
+
+      # Create the overloaded clType and clusterIdAndSt parameters
+      # that will be passed to the checkNewClusterNode routine.
+      if [[ $sdrfsFormatLevel -lt $FUNC_LEVEL_CCR ]]
+      then
+        clType="${MMMODE}/${environmentType}"
+      elif [[ $ccrState = $ccrActive ]]
+      then
+        clType="lc/setupClient"
+      else
+        clType="lc/setupBasic"
+      fi
+      clusterIdAndSt="${v[$CLUSTERID_Field]}:${v[$CLUSTER_SUBTYPE_Field]}"
+
+      # Create the base version line to be used with checkNewClusterNode.
+      v[$SDRFS_GENNUM_Field]=1
+      globalClusterData=$(print_newLine)
+
+      # Calculate the checksum for the SSL key file.
+      if [[ $newKeyGenNumber -gt 0 ]]
+      then
+        keyFile=${genkeyData}${newKeyGenNumber}
+        keyGenNumber=$newKeyGenNumber
+        sumOutput=$($sum $keyFile) ||  \
+          checkForErrors "sum $keyFile" $?
+        set -f ; set -- $sumOutput ; set +f
+        keyChecksum=$1
+      else
+        keyGenNumber=0
+        keyChecksum=0
+      fi
+
+      # Save the default alternate login name.
+      globalLoginName=${v[$DEFAULT_LOGIN_Field]}
+
+      # See if either rsh or rcp is allowed to default.
+      # If yes, Windows nodes cannot be added to the cluster.
+      if [[ -z ${v[$RSH_PATH_Field]}               ||
+            -z ${v[$RCP_PATH_Field]}               ||
+            ${v[$RSH_PATH_Field]} = "/usr/bin/rsh" ||
+            ${v[$RSH_PATH_Field]} = "/bin/rsh"     ||
+            ${v[$RCP_PATH_Field]} = "/usr/bin/rcp" ||
+            ${v[$RCP_PATH_Field]} = "/bin/rcp"     ]]
+      then
+        rshDefaulted=yes
+      fi
+      ;;
+
+    $NODESET_HDR )    # This is the nodeset header line.
+      # Save the line for updating later.
+      nodesetHdr=$sdrfsLine
+      printLine=false
+
+      # Retrieve needed values.
+      cipherList=${v[$CIPHER_LIST_Field]}
+      nodeCount=${v[$NODE_COUNT_Field]}
+      loginOverride=${v[$LOGIN_OVERRIDE_Field]}
+      lowestVersion=${v[$MIN_DAEMON_VERSION_Field]}
+      [[ -z $lowestVersion ]] && lowestVersion=100000
+      highestVersion=${v[$MAX_DAEMON_VERSION_Field]}
+      [[ -z $highestVersion ]] && highestVersion=0
+      longestIpa=${v[$IPA_LENGTH_FIELD]:-0}
+      longestDaemon=${v[$DAEMON_LENGTH_FIELD]:-0}
+      longestAdmin=${v[$ADMIN_LENGTH_FIELD]:-0}
+      ipVersionEnv=${v[$IPVERSION_ENVIRONMENT_Field]}
+      [[ $ipVersionEnv = *${ipv4Env}* ]] && ipv4Found=$ipv4Env
+      [[ $ipVersionEnv = *${ipv6Env}* ]] && ipv6Found=$ipv6Env
+      highestNodeNumber=${v[$HIGHEST_GPFS_NODE_NUMBER_Field]:-0}
+
+      # Figure out the sdrserv port number.
+      if [[ -n ${v[$GETOBJECT_PORT_Field]} ]]
+      then
+        sdrservPort=${v[$GETOBJECT_PORT_Field]}
+      else
+        sdrservPort=${v[$TCP_PORT_Field]}
+      fi
+      [[ -z $sdrservPort ]] && sdrservPort=$defaultTcpPort
+      ;;
+
+    $NODE_CLASS )   # User defined node class line.
+      # Save a list of all classes.
+      print -- "${v[$CLASS_NAME_Field]}" >> $allNodeClasses ||  \
+        checkForErrors "writing to file $allNodeClasses" $?
+      ;;
+
+    $MEMBER_NODE )  # This line describes a node.
+      # Keep track of the highest node number assigned to a node.
+      [[ $highestNodeNumber -lt ${v[$NODE_NUMBER_Field]} ]] &&  \
+        highestNodeNumber=${v[$NODE_NUMBER_Field]}
+
+      # Add the node's admin name to the list of admin names in the cluster.
+      print -- "${v[$REL_HOSTNAME_Field]}" >> $allnodes
+      checkForErrors "writing to file $allnodes" $?
+
+      # Add the daemon node name and the admin node name to the
+      # list of all daemon and admin node names in the cluster.
+      print -- ":${v[$DAEMON_NODENAME_Field]}:${v[$REL_HOSTNAME_Field]}:${v[$IPA_Field]}:" >> $allnodenames
+      checkForErrors "writing to file $allnodenames" $?
+
+      # Keep track of the overall number of quorum nodes.
+      # If disk quorum is in effect, collect information
+      # about the quorum nodes in the cluster.
+      if [[ ${v[$CORE_QUORUM_Field]} = $quorumNode ]]
+      then
+        (( quorumNodeCount += 1 ))
+        ccrDesc="${v[$NODE_NUMBER_Field]}=${v[$DAEMON_NODENAME_Field]}:${sdrservPort}"
+        ccrServerDescriptorList="${ccrServerDescriptorList},${ccrDesc}"
+        ccrServerDescriptorList=${ccrServerDescriptorList#,}
+        if [[ -n $diskQuorumInEffect ]]
+        then
+          if [[ -z $quorumNodeNames ]]
+          then
+            # This is the first node to add to the lists.
+            quorumNodeNumbers="${v[$NODE_NUMBER_Field]}"
+            quorumNodeNames="${v[$REL_HOSTNAME_Field]}"
+          else
+            if [[ ${v[$REL_HOSTNAME_Field]} = $ourNodeName ]]
+            then
+              # This is the local node; add it at the front of the lists
+              # so it will be the first quorum node used.
+              quorumNodeNumbers="${v[$NODE_NUMBER_Field]},${quorumNodeNumbers}"
+              quorumNodeNames="${v[$REL_HOSTNAME_Field]},${quorumNodeNames}"
+            else
+              # This is not the local node; add it at the end of the lists.
+              quorumNodeNumbers="${quorumNodeNumbers},${v[$NODE_NUMBER_Field]}"
+              quorumNodeNames="${quorumNodeNames},${v[$REL_HOSTNAME_Field]}"
+            fi
+          fi  # end of if [[ -z $quorumNodeNames ]]
+        fi  # end of if [[ -n $diskQuorumInEffect ]]
+      fi  # end of if [[ ${v[$CORE_QUORUM_Field]} = $quorumNode ]]
+
+      # Keep track of the OS environments that are present in the cluster.
+      case ${v[$OS_NAME_Field]} in
+        AIX     )  AixFound=1     ;;
+        Linux   )  LinuxFound=1   ;;
+        Windows )  WindowsFound=1 ;;
+        *       )  checkForErrors "Unknown OS ${v[$OS_NAME_Field]}" 1 ;;
+      esac  # end of case ${v[$OS_NAME_Field]} in
+      ;;
+
+    $SG_DISKS )  # This line describes a disk.
+      # Collect the lines that represent the quorum disks.
+      if [[ -n $diskQuorumInEffect && ${v[$PAXOS_Field]} = $PaxosDisk ]]
+      then
+        print_newLine >> $diskLines
+        checkForErrors "writing to file $diskLines" $?
+      fi  # end if [[ -n $diskQuorumInEffect && ...
+      ;;
+
+    $USEREXIT )       # This line describes a user exit definition
+      # If the USEREXIT_NODE_Field contains node class, add the
+      # rereadUserExits propagate option.
+
+      # If rereadUserExits is not in propagateOptions, figure out if we
+      # need to add it.
+      if [[ $propagateOptions != *rereadUserExits* ]]
+      then
+_IFDEF Design comments
+        # Checking for alphabetic char to determine the present of node
+        # class is safe here.  It will not be correct if we enable IPv6
+        # in 3.4 or prior.  In 3.5, it is ok since USEREXIT_NODE_Field
+        # convert IPA to node number.
+_ENDIF Design comments
+        [[ ${v[$USEREXIT_NODE_Field]} = *[a-zA-Z]* ]] &&  \
+          propagateOptions="rereadUserExits,${propagateOptions}"
+      fi  # end of if [[ $propagateOptions != *rereadUserExits* ]]
+      ;;
+
+    * )  # No need to look at any of the other lines.
+      ;;
+
+  esac  # end Change some of the fields
+
+  # Build and write the line to the new mmsdrfs file.
+  if [[ $printLine = true ]]
+  then
+    print_newLine >> $newsdrfs
+    checkForErrors "writing to file $newsdrfs" $?
+  fi
+
+  IFS=":"  # Change the separator back to ":" for the next iteration.
+
+done  # end while read -u3 sdrfsLine
+exec 3<&- ; exec 3< /dev/null
+
+IFS="$IFS_sv"  # Restore the default IFS settings.
+
+# Save the highest node number found.
+nodeNumber=$highestNodeNumber
+
+#######################################################################
+# Generate the node information for the mmsdrfs file.
+#
+# Loop through the nodes to be added to the sdrfs file, checking
+# as we go.  When the loop is done we know which nodes can be added
+# to the sdrfs file and which ones can't.  A MEMBER_NODE line will be
+# generated for each node that can be added to the new GPFS cluster.
+#######################################################################
+# Loop through the nodes to be added.
+$rm -f $tmpsdrfs $goodnodes $processedNodes $cleanupList
+$touch $tmpsdrfs $goodnodes $processedNodes $cleanupList
+exec 3<&-
+exec 3< $inputNodes
+while read -u3 nodeDesc
+do
+  # Skip empty and comment lines.
+  [[ $nodeDesc = *([$BLANKchar$TABchar])   ]] && continue
+  [[ $nodeDesc = *([$BLANKchar$TABchar])#* ]] && continue
+
+  # Keep track of the total number of nodes specified by the user.
+  (( totalNodeCount += 1 ))
+
+  IFS=':'
+  set -f ; set -- $nodeDesc ; set +f
+  nodeName=$1
+
+  # If nodeName (daemon interface) begins with "[", then it is an IPv6
+  # address.  We did not get the whole address.  Try again.
+  if [[ $nodeName = \[* ]]
+  then
+    # IPv6 address is enclosed in square brackets.  Try to get it again from
+    # $nodeDesc line.
+
+    # Remove the left bracket and everything before it.
+    nodeName=${nodeDesc#*\[}
+    # Remove the right bracket and everything after it.
+    nodeName=${nodeName%%\]*}
+
+    # Replace IPv6 nodeName part from nodeDesc with a string with out colon
+    # then parse again to get the rest of the node descriptors.
+    nodeDesc2=${nodeDesc#*\]}
+    nodeDesc2="-${nodeDesc2}"
+    IFS=':' ; set -f ; set -- $nodeDesc2 ; set +f ; IFS="$IFS_sv"
+
+  else
+    nodeDesc2=${nodeDesc}
+  fi  # end if if [[ $nodeName = \[* ]]
+
+  nodeRoles=$2
+  nodeName2=$3
+
+  # If nodeName2 (admin interface) begins with "[", then it is an IPv6
+  # address.  We did not get the whole address.  Try again.
+  if [[ $nodeName2 = \[* ]]
+  then
+    # IPv6 address is enclosed in square brackets.  Try to get it again from
+    # $nodeDesc2 line.
+
+    # Remove the left bracket and everything before it.
+    nodeName2=${nodeDesc2#*\[}
+    # Remove the right bracket and everything after it.
+    nodeName2=${nodeName2%%\]*}
+
+    # Replace nodeName2 part and everything before it with 3 colon-separated
+    # fields then parse again to get the rest of the node descriptors.
+    nodeDesc2=${nodeDesc2#*\]}
+    nodeDesc2="-:-:-${nodeDesc2}"
+    IFS=':' ; set -f ; set -- $nodeDesc2 ; set +f ; IFS="$IFS_sv"
+  fi
+
+  nodeLoginName=$4
+  IFS="$IFS_sv"
+
+  # Process the node roles list.
+  designation=$CLIENT
+  quorumField=$nonQuorumNode
+  if [[ -n $nodeRoles ]]
+  then
+    IFS="-"
+    set -f ; set -- $nodeRoles ; set +f
+    IFS="$IFS_sv"
+    while [[ -n $1 ]]
+    do
+      role=$1  # Convert the node's role to lower case only.
+      case $role in
+        $CLIENT )
+          designation=$CLIENT
+          ;;
+
+        $MANAGER )
+          designation=$MANAGER
+          ;;
+
+        $QUORUM )
+          quorumField=$quorumNode
+          ;;
+
+        $NONQUORUM ) quorumField=$nonQuorumNode
+          ;;
+
+        * )
+          # Invalid node designations specified.
+          printErrorMsg 293 $mmcmd "$nodeDesc"
+          fatalError=yes
+          break 2
+          ;;
+      esac
+
+      # Move to the next field.
+      shift
+    done  # end while [[ -n $1 ]]
+  fi  # end if [[ -n $nodeRoles ]]
+
+
+  # At this point, the daemon node name could be a fully-qualified
+  # adapter port name, a short name, or an IP address.  Determine the
+  # fully-qualified hostname, the short name, and the IP address for
+  # the specified node interface.
+  hostResult=$($host "$nodeName")
+  set -f ; set -- $hostResult ; set +f
+  daemonNodeName=$1
+  shortName=${1%% *|.*}    # Exclude everything after the first dot.
+  ipa=${3%%,*}             # Exclude everything after the first comma.
+
+  if [[ -z $ipa ]]
+  then
+    # Invalid node name specified.
+    printErrorMsg 54 $mmcmd "$nodeName"
+    fatalError=yes
+    break
+  fi
+
+  hostResult2=$($host "$daemonNodeName")
+  if [[ "$hostResult" != "$hostResult2" ]]
+  then
+    # Cannot handle multiple interfaces for host
+    printErrorMsg 498 $mmcmd "$optArg"
+    fatalError=yes
+    break
+  fi
+
+  # Verify the host name is not being used for node class name.
+  $grep -q -i ^"$shortName"$ $allNodeClasses
+  if [[ $? -eq 0 ]]
+  then
+    msgTxt=\
+"Node \"$shortName\" could not be added to the GPFS cluster.\n"\
+"   There is an existing node class by that name."
+    print -u2 -- "$mmcmd: $msgTxt"
+    fatalError=yes
+    break
+  fi
+
+  # Keep track of the IP version env and percent encode if it is an IPv6
+  if [[ $ipa != *:*  ]]
+  then
+    # This is a traditional IPv4 address; nothing to encoded.
+    ipa_enc="$ipa"
+  else
+    # Stop here if the IPv6 support has not been activated yet.
+    if [[ $sdrfsFormatLevel -lt $FUNC_LEVEL_IPV6_SUPPORT ]]
+    then
+      print -u2 "$mmcmd:  The IPv6 support has not been enabled yet."
+      print -u2 "    Run \"mmchconfig release=LATEST\" to activate the new function."
+      fatalError=yes
+      break
+    fi
+
+    # If ipv6Found is null, this is the first IPv6 node in the cluster.
+    if [[ -z $ipv6Found ]]
+    then
+      # Get the current enableIPv6 if we haven't already done so.
+      if [[ -z $ipv6State ]]
+      then
+        ipv6State=$(showCfgValue enableIPv6)
+        [[ -z $ipv6State ]] && ipv6State=no
+      fi
+
+      # Stop if IPv6 is not enabled.
+      if [[ $ipv6State != yes ]]
+      then
+        # Issue appropriate message.
+        if [[ $ipv6State = prepare ]]
+        then
+
+          msgTxt=\
+"The IPv6 support has not been commited.\n"\
+"    Run \"mmchconfig enableIPv6=commit\" to turn on IPv6 support."
+
+        else
+
+          msgTxt=\
+"The IPv6 support is currently turned off.\n"\
+"    Run \"mmchconfig enableIPv6=yes\"\n"\
+"or\n"\
+"    Run \"mmchconfig enableIPv6=prepare\" then run \"mmchconfig enableIPv6=commit\"\n"\
+"after GPFS have been recycled on all nodes to turn on IPv6 support."
+
+        fi  # end of if [[ $ipv6State = prepare ]]
+
+        print -u2 -- "$mmcmd: $msgTxt"
+        fatalError=yes
+        break
+
+      fi  # end of if [[ $ipv6State != yes ]]
+    fi  # end of if [[ -z $ipv6Found ]]
+
+    ipa_enc=$($mmcmi percentencode "$ipa")
+
+  fi  # end of if [[ $ipa = *:*  ]]
+
+  # At this point, if it was specified, the admin node name could be a
+  # fully-qualified adapter port name, a short name, or an IP address.
+  # Determine the fully-qualified hostname and the IP address for the
+  # specified node interface.
+  if [[ -n $nodeName2 ]]
+  then
+    hostResult=$($host "$nodeName2")
+    set -f ; set -- $hostResult ; set +f
+    adminNodeName=$1
+    adminShortName=${1%% *|.*}  # Exclude everything after the first dot.
+    adminIpa=${3%%,*}           # Exclude everything after the first comma.
+
+    if [[ -z $adminIpa ]]
+    then
+      # An invalid admin node name was specified.
+      printErrorMsg 54 $mmcmd "$nodeName2"
+      fatalError=yes
+      break
+    fi
+
+    # Verify the host name is not being used for node class name.
+    $grep -q -i ^"$adminShortName"$ $allNodeClasses
+    if [[ $? -eq 0 ]]
+    then
+      msgTxt=\
+"Node \"$adminShortName\" could not be added to the GPFS cluster.\n"\
+"   There is an existing node class by that name."
+      print -u2 -- "$mmcmd: $msgTxt"
+      fatalError=yes
+      break
+    fi
+
+  else
+    # The user did not set a distinct admin node name, so set the
+    # admin node names to be the same as the daemon node names.
+    adminNodeName=$daemonNodeName
+    adminShortName=$shortName
+  fi  # end of if [[ -n $nodeName2 ]]
+
+  # Verify the correctness of the login name.
+  if [[ -n $nodeLoginName ]]
+  then
+_IFDEF AlternateID_enabled
+    checkName loginName 255 "$nodeLoginName"
+    if [[ $? -ne 0 ]]
+    then
+      fatalError=yes
+      break
+    fi
+_ELSE  AlternateID_enabled
+    print -u2 "$mmcmd:  Alternate login names are not supported."
+    fatalError=yes
+    break
+_ENDIF AlternateID_enabled
+  fi  # end of if [[ -n $nodeLoginName ]]
+
+  # Assign a node number to the node.
+  (( nodeNumber += 1 ))
+
+  # Ensure that the node interfaces do not already exist in the cluster.
+  $grep -q ":${daemonNodeName}:" $allnodenames > /dev/null 2>&1
+  if [[ $? -eq 0 ]]
+  then
+    # The node already belongs to the cluster.
+    printErrorMsg 152 $mmcmd "$nodeName"
+    fatalError=yes
+    break
+  fi
+  $grep -q ":${ipa_enc}:" $allnodenames > /dev/null 2>&1
+  if [[ $? -eq 0 ]]
+  then
+    # The node already belongs to the cluster.
+    printErrorMsg 152 $mmcmd "$ipa"
+    fatalError=yes
+    break
+  fi
+  if [[ $adminNodeName != $daemonNodeName ]]
+  then
+    $grep -q ":${adminNodeName}:" $allnodenames > /dev/null 2>&1
+    if [[ $? -eq 0 ]]
+    then
+      # The node already belongs to the cluster.
+      printErrorMsg 152 $mmcmd "$nodeName2"
+      fatalError=yes
+      break
+    fi
+  fi
+  $grep -q "^${ipa}$" $mmfsCnfsNodes.ipa > /dev/null 2>&1
+  if [[ $? -eq 0 ]]
+  then
+    print -u2 "$mmcmd: ${daemonNodeName} (${ipa}) is already assigned to CNFS."
+    fatalError=yes
+    break
+  fi
+  $grep -q "^${adminIpa}$" $mmfsCnfsNodes.ipa > /dev/null 2>&1
+  if [[ $? -eq 0 ]]
+  then
+    print -u2 "$mmcmd: ${adminNodeName} (${adminIpa}) is already assigned to CNFS."
+    fatalError=yes
+    break
+  fi
+_IFDEF CES
+  $grep -q "^${ipa} " $cesAddressPoolFile > /dev/null 2>&1
+  if [[ $? -eq 0 ]]
+  then
+    print -u2 "$mmcmd: ${daemonNodeName} (${ipa}) is already assigned to CES."
+    fatalError=yes
+    break
+  fi
+  $grep -q "^${adminIpa} " $cesAddressPoolFile > /dev/null 2>&1
+  if [[ $? -eq 0 ]]
+  then
+    print -u2 "$mmcmd: ${adminNodeName} (${adminIpa}) is already assigned to CES."
+    fatalError=yes
+    break
+  fi
+_ENDIF CES
+
+  # Make sure neither node name (admin or daemon) is specified more than once.
+  $grep -q ":${daemonNodeName}:" $processedNodes > /dev/null 2>&1
+  if [[ $? -eq 0 ]]
+  then
+    # The node is specified twice.
+    printErrorMsg 347 $mmcmd "$nodeName"
+    fatalError=yes
+    break
+  fi
+  if [[ $adminNodeName != $daemonNodeName ]]
+  then
+    $grep -q ":${adminNodeName}:" $processedNodes > /dev/null 2>&1
+    if [[ $? -eq 0 ]]
+    then
+      # The node is specified twice.
+      printErrorMsg 347 $mmcmd "$nodeName2"
+      fatalError=yes
+      break
+    fi
+  fi
+
+  # If disk-based quorum is in effect, make sure that adding
+  # this node will not exceed the total limit of quorum nodes.
+  if [[ -n $diskQuorumInEffect     &&
+        $quorumNodeCount -eq 8     &&
+        $quorumField = $quorumNode ]]
+  then
+    # There are more than eight quorum nodes while tiebreaker disks are in use.
+    printErrorMsg 131 $mmcmd
+    # Adding the node to the cluster will exceed the quorum node limit.
+    printErrorMsg 134 $mmcmd "$nodeName"
+    fatalError=yes
+    break
+  fi
+
+  # Add the daemon and admin node names to the list of processed nodes.
+  print -- ":${daemonNodeName}:${adminNodeName}:" >> $processedNodes
+  checkForErrorsAndReturn "writing to file $processedNodes" $?
+  [[ $? -ne 0 ]] && break
+
+  # Build a line with the local node data for the node.
+  localNodeData="${HOME_CLUSTER}:${MEMBER_NODE}::${nodeCount}:${nodeNumber}:${shortName}"
+  localNodeData="${localNodeData}:${ipa_enc}:${adminNodeName}:${designation}"
+  localNodeData="${localNodeData}::::${addNodeState}::${daemonNodeName}:${adminShortName}"
+  localNodeData="${localNodeData}::::${quorumField}:::::${nodeLoginName}:"
+
+  # Invoke checkNewClusterNode to create the initial GPFS configuration files.
+  printInfoMsg 416 "$(mmdate)" $mmcmd $daemonNodeName
+  [[ -n $nodeLoginName ]] && targetLogin="${nodeLoginName}@" || targetLogin=""
+  if [[ $sdrfsFormatLevel -lt $FUNC_LEVEL_CCR ]]
+  then
+    result=$(run onNode_v2 ${targetLogin}${adminNodeName} checkNewClusterNode  \
+       $clType $primaryServer $backupServer "$localNodeData"  \
+       "$rsh" "$rcp" "$clusterIdAndSt" 2> $errMsg)
+    rc=$?
+_IFDEF NO_AUTH_ADMIN
+
+  elif [[ $sdrfsFormatLevel -ge $FUNC_NO_AUTH_ADMIN ]]
+  then
+    # Get noAuthentication value
+    noAuthenticationValue=$(showCfgValue noAuthentication)
+    [[ -z $noAuthenticationValue ]] && noAuthenticationValue=no
+
+    if [[ $newKeyGenNumber -gt 0 ]]
+    then
+      result=$(run onNode_fc_v2 ${targetLogin}${adminNodeName} $keyFile  \
+         checkNewClusterNode3 $clType "$globalClusterData" "$localNodeData"  \
+         $keyGenNumber $keyChecksum "$ccrServerDescriptorList" $sdrservPort  \
+         $noAuthenticationValue 2> $errMsg)
+      rc=$?
+    else
+      result=$(run onNode_v2 ${targetLogin}${adminNodeName}  \
+         checkNewClusterNode3 $clType "$globalClusterData" "$localNodeData"  \
+         0 0 "$ccrServerDescriptorList" $sdrservPort  \
+         $noAuthenticationValue 2> $errMsg)
+      rc=$?
+    fi
+
+_ENDIF NO_AUTH_ADMIN
+  elif [[ $newKeyGenNumber -gt 0 ]]
+  then
+    result=$(run onNode_fc_v2 ${targetLogin}${adminNodeName} $keyFile  \
+       checkNewClusterNode $clType "$globalClusterData" "$localNodeData"  \
+       $keyGenNumber $keyChecksum "$ccrServerDescriptorList" $sdrservPort 2> $errMsg)
+    rc=$?
+  else
+    result=$(run onNode_v2 ${targetLogin}${adminNodeName}  \
+       checkNewClusterNode $clType "$globalClusterData" "$localNodeData"  \
+       0 0 "$ccrServerDescriptorList" $sdrservPort 2> $errMsg)
+    rc=$?
+  fi  # end of if [[ $sdrfsFormatLevel -lt $FUNC_LEVEL_CCR ]]
+
+  IFS=':' ; set -f ; set -- $result ; set +f ; IFS="$IFS_sv"
+  keyword=$1
+  nodeStatus=$2
+  # $3 is obsolete; old ADAPTER_TYPE_Field
+  installedDaemonVersion=$4
+  installedProductVersion=$5
+  installedOsName=$6
+
+  if [[ $rc = 0 && $nodeStatus = success && $keyword = checkNewClusterNode ]]
+  then
+    # The checkNewClusterNode call succeeded so far.  Check if the node
+    # should be rejected anyway because, for example, its installed GPFS
+    # code is down level, the node designations are not supported, etc.
+    # Error messages will be issued further down.
+    if [[ $installedDaemonVersion -lt $minRequiredDaemonVersion  &&
+          $minRequiredDaemonVersion -ne $FUNC_LEVEL_EXPERIMENTAL ]]
+    then
+      rc=1
+      nodeStatus=not_supported
+    elif [[ $installedOsName = Windows && -n $rshDefaulted ]]
+    then
+      rc=1
+      nodeStatus=rsh_not_supported
+    else
+      rc=0
+    fi  # end of if [[ $installedDaemonVersion -lt $minRequiredDaemonVersion ]]
+
+    if [[ $rc -ne 0 ]]
+    then
+      # Remove already-installed system files.
+      if [[ $osName = Windows ]]
+      then
+        run on1_v2 ${targetLogin}${adminNodeName} removeFromCluster > /dev/null 2>&1
+      else
+        run on1_v2 ${targetLogin}${adminNodeName} removeFromCluster > /dev/null 2>&1 &
+      fi
+    fi  # end of if [[ $rc -ne 0 ]]
+  fi  # end of if [[ $rc = 0 && $nodeStatus = success && ...
+
+  if [[ $rc = 0 && $nodeStatus = success && $keyword = checkNewClusterNode ]]
+  then
+    # The checkNewClusterNode call succeeded.
+
+    # Determine the value of addNodeState.
+    # The node must be marked as 'new' if all of the following are true:
+    # - this is a new quorum node
+    # - disk quorum is not in effect
+    # - global passwrdless access has not been disabled
+    # - the config repository is server-based (rather than CCR)
+    # If the first two conditions are met but global passwodless access
+    # is disabled, then the new quorum nodes will be marked 'old' but
+    # the mmaddnode will succeed only if the daemon is down everywhere.
+    if [[ $configRepository = "CCR"     ||
+          $quorumField = $nonQuorumNode ||
+          -n $diskQuorumInEffect        ]]
+    then
+      addNodeState=$OLD_NODE
+    elif [[ $adminMode = "central" ]]
+    then
+      addNodeState=$OLD_NODE
+      daemonDownRequired=yes
+      newQuorumNodes="${newQuorumNodes}\n\t${adminNodeName}"
+    else
+      addNodeState=$NEW_NODE
+    fi  # end of if [[ $quorumField = $nonQuorumNode || -n $diskQuorumInEffect ]]
+
+    # Build the line that will represent this node in the mmsdrfs file.
+    (( nodeCount += 1 ))
+    sdrfsLine="$HOME_CLUSTER:$MEMBER_NODE::$nodeCount:$nodeNumber:$shortName:$ipa_enc"
+    sdrfsLine="$sdrfsLine:$adminNodeName:$designation:$obsoleteField:$availableField"
+    sdrfsLine="$sdrfsLine:$availableField:$addNodeState:$obsoleteField:$daemonNodeName"
+    sdrfsLine="$sdrfsLine:$adminShortName:$installedDaemonVersion:$installedProductVersion"
+    sdrfsLine="$sdrfsLine:$installedOsName:$quorumField:::::$nodeLoginName:"
+
+    # Add the MEMBER_NODE line to the other lines
+    # that will go in the mmsdrfs file.
+    print -- "$sdrfsLine" >> $tmpsdrfs
+    checkForErrorsAndReturn "Writing to file $tmpsdrfs" $?
+    [[ $? -ne 0 ]] && break
+
+    # Add the node name to the list of successful nodes.
+    print -- "$adminNodeName" >> $goodnodes
+    checkForErrorsAndReturn "Writing to file $goodnodes" $?
+    [[ $? -ne 0 ]] && break
+    (( nodesAddedToCluster += 1 ))
+
+    # Add the node name and alternate login to the list of nodes that
+    # may have to be cleaned up if there is a failure down the road.
+    if [[ -n $nodeLoginName ]]
+    then
+      targetLogin="${nodeLoginName}@"
+      loginOverride="Y"
+    elif [[ -n $globalLoginName ]]
+    then
+      targetLogin="${globalLoginName}@"
+    else
+      targetLogin=""
+    fi
+
+    print -- "${targetLogin}${adminNodeName}" >> $cleanupList
+    checkForErrorsAndReturn "Writing to file $cleanupList" $?
+    [[ $? -ne 0 ]] && break
+
+    if [[ $quorumField = $quorumNode ]]
+    then
+      (( quorumNodeCount += 1 ))
+      if [[ $configRepository = "CCR" ]]
+      then
+        ccrServerNodesChanged=yes
+        ccrDesc="${nodeNumber}=${daemonNodeName}:${sdrservPort}"
+        ccrServerDescriptorList="${ccrServerDescriptorList},${ccrDesc}"
+      elif [[ -n $diskQuorumInEffect ]]
+      then
+        rebuildPaxosDisks=yes
+        quorumNodeNumbers="${quorumNodeNumbers},${nodeNumber}"
+        quorumNodeNames="${quorumNodeNames},${adminNodeName}"
+      fi  # end of if [[ -n $diskQuorumInEffect ]]
+    fi  # end of if [[ $quorumField = $quorumNode ]]
+
+    # Ensure that we will not exceed the maximum number of quorum nodes.
+    if [[ -z $fatalError ]]
+    then
+      if [[ $configRepository = "CCR" ]]
+      then
+        if [[ $quorumNodeCount -gt $maxQuorumNodesCCR ]]
+        then
+          # The number of quorum nodes exceeds the maximum allowed.
+          printErrorMsg 393 $mmcmd $maxQuorumNodesCCR
+          fatalError=yes
+          break
+        fi
+      else
+        if [[ $quorumNodeCount -gt $maxQuorumNodes ]]
+        then
+          # The number of quorum nodes exceeds the maximum allowed.
+          printErrorMsg 393 $mmcmd $maxQuorumNodes
+          fatalError=yes
+          break
+        fi
+      fi # end of if [[ $configRepository = "CCR" ]]
+    fi  # end of if [[ -z $fatalError ]]
+
+    # Keep track of the daemon version and the installed OS.
+    [[ $installedDaemonVersion -lt $lowestVersion ]] &&  \
+      lowestVersion=$installedDaemonVersion
+    [[ $installedDaemonVersion -gt $highestVersion ]] &&  \
+      highestVersion=$installedDaemonVersion
+    case $installedOsName in
+      AIX     )  AixFound=1     ;;
+      Linux   )  LinuxFound=1   ;;
+      Windows )  WindowsFound=1 ;;
+      *       )  checkForErrors "Unknown OS $installedOsName" 1 ;;
+    esac  # end of case $installedOsName in
+
+    # Keep track of IP version enviroment.
+    [[ $ipa = *:* ]] && ipv6Found=$ipv6Env || ipv4Found=$ipv4Env
+
+    # Keep track of the longest length of IPA, daemon & admin name.
+    [[ ${#ipa} -gt $longestIpa ]] &&  \
+      longestIpa=${#ipa}
+    [[ ${#daemonNodeName} -gt $longestDaemon ]] &&  \
+      longestDaemon=${#daemonNodeName}
+    [[ ${#adminNodeName} -gt $longestAdmin ]] &&  \
+      longestAdmin=${#adminNodeName}
+
+  else
+    # The checkNewClusterNode call failed.
+    # Not all errors are considered terminal.
+    # If an individual node fails for a known reason,
+    # we will not include it in the cluster but will
+    # continue with the rest of the nodes.
+
+    # Tell the world what went wrong.
+    if [[ $nodeStatus = not_new ]]
+    then
+      # Node already belongs to a cluster.
+      printErrorMsg 348 $mmcmd $adminNodeName
+    elif [[ $nodeStatus = ccr_setup_failed ]]
+    then
+      [[ -s $errMsg ]] && $cat $errMsg 1>&2
+      msgTxt=\
+"The CCR environment could not be initialized on node $adminNodeName."
+      print -u2 "$mmcmd: $msgTxt"
+
+      # It is possible that CCR setup failed because the remote node is
+      # running on unsupported version.
+      # Perform addition check and print appropriate message.
+      if [[ -n $installedDaemonVersion                             &&
+            $installedDaemonVersion -lt $minRequiredDaemonVersion  &&
+            $minRequiredDaemonVersion -ne $FUNC_LEVEL_EXPERIMENTAL ]]
+      then
+        printErrorMsg 349 $mmcmd $adminNodeName
+      fi
+      fatalError=yes
+      break
+    elif [[ $nodeStatus = not_supported ]]
+    then
+      # Wrong GPFS code level.
+      printErrorMsg 349 $mmcmd $adminNodeName
+    elif [[ $nodeStatus = rsh_not_supported ]]
+    then
+      # rsh/rcp do not work on Windows yet.
+      print -u2 "$mmcmd: The rsh and rcp commands provided by SUA do not support GPFS."
+      print -u2 "    Use mmchcluster to designate alternate remote commands."
+      fatalError=yes
+      break
+    elif [[ $nodeStatus = ipa_missing ]]
+    then
+      # The daemon node adapter was not found on the admin node.
+      printErrorMsg 175 $mmcmd "$nodeName" "$nodeName2"
+    elif [[ $rc = $MM_HostDown || $rc = $MM_ConnectTimeout ]]
+    then
+      # The node cannot be reached.
+      printErrorMsg 340 $mmcmd $adminNodeName
+    else
+      # Unexpected error.  Display all possible error messages.
+      [[ -s $errMsg ]] && $cat $errMsg 1>&2
+      if [[ $rc = $MM_IncompatibleCode ]]
+      then
+        # Wrong GPFS code level.
+        printErrorMsg 349 $mmcmd $adminNodeName
+      else
+        [[ $rc -eq 0 ]] && rc=1
+        checkForErrorsAndReturn "checkNewClusterNode $adminNodeName" $rc
+      fi
+
+      if [[ $osName = Windows ]]
+      then
+        run on1_v2 ${targetLogin}${adminNodeName} removeFromCluster > /dev/null 2>&1
+      else
+        run on1_v2 ${targetLogin}${adminNodeName} removeFromCluster > /dev/null 2>&1 &
+      fi
+    fi  # end of if [[ $nodeStatus = not_new ]]
+
+    # Append the node name to the list of failed nodes.
+    failedNodes="$failedNodes\n\t\t$adminNodeName"
+
+    # Adjust the node number for the next iteration.
+    nodeNumber=$nodeNumber-1
+
+  fi  # end of if [[ $rc = 0 && $nodeStatus = success && ...
+
+  $rm -f $errMsg
+
+done  # end of while read -u3 nodeDesc (Loop through the nodes to be added)
+exec 3<&- ; exec 3< /dev/null
+
+
+#########################################################
+# If we have no nodes to add, issue a message and quit.
+#########################################################
+if [[ ! -s $goodnodes ]]
+then
+  # Command is quitting due to no valid nodes.
+  printErrorMsg 387 $mmcmd $mmcmd
+  cleanupAndExit
+fi
+
+
+#######################################################################
+# At this point, we have successfully processed all of the new nodes.
+# Next, build the nodeset header line and add it to the mmsdrfs file.
+#######################################################################
+# Determine the value of the osEnvironment field.  It consists of the first
+# letters from the names of each OS that exists in the cluster.
+[[ -n $AixFound     ]] && osEnvironment=${osEnvironment}A
+[[ -n $LinuxFound   ]] && osEnvironment=${osEnvironment}L
+[[ -n $WindowsFound ]] && osEnvironment=${osEnvironment}W
+
+# Determine the value of the ipVersionEnv field.
+ipVersionEnv=${ipv4Found}${ipv6Found}
+
+# Parse the old nodeset header line.
+IFS=":"
+set -f ; set -A v -- - $nodesetHdr ; set +f
+IFS="$IFS_sv"
+
+v[$NODE_COUNT_Field]=$nodeCount
+v[$LOGIN_OVERRIDE_Field]=$loginOverride
+v[$MIN_DAEMON_VERSION_Field]=$lowestVersion
+v[$MAX_DAEMON_VERSION_Field]=$highestVersion
+v[$OS_ENVIRONMENT_Field]=$osEnvironment
+v[$IPVERSION_ENVIRONMENT_Field]=$ipVersionEnv
+v[$IPA_LENGTH_FIELD]=$longestIpa
+v[$DAEMON_LENGTH_FIELD]=$longestDaemon
+v[$ADMIN_LENGTH_FIELD]=$longestAdmin
+v[$HIGHEST_GPFS_NODE_NUMBER_Field]=$nodeNumber
+
+# Add the nodeset header line to the mmsdrfs file.
+print_newLine >> $newsdrfs
+checkForErrors "writing to file $newsdrfs" $?
+
+
+############################################################
+# Add the lines for the new nodes to the new mmsdrfs file.
+############################################################
+$cat $tmpsdrfs >> $newsdrfs
+if [[ $? -ne 0 ]]
+then
+  printErrorMsg 171 "$mmcmd" "copying $tmpsdrfs to $newsdrfs" $?
+  fatalError=yes
+fi
+
+
+#####################################################################
+# If disk-based quorum is in effect, and new quorum nodes are being
+# added to the cluster, the quorum disks must be reformatted.
+#####################################################################
+if [[ -n $rebuildPaxosDisks && -z $fatalError ]]
+then
+  formatPaxosDisks $diskLines $quorumNodeNumbers $quorumNodeNames update
+  if [[ $? -ne 0 ]]
+  then
+    # GPFS failed to initialize the tiebreaker disks.
+    printErrorMsg 132 $mmcmd
+    fatalError=yes
+  fi
+fi
+
+
+##############################################################
+# If there is a change to the node quorum designations,
+# and the repository is CCR, inform the CCR of the changes.
+# This is the actual commit point for this type of change.
+##############################################################
+if [[ -n $ccrServerNodesChanged && -z $fatalError ]]
+then
+_IFDEF Design comments
+This code needs to be revisited and changed to account for fault tolerance
+value that is explicitly set by the user vs the default variable value.
+_ENDIF Design comments
+  faultTolerance=$(determineFaultTolerance $quorumNodeCount $diskQuorumInEffect)
+  $ccr chnodes -n "$ccrServerDescriptorList" \
+               -f $faultTolerance -P $sdrservPort >$errMsg 2>&1
+  rc=$?
+
+  if [[ $rc -ne 0 ]]
+  then
+    # Tell the user what went wrong.
+    if [[ -s $errMsg ]]
+    then
+      $cat $errMsg 1>&2
+      $rm -f $errMsg
+    else
+      errString="mmccr chnodes -n $ccrServerDescriptorList"
+      printErrorMsg 171 "$mmcmd" "$errString" $rc
+    fi
+    msgTxt=\
+"Unable to change the CCR quorum node configuration."
+    print -u2 "$mmcmd: $msgTxt"
+    fatalError=yes
+  else
+_IFDEF Design comments
+Pay attention to the ordering.  Because of the way we insert the action in front
+of the existing list, we are first pushing 'recycleSdrServ' and then 'ccrRefresh'.
+When the string is processed, the first action will be ccrRefresh and then we
+will recycle the mmsdrserv daemon - precisely what needs to happen.
+_ENDIF Design comments
+    propagateOptions="recycleSdrServ,${propagateOptions}"
+    propagateOptions="ccrRefresh=${ccrServerDescriptorList},${propagateOptions}"
+  fi
+  $rm -f $errMsg
+fi  # end of if [[ -n $ccrServerNodesChanged ]]
+
+
+#####################################################################
+# If adding new quorum nodes and the global passwordless access
+# has been disabled, the daemon must be stopped everywhere to avoid
+# an arbitrary cluster manager node from issuing mmchconfig.
+#####################################################################
+if [[ -n $daemonDownRequired && -z $fatalError ]]
+then
+  printInfoMsg 339
+  verifyDaemonInactive $allnodes $mmcmd
+  if [[ $? -eq 0 ]]
+  then
+    daemonInactiveVerified=yes
+  else
+    fatalError=yes
+    msgTxt=\
+"The following nodes have been designated as new quorum nodes:$newQuorumNodes\n"\
+"    When adding new quorum nodes and global passwordless access is\n"\
+"    disabled, GPFS must be shut down on all nodes in the cluster.\n"\
+"    Before reissuing mmaddnode you must do one of the following:\n"\
+"      shut down GPFS on all nodes (mmshutdown -a)\n"\
+"    or\n"\
+"      designate the nodes as nonquorum and convert them later (mmchnode)\n"\
+"    or\n"\
+"      enable global passwordless access (mmchconfig adminMode=allToAll)\n"
+    print -u2 "$mmcmd: $msgTxt"
+  fi  # end of if [[ $? -eq 0 ]]
+fi  # end of if [[ -n $daemonDownRequired && -z $fatalError ]]
+
+
+####################################################################
+# Issue a warning if we will exceed the maximum recommended number
+# of quorum nodes.
+####################################################################
+if [[ $quorumNodeCount -gt $maxRecQuorumNodes &&
+      -z $fatalError && $configRepository = "SERVER" ]]
+then
+  # Warning:  The number of quorum nodes exceeds the recommended maximum.
+  printErrorMsg 394 $mmcmd $maxRecQuorumNodes
+fi
+
+
+#######################################################
+# If anything failed, remove the skeleton sdrfs files
+# from the new nodes and die.
+#######################################################
+if [[ -n $fatalError ]]
+then
+  # Remove the already-installed system files.
+  printErrorMsg 351 $mmcmd
+  $ln $cleanupList ${cleanupList}async
+  if [[ $osName = Windows ]]
+  then
+    $mmcommon onall_async ${cleanupList}async removeFromCluster
+  else
+    $mmcommon onall_async ${cleanupList}async removeFromCluster &
+  fi
+  cleanupAndExit
+fi
+
+
+###############################################################
+# Update the version line and put it back in the mmsdrfs file.
+###############################################################
+# Recalculate the license counters based on the new sdrfs file.
+if [[ $configRepository = "CCR" ]]
+then
+  licenseCounts=$(getLicenseState $newsdrfs counters)
+else
+  # Config servers are in version line which is needed to count
+  # as server license in SERVER based cluster.
+  print -- "$versionLine" > ${newsdrfs}.2 ||  \
+    checkForErrors "writing to file ${newsdrfs}.2" $?
+  $cat $newsdrfs >> ${newsdrfs}.2 ||  \
+    checkForErrors "writing to file ${newsdrfs}.2" $?
+  licenseCounts=$(getLicenseState ${newsdrfs}.2 counters)
+fi
+
+# Parse the result.
+IFS=":" ; set -f ; set -- $licenseCounts ; set +f ; IFS="$IFS_sv"
+magicWord=$1
+unlicensedServers=$5
+unlicensedClients=$6
+
+[[ $magicWord != "licenseCounts" ]] &&  \
+  checkForErrors "getLicenseCounts" 1
+
+licenseState="${unlicensedServers}.${unlicensedClients}"
+
+IFS=":" ; set -f ; set -A v -- - $versionLine ; set +f ; IFS="$IFS_sv"
+newGenNumber=${v[$SDRFS_GENNUM_Field]}+1
+v[$SDRFS_GENNUM_Field]=$newGenNumber
+v[$LICSTATE_Field]="$licenseState"
+print_newLine >> $newsdrfs
+checkForErrors "writing to file $newsdrfs" $?
+
+
+#############################################################
+# Lock the Gpfs object to prevent the daemon from coming up
+# until all changes are successfully committed.
+#############################################################
+if [[ -z $daemonInactiveVerified ]]
+then
+  setRunningCommand $mmcmd
+  checkForErrors setRunningCommand $?
+  gpfsLocked=yes
+fi  # end of if [[ -z $daemonInactiveVerified ]]
+
+
+##########################################################################
+# Put the new mmsdrfs file into the sdr.  This will make the newly-added
+# nodes visible to the rest of the nodes in the cluster.
+##########################################################################
+# Generate a record for the current command and add it to the mmsdrfs file.
+# As a side effect, this will also sort the new version of the file.
+logRecord=\
+"$($date +%Y.%m.%d.%H.%M.%S):${newGenNumber}:${ourNodeNumber}:${mmcmd} ${mmcmdArgs}"
+appendLogRecord $newsdrfs "$logRecord"
+checkForErrors "appendLogRecord" $?
+
+# Commit the changes.
+trap "" HUP INT QUIT TERM PIPE
+commitChanges $newsdrfs
+rc=$?
+if [[ $rc -ne 0 ]]
+then
+  # We cannot replace the file in the sdr.
+  printErrorMsg 381 $mmcmd
+
+  # Remove the already-installed system files.
+  printErrorMsg 351 $mmcmd
+  $ln $cleanupList ${cleanupList}async
+  if [[ $osName = Windows ]]
+  then
+    $mmcommon onall_async ${cleanupList}async removeFromCluster
+  else
+    $mmcommon onall_async ${cleanupList}async removeFromCluster &
+  fi
+  cleanupAndExit
+fi
+
+
+###########################################################
+# Stage key files on new nodes if adminMode is central and
+# there are key files to stage.
+###########################################################
+_IFDEF Design comments
+Note that if CCR is in effect we already staged the new SSL key
+and now we need to push only the committed key file (if different).
+_ENDIF Design comments
+if [[ $configRepository = "CCR" && $committedKeyGenNumber -ne $newKeyGenNumber ]]
+then
+  mmdsh_Ioptions="-I ${genkeyData}${committedKeyGenNumber}"
+
+elif [[ $adminMode = central && $newKeyGenNumber -gt 0 ]]
+then
+  mmdsh_Ioptions="-I ${genkeyData}${newKeyGenNumber}"
+  [[ $committedKeyGenNumber -ne $newKeyGenNumber ]] &&  \
+    mmdsh_Ioptions="$mmdsh_Ioptions -I ${genkeyData}${committedKeyGenNumber}"
+
+else
+  # Either key files have not been generated yet or adminMode is allToall
+  # and the new nodes should be able to retrieve the files on their own.
+  mmdsh_Ioptions=""
+fi
+
+if [[ -n $mmdsh_Ioptions ]]
+then
+  # If we are here, $cleanupList has a list of good nodes with Altlogin.
+  # Copy the key files to these nodes.
+  $mmdsh -vF $cleanupList -R $unreachedNodes $mmdsh_Ioptions _NOOP_
+  if [[ -s $unreachedNodes ]]
+  then
+    # The following nodes could not be reached: . . .
+    printErrorMsg 270 $mmcmd
+    $cat $unreachedNodes 1>&2
+  fi
+fi
+
+
+#####################################################################
+# Unlock the sdr.
+#####################################################################
+if [[ $sdrLocked = "yes"* ]]
+then
+  [[ $sdrLocked = *":"* ]] && lockInstance=${sdrLocked#yes:} || lockInstance=""
+  freeLock mmSdrLock global $lockInstance
+fi
+sdrLocked=no
+if [[ $envLocked = "yes" ]]
+then
+  freeLock_local mmfsEnvLock
+  envLocked=no
+fi
+trap "cleanupAndExit 2 unlock 32" HUP INT QUIT TERM PIPE
+
+
+#####################################################################
+# At this point, skeleton sdrfs files have been put on the nodes
+# in the success list.  If there are any nodes in the failure list,
+# we issue a message telling the user to use the mmaddnode command
+# to add them to the sdrfs file once they become reachable.
+#####################################################################
+# Report any nodes that could not be added to the cluster.
+[[ -n $failedNodes ]] &&  \
+  printErrorMsg 353 $mmcmd "$failedNodes"
+
+# If not all nodes were added to the cluster,
+# tell the user how many made it through.
+[[ $nodesAddedToCluster -lt $totalNodeCount ]] &&  \
+  printErrorMsg 12 $mmcmd $nodesAddedToCluster $totalNodeCount
+
+# Issue "command was successful" message
+printErrorMsg 272 $mmcmd
+
+if [[ $sdrfsFormatLevel -ge 1102 ]]
+then
+  # Tell the user to run mmchlicense.
+  printErrorMsg 154 $mmcmd
+fi
+
+
+###################################################################
+# Asynchronously propagate the changes to all nodes, new and old.
+###################################################################
+$cat $goodnodes >> $allnodes
+checkForErrors "appending $goodnodes to $allnodes" $?
+propagateSdrfsFile async $allnodes $newsdrfs $newGenNumber $propagateOptions
+
+cleanupAndExit 0

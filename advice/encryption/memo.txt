@@ -1,0 +1,20 @@
+Please first ensure that all liscences and key are set correctly on the
+node and this link is for help:
+
+https://www.ibm.com/support/knowledgecenter/SSWPVP_2.7.0/com.ibm.sklm.doc/admin/tsk/tsk_ic_admin_gpfs_centraladmin.dita.html
+
+Spectrum Scale support two Remote Key Management (RKM) server, please review it and check which one is suitable for you.
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_5.0.2/com.ibm.spectrum.scale.v5r02.doc/bl1adv_encryption_prep.htm#bl1adv_encryption_prep__section_iss
+
+
+
+Below link shows steps to establish encryption envionment depends on your Spectrum Scale version and RMK servers:
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_5.0.0/com.ibm.spectrum.scale.v5r00.doc/bl1adv_encryptionenv_maintopic.htm
+
+
+PPT:
+search: encryption
+
+TS001899506 (My)
+TS001011019(Reference)
+TS002033640

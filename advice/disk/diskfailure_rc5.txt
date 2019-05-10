@@ -1,0 +1,10 @@
+
+Symptom:
+[E] Disk failure.  Volume payload. rc = 5.
+
+Reason:
+This is either hardware issue, or network connection to that nsd server down at the moment.
+
+How to check:
+1. Check if all the Disk failure volume are from same nsdserver.
+2. If so check that nsdserver is experience hang/reboot or some other abnormal status.

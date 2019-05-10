@@ -1,0 +1,16 @@
+1) Check env.txt
+2) Check /var/adm/ras/mmsysmonitor.{hostname}.log
+3) mmhealth node show -v
+4) mmhealth node eventlog --verbose | grep ces_network_ips_down
+
+
+
+
+System config:
+
+echo 0 >/proc/sys/vm/swappiness
+sysctl vm.swappiness = 0
+#set vm min_free_kbytes to 2G as recommended:
+#https://www.ibm.com/support/knowledgecenter/en/STXKQY_5.0.2/com.ibm.spectrum.scale.v5r02.doc/bl1ins_suse.htm
+sysctrl vm.min_free_kbytes=2000000
+

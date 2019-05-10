@@ -1,0 +1,64 @@
+
+0) Make sure all the /etc/hosts updated as new ip changed.
+1) If you are using CCR, need too force disable CCR when mmchcluster --ccr-disable fails.
+	a) Update /var/mmfs/gen/mmsdrfs:
+		i) Update first line, separated by ":", section 6(VERSION_LINE) and section 23(CCR_Enabled), add 1 to section 6 and Delete "A" from section 23, ex:
+		```
+		[Before]
+		%%9999%%:00_VERSION_LINE::1423:3:>>>>>>63<<<<<<<::lc:c671m2vm11::0:/usr/bin/ssh:/usr/bin/scp:9578227239944003760:lc2:1456808116::protocols2.c671m2vm11:2:1:1:2::>>>>>>A<<<<<<<::::0.0:
+		[After]
+		%%9999%%:00_VERSION_LINE::1423:3::>>>>>>64<<<<<<<::lc:c671m2vm11::0:/usr/bin/ssh:/usr/bin/scp:9578227239944003760:lc2:1456808116::protocols2.c671m2vm11:2:1:1:2::>>>>>><<<<<<<::::0.0:
+		```
+
+		Method to display them:
+		```
+		head -1 /var/mmfs/gen/mmsdrfs | awk -F ":" '{print $6, $23}'
+		```
+
+		ii) Update "ccrEnable:yes" to "ccrEnable:no"
+		ex:
+		```
+		Before:
+
+		%%home%%:70_MMFSCFG::6:minReleaseLevel:1423 4.1.1.0::::::::::::::::::::::
+		%%home%%:70_MMFSCFG::7:ccrEnabled:yes::::::::::::::::::::::
+		%%home%%:70_MMFSCFG::8:maxblocksize:16M::::::::::::::::::::::
+		%%home%%:70_MMFSCFG::9:logWrapThreads:16:cesNodes:::::::::::::::::::::
+
+		After:
+
+		%%home%%:70_MMFSCFG::6:minReleaseLevel:1423 4.1.1.0::::::::::::::::::::::
+		%%home%%:70_MMFSCFG::7:ccrEnabled:no::::::::::::::::::::::
+		%%home%%:70_MMFSCFG::8:maxblocksize:16M::::::::::::::::::::::
+		%%home%%:70_MMFSCFG::9:logWrapThreads:16:cesNodes:::::::::::::::::::::
+		```
+
+		iii) Change ip in following section:
+		```
+		%%home%%:20_MEMBER_NODE::1:1:c866f2u25:>>>>>>>>9.114.182.193<<<<<<<<<<:c866f2u25:manager:G,X,Z:2::::c866f2u25:c866f2u25:2003:5.0.2.2:Linux:N::::::server::
+ 		%%home%%:20_MEMBER_NODE::2:2:c866f2u27:>>>>>>>>9.114.182.194<<<<<<<<<<:c866f2u27:client:Z:1,2::::c866f2u27:c866f2u27:2003:5.0.2.2:Linux:Q::::::server::
+ 		```
+
+	b) Copy /var/mmfs/gen/mmsdrfs to all of 20 nodes manually, or you can try this cmd:
+	```
+	mmsdrrestore -p 192.168.1.1 -R /usr/bin/scp -a #This will restore the configuration file from the specified node
+	```
+
+	c) Finally, force a rebuild of configuration files on all nodes. This is required to ensure the mmfs.cfg files are updated:
+	```
+	mmrefresh -f -N all
+	```
+
+	d) Now CCR is disabled and you can run gpfs cmd
+
+2) startup GPFS:
+```
+mmstartup -a
+```
+
+3) Enable ccr
+```
+mmchcluster --enable-ccr
+```
+
+4) All Done, system back.

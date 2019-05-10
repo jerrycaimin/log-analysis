@@ -1,0 +1,3 @@
+How to build a tct env:
+https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.2/com.ibm.spectrum.scale.v4r22.doc/bl1adm_identifying_gateway_node.htm
+

@@ -1,0 +1,10 @@
+1. gpfs.snap
+
+2. gpfs.snap -z
+single node
+
+3. when snap hang, run this to find which process hang:
+ps -eafl | grep gpfs.snap
+or
+ps -eafl | grep mmfs
+

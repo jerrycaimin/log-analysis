@@ -1,0 +1,4 @@
+check the current status:
+
+mmfsadm dump pit | grep -i pct
+
