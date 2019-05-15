@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <warning-hittimes>1</warning-hittimes>
+    <define-times>1</define-times>
+    <issue name="long waiters detected.">
+    	<item>
+    		<filepaths sortable="False">
+	            <filepath>./internaldumps/internaldump*/internaldump*</filepath>
+	            <filepath>./internaldump*/internaldump*</filepath>
+            </filepaths>
+            <exps>
+				<exp>aiting \d+\.\d+ sec</exp>
+			</exps>
+            <desc>too many long waiters detected.</desc>
+    	</item>
+    </issue>
+</root>

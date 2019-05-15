@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <warning-hittimes>1</warning-hittimes>
+    <define-times>1</define-times>
+    <refine-log type="plane">
+    	<item>
+            <filepath>./mmfs.logs*</filepath>
+            <exclude-str>sorted</exclude-str>
+            <capture-exps>
+            	<exp>\[E\]</exp>
+            	<exp>Error</exp>
+            </capture-exps>
+        </item>
+        <item></item>
+    </refine-log>
+    <issue name="AD server or winbind issues">
+    	<item>
+    		<filepaths sortable="True">
+	            <filepath>./var/adm/ras/mmsysmonitor*</filepath>
+            </filepaths>
+            <exps>
+				<exp>Event=ads_down</exp>
+				<exp>Event=ads_failed</exp>
+				<exp>Event=ads_up</exp>
+			</exps>
+            
+            <desc>Tips to troubleshooting AD server or winbind issues</desc>
+    	</item>
+        <advice from="advice/authentication/ad_server_and_winbind.txt" />
+    </issue>
+    <issue name="log assert crash issue.">
+    	<item>
+    		<filepaths sortable="True">
+	            <filepath>./mmfs.logs*</filepath>
+            </filepaths>
+            <exps>
+				<exp>logAssertFailed</exp>
+			</exps>
+            <desc>hit log assert crash issue.</desc>
+            <log_range>-25,20</log_range>
+    	</item>
+    	<advice from="advice/crash/logAssertFailed.txt" />
+    </issue>
+
+    <issue name="fs crash issue">
+    	<item>
+    		<filepaths sortable="True">
+	            <filepath>./var/log/messages</filepath>
+            </filepaths>
+            <exps>
+				<exp>Error=MMFS_FSSTRUCT</exp>
+			</exps>
+            <desc>fs might crashed, need follow the best practice to fix the fs issue.</desc>
+            <log_range>0,20</log_range>
+    	</item>
+    	<advice from="advice/filesystem/best_practise_fix_fs_mmfsck.txt" />
+    </issue>
+</root>

@@ -1,0 +1,27 @@
+Config:
+/opt/kafka/config
+
+Install package:
+$ grep kafka rpm_qa
+
+gpfs.librdkafka-5.0.2-0.x86_64
+gpfs.kafka-5.0.2-0.x86_64
+
+logs:
+msgqueue.snap.IstFileNode.20190509_091933/var/adm/ras/mmaudit.log :
+2019-05-09_07:51:05.877+0300:119296:119297:getEvalPartitionPolicyEvents:7075: [I] Monitored events for device istfilesrvcls: ACLCHANGE,CLOSE,CREATE,DESTROY,GPFSATTRCHANGE,OPEN,RENAME,RMDIR,UNLINK,XATTRCHANGE
+2019-05-09_08:51:04.879+0300:12952:12953:/usr/lpp/mmfs/bin/mmaudit:7663: Get Lock result is: fileAuditLock:granted:178053
+2019-05-09_08:51:05.448+0300:12952:12953:getEvalPartitionPolicyEvents:7037: [I] Event types value from audit config for device istfilesrvcls: ''
+2019-05-09_08:51:05.746+0300:12952:12953:getPartitionPolicyEvents:6882: About to run: /usr/lpp/mmfs/bin/tslspolicy istfilesrvcls -L --ptn SpectrumScale_150_16937113257409497451_1_FSYS_istfilesrvcls_audit
+2019-05-09_08:51:05.864+0300:12952:12953:getPartitionPolicyEvents:6924: Discovered events 'ACLCHANGE,CLOSE,CREATE,DESTROY,GPFSATTRCHANGE,OPEN,RENAME,RMDIR,UNLINK,XATTRCHANGE' for policy SpectrumScale_150_16937113257409497451_1_FSYS_istfilesrvcls_audit for device istfilesrvcls
+
+
+
+SO you can check inside filesystem for audit messages in path like: 
+/gpfs/istfilesrvcls/.audit_log/SpectrumScale_150_16937113257409497451_1_FSYS_istfilesrvcls_audit/2019/05/08/auditLogFile_IstPrt2Node_2019-05-08_12:20:31
+
+
+
+
+
+

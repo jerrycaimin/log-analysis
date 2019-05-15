@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <warning-hittimes>1</warning-hittimes>
+    <define-times>1</define-times>
+    <issue name="network problem from rto raise to 2min">
+        <item>
+            <filepaths sortable="False">
+	            <filepath>./internaldumps*/extra*</filepath>
+	            <filepath>./internaldumps*/extra*/extra*</filepath>
+            </filepaths>
+            <exp>120000000</exp>
+			<desc>RTO raised to 2min network issue</desc>
+			<log_range>-5,20</log_range>
+        </item>
+        <advice from="advice/network/tcp_configuration.txt" />
+    </issue>
+     <issue name="node expel due to network glitches">
+    	<item>
+    		<filepaths sortable="True">
+	            <filepath>./mmfs.logs*</filepath>
+            </filepaths>
+            <exps>
+				<exp>is being expelled because of an expired lease. Pings sent</exp>
+				<exp>Disk lease period expired</exp>
+				<exp>Disk lease reacquired</exp>
+			</exps>
+            <desc>hit node expel due to network glitches problem.</desc>
+            <log_range>-20,100</log_range>
+    	</item>
+    	<advice from="advice/node-expel/node_expel_due_to_network_glitches.txt" />
+    </issue>
+</root>

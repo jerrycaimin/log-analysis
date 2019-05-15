@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <warning-hittimes>1</warning-hittimes>
+    <define-times>1</define-times>
+    <issue name="disks I/O waiting > 20ms that may downgrade the performance">
+        <item>
+        	<filepaths sortable="False">
+	            <filepath>./internaldump*/internaldump*</filepath>
+            </filepaths>
+            <exp>aiting \d+\.\d+ sec.*I/O completion on disk</exp>
+			<desc>wait for disk I/O completion.</desc>			
+        </item>
+        <item>
+        	<filepaths sortable="False">
+	            <filepath>./internaldump*/internaldump*</filepath>
+            </filepaths>
+            <exp>Waiting \d+\.\d+ sec.*NSD I/O completion</exp>
+			<desc>wait for nsd I/O completion.</desc>
+        </item>
+        <advice from="advice/disk/disk_nsd_io_pending_20ms.txt" />
+    </issue>
+    <issue name="disk failure or network issue to nsd server">
+       <item>
+    		<filepaths sortable="True">
+	            <filepath>./mmfs.logs*</filepath>
+            </filepaths>
+            <exps>
+				<exp>Disk failure.*rc = 5.</exp>
+			</exps>
+            <desc>disk failure due to hardware issue or network issue to nsd server.</desc>
+    	</item>
+        <advice from="advice/disk/diskfailure_rc5.txt" />
+    </issue>
+</root>

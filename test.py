@@ -17,6 +17,16 @@ import re
 # print "1111e"
 
 #%a %b %d %X.%f %Y
+b = []
+for f in os.listdir("./conf"):
+    b.append("./config.xml/" + f)
+
+for f2 in b:
+    print f2
+#    matching_paths = matching_paths + glob.glob(os.path.join(target_folder, f))
+
+
+exit
 
 #line = "2017-06-02_14:18:57.279: [E]sdfdsfsdfdsfs"
 line = "Wed Jun 21 07:32:00.457 2017:  [E]sdfdsfsdfdsfs"

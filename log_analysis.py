@@ -585,8 +585,15 @@ if __name__ == "__main__":
 #     else:
 #         target_folders = ["./test"]
     
-    usage = "usage: %prog [options] arg"  
-    parser = OptionParser(usage)  
+    usage = "usage: python log_analysis.py {gpfs.snap_folder_path} -m {mode}" + "\n"\
+            "    Current support mode:" "\n"\
+            "       disk: scan disk related issues," + "\n"\
+            "       hang: scan long waiters, hang, deadlock related issues," + "\n"\
+            "       network: scan network related issues," + "\n"\
+            "       common: scan other issues and also refine logs."
+
+
+    parser = OptionParser(usage)
     parser.add_option("-d", "--date", dest="start_date",  
                       help="logs start from date.")
     
@@ -598,8 +605,12 @@ if __name__ == "__main__":
                       default=False, action="store_true",
                       help="generate date when date string includes week not sortable.")
 
+    parser.add_option("-m", "--mode", dest="selected_mode",
+                      action="append", help="current supported mode:'common','disk','hang','network'\n" +
+                                            "can set multiple mode.")
+
     parser.add_option("-c", "--config-file", dest="config_files",
-                      action="append", help="specify the config files.")
+                      action="append", help="specify the config files.(Invalid when -m set)")
     
     parser.add_option("-f", "--folder", dest="folders",
                       action="append", help="specify the folders that need to analysis.")
@@ -703,7 +714,19 @@ if __name__ == "__main__":
         # only set when user didn't specified config_files, as they might have their own grep-files configured. 
         config_files = ["./grep-files.xml"]
     else:
-        config_files = ["./config.xml"]
+        config_files = []
+        for f in os.listdir("./conf"):
+            config_files.append("./conf/" + f)
+
+    if options.selected_mode:
+        #when selected mode set, override config-file settings:
+        config_files = []
+        for selected_mode in options.selected_mode:
+            mode_config_file = "conf/" + selected_mode + ".xml"
+            if not os.path.exists(mode_config_file):
+                parser.error("mode not supported: " + selected_mode + ", config file not found:" + mode_config_file)
+            else:
+                config_files.append(mode_config_file)
 
     if not set_exp:
         # refine the log from all the dumplogs, which defined in config.xml
