@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <warning-hittimes>1</warning-hittimes>
+    <define-times>1</define-times>
+    <issue name="smb took unexpectedly long">
+        <item>
+        	<filepaths sortable="False">
+	            <filepath>../smb*/var/adm/ras/log.smbd</filepath>
+            </filepaths>
+            <exp>took unexpectedly long</exp>
+			<desc>smb took unexpectedly long</desc>
+        </item>
+    </issue>
+</root>

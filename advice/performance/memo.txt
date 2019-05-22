@@ -1,0 +1,8 @@
+
+
+
+
+[On nsd server]
+1) vfs
+2) rdma
+3)

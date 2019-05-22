@@ -1,0 +1,11 @@
+Such command?s leave corresponding records, for instance, "mmfsd is shutting down". And we do not have that.
+
+This accident should be a signal kill, like "kill -9 <mmfsd pid>". This signal may come from
+
+1. key storkes
+2. linux kernel like OOM (Out of memory) killer
+3, some user-deployed tools/scripts
+We have seen all three cases that happened in our previous support cases of other customers.
+Possibility 2 usually leaves record in /var/log/messsages. But we do not have such message there.
+This machine also had plenty of free memory when we collected gpfs.snap, hours after the event.
+So this posssibility looks trival. But it does not hurt to check memory usage history, if we have that.

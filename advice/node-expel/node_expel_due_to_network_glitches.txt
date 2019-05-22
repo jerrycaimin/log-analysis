@@ -205,8 +205,7 @@ eneral%20Parallel%20File%20System%20(GPFS)/page/Tuning%20Parameters
 
 8. vm.min_free_kbytes is too small as well. Please increase them to
 5%~6% of your physical memory but no more than 2G.
-https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.3/com.ibm.spectru
-m.scale.v4r23.doc/bl1ins_suse.htm
+https://www.ibm.com/support/knowledgecenter/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1ins_suse.htm
 
 9. In your ESS cluster, I noticed verbsRdma is enabled, but both RDMA
 ports were disabled... Not sure if you plan to use RDMA or not, you
