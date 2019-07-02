@@ -118,7 +118,8 @@ I think you can mount the file system of all the nodes and start your applicatio
 
 
 
-Looks like the log file is corrupt. Like you said, there are not fsstruct errors logged, but that is no guarantee that fs is not corrupt. You will need to run offline fsck to at least repair log files -
+Looks like the log file is corrupt. Like you said, there are not fsstruct errors logged, but that is no guarantee that
+fs is not corrupt. You will need to run offline fsck to at least repair log files -
 
 mmfsck <fs> -xk
 

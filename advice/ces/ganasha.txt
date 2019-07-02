@@ -144,3 +144,29 @@ I could see that there is gap of almost 0.80 / 0.85 sec
 
 
 In summary, Ganesha is working fine. It may be the network which is causing delay to reach NFS server intermittently.
+
+[Check ganesha collections]
+Number of NFS connections at each node. Of course, this is just one time shot.
+-bash-4.2$ grep "2049.*ESTABLI" */netstat_a -c
+essems-ib_0528115216/netstat_a:0
+essio1-ib_0528115216/netstat_a:0
+essio2-ib_0528115216/netstat_a:0
+smtcfc0185-ib_master_0528115042/netstat_a:0
+smtcfc0186-ib_0528115216/netstat_a:0
+
+
+[Easy collect ganesha logs to debug]
+GPFS Trace on protocol node:
+mmtracectl --start
+<recreate issue.>
+mmtracectl --stop -N all
+Enable genesha debug log:
+ganesha_mgr set_log COMPONENT_ALL FULL_DEBUG
+<recreate issue.>
+ganesha_mgr set_log COMPONENT_ALL EVENT
+tcpdump on both protocol node and client node, I need to compare if the files requested existed on server side.
+Tips: Always collect tcpdump in pcap format by providing -w option to tcpdump command.
+Upload to us for investigation.
+Sure, you can try this cmd for the tcpdump collection:
+server side: tcpdump -i <interfance_communicate_with_client> -w /tmp/server.pcap
+client side: tcpdump -i <interfance_communicate_with_server> -w /tmp/client.pcap

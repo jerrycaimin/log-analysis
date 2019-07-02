@@ -91,8 +91,9 @@ Refer to Concepts, Planning, and Installation Guide
 
 
 ===== create fileset and link =======
+mmchnode --gateway -N Node1,Node2
 //mmcrfileset gpfs1 singlewriterCache -p afmtarget=gpfs:///remote_gpfs1/singlewriterHome -p afmmode=single-writer --inode-space=new
-mmcrfileset gpfs1 independentwritercache -p afmtarget=gpfs:///remote_gpfs1/independentwriterHome -p afmmode=independent-writer --inode-space new
+mmcrfileset gpfs1 independentwritercache -p afmtarget=gpfs:///remoteGPFS/independentwriterHome -p afmmode=independent-writer --inode-space new
 mmlinkfileset gpfs1 independentwritercache -J /gpfs1/independentwritercache
 mmafmctl gpfs1 getstate
 

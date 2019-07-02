@@ -11,4 +11,18 @@
 			<desc>smb took unexpectedly long</desc>
         </item>
     </issue>
+
+
+    <issue name="ganesha req quota exceeded">
+        <item>
+        	<filepaths sortable="False">
+	            <filepath>../nfs*/var/log/ganesha.log</filepath>
+            </filepaths>
+            <exp>global outstanding reqs quota exceeded</exp>
+			<desc>ganesha request quota exceeded may due to workload too heavey or need further turning</desc>
+        </item>
+        <advice from="advice/ces/ganesha_req_exceeded.txt" />
+    </issue>
+
+
 </root>

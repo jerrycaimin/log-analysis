@@ -1,0 +1,208 @@
+
+Hi,
+
+I am Sandeep Bazar from Spectrum Scale Technical Support. I started looking at the issue reported by you.
+
+This is when snap was taken. Two protocol nodes, smtcfc0185 used 0.45G memory and smtcfc0186 used 0.55G. And smtcfc0185 used 19.1% CPU and smtcfc0186 used 36.2% CPU.
+-bash-4.2$ grep "ganesha.nfsd" */ps_auxw
+USER PID %CPU %MEM VSZ RSS TTY STAT START TIME COMMAND
+smtcfc0185-ib_master_0528115042/ps_auxw:root 21953 19.1 0.3 19326452 473484 ? Ssl 11:15 6:42 /usr/bin/gpfs.ganesha.nfsd -C -L /var/log/ganesha.log -f /etc/ganesha/ganesha.conf -N NIV_EVENT -E 328030
+smtcfc0186-ib_0528115216/ps_auxw:root 13884 36.2 0.4 19441216 582184 ? Ssl 11:20 11:38 /usr/bin/gpfs.ganesha.nfsd -C -L /var/log/ganesha.log -f /etc/ganesha/ganesha.conf -N NIV_EVENT -E 393567
+
+Default 1.5M Entries_HWMark
+-bash-4.2$ grep -i entries_hwmark */var/mmfs/ces/nfs-config/gpfs.ganesha.main.conf
+nfs.snap.smtcfc0185.20190528_115106/var/mmfs/ces/nfs-config/gpfs.ganesha.main.conf: Entries_HWMark = 1500000;
+nfs.snap.smtcfc0186.20190528_115240/var/mmfs/ces/nfs-config/gpfs.ganesha.main.conf: Entries_HWMark = 1500000;
+
+Number of NFS connections at each node. Of course, this is just one time shot.
+netstat -an | grep ESTABLISH | grep 2049
+-bash-4.2$ grep "2049.*ESTABLI" */netstat_a -c
+essems-ib_0528115216/netstat_a:0
+essio1-ib_0528115216/netstat_a:0
+essio2-ib_0528115216/netstat_a:0
+smtcfc0185-ib_master_0528115042/netstat_a:0
+smtcfc0186-ib_0528115216/netstat_a:0
+
+All protocol nodes have 125 GB physical memory
+$ grep MemTotal dss-pro*/proc_meminfo
+-bash-4.2$ grep MemTotal smtcfc018*/proc_meminfo
+smtcfc0185-ib_master_0528115042/proc_meminfo:MemTotal: 131414096 kB
+smtcfc0186-ib_0528115216/proc_meminfo:MemTotal: 131414096 kB
+
+At the time when snap was taken, node smtcfc0185 got 83.2 G available left and node smtcfc0186 got 83.4G available.
+-bash-4.2$ grep "MemAvailable" smtcfc018*/proc_meminfo | sort -n -k 2
+smtcfc0185-ib_master_0528115042/proc_meminfo:MemAvailable: 87265032 kB
+smtcfc0186-ib_0528115216/proc_meminfo:MemAvailable: 87460932 kB
+
+maxFilesToCache is 600000.
+-bash-4.2$ grep maxFilesToCache smtcfc018*/internaldump.*
+smtcfc0185-ib_master_0528115042/internaldump.2019-05-28_11.50.43.26320.snap.smtcfc0185-ib: ! maxFilesToCache 600000
+smtcfc0186-ib_0528115216/internaldump.2019-05-28_11.52.17.27371.snap.smtcfc0186-ib: ! maxFilesToCache 600000
+
+Pagepool 32GB
+-bash-4.2$ grep "Total pagepool" smtcfc018*/internaldump.*
+smtcfc0185-ib_master_0528115042/internaldump.2019-05-28_11.50.43.26320.snap.smtcfc0185-ib:Total pagepool 33554416 KiB nonStealable 12268828 KiB stealable 21285588 KiB
+smtcfc0186-ib_0528115216/internaldump.2019-05-28_11.52.17.27371.snap.smtcfc0186-ib:Total pagepool 33554416 KiB nonStealable 4707104 KiB stealable 28847312 KiB
+
+vm.min_free_kbytes set to 0.064GB
+-bash-4.2$ grep 'vm.min_free_kbytes' smtcfc018*/sysctl_a
+smtcfc0185-ib_master_0528115042/sysctl_a:vm.min_free_kbytes = 67584
+smtcfc0186-ib_0528115216/sysctl_a:vm.min_free_kbytes = 67584
+
+worker1Threads usually 512 or 1024
+-bash-4.2$ grep worker1Threads smtcfc018*/internaldump.*
+smtcfc0185-ib_master_0528115042/internaldump.2019-05-28_11.50.43.26320.snap.smtcfc0185-ib: worker1Threads 48
+smtcfc0186-ib_0528115216/internaldump.2019-05-28_11.52.17.27371.snap.smtcfc0186-ib: worker1Threads 48
+
+-bash-4.2$ grep workerThreads smtcfc018*/internaldump.*
+smtcfc0185-ib_master_0528115042/internaldump.2019-05-28_11.50.43.26320.snap.smtcfc0185-ib: workerThreads 48
+smtcfc0186-ib_0528115216/internaldump.2019-05-28_11.52.17.27371.snap.smtcfc0186-ib: workerThreads 48
+
+-bash-4.2$ grep 'global outstanding reqs quota exceeded' nfs.snap.smtcfc018*/var/log/ganesha.log* | wc -l
+2095334
+
+-bash-4.2$ grep 'Build branch' smtcfc018*/internaldump.*
+smtcfc0185-ib_master_0528115042/internaldump.2019-05-28_11.50.43.26320.snap.smtcfc0185-ib:Build branch "5.0.3.0 ".
+smtcfc0186-ib_0528115216/internaldump.2019-05-28_11.52.17.27371.snap.smtcfc0186-ib:Build branch "5.0.3.0 ".
+
+Initial recommendations:
+From initial analysis, the issue reported seems to be triggered by an overloaded protocol nodes.
+
+1) worker1Threads or workerThreads current value is too small. Increase value of workerThreads to 512 as you are on release 5.0.3
+If running IBM Spectrum Scale 4.2.0 PTF3, 4.2.1, or any higher level, either set workerThreads to 512 or try setting workerThreads=8*cores per node.
+The default value of this parameter is 48. When protocols service (NFS/SMB/OBJ) are installed, it's changed to 512 by applying profiles (/usr/lpp/mmfs/profiles).
+The workerThreads parameter controls an integrated group of variables that tune the file system performance in environments that are capable of high sequential and random read and write workloads and small file activity.
+
+This variable controls both internal and external variables. The internal variables include maximum settings for concurrent file operations, for concurrent threads that flush dirty data and metadata, and for concurrent threads that prefetch data and metadata.
+You can adjust external variables, such as following, when Spectrum Scale computed from WorkerThreads are not suitable for your workload. The following variables are auto-calculated when WorkerThreads is enabled:
+. flushedDataTarget
+. flushedInodeTarget
+. logBufferCount
+. logWrapThreads
+. maxAllocRegionsPerNode
+. maxBackgroundDeletionThreads
+. maxBufferCleaners
+. maxFileCleaners
+. maxGeneralThreads
+. maxInodeDeallocPrefetch
+. parallelWorkerThreads
+. prefetchThreads
+. sync1WorkerThreads
+. sync2WorkerThreads
+. syncBackgroundThreads
+. syncWorkerThreads
+. worker3Threads
+
+A best practice start value is 512 for a high-performance backend. Execute below on both protocol nodes:
+mmchconfig workerThreads=512
+
+Note: This requires a restart of IBM Spectrum Scale on both nodes to take the value effective.
+
+2) vm.min_free_kbytes is set to 67584 kb on both protocol nodes. Increase to 2090000.
+When vm.min_free_kbytes is set to its default value, on some configurations it is possible to encounter memory exhaustion symptoms when free memory should, in fact, be available. Setting vm.min_free_kbytes to 5-6% of the total amount of physical memory, but no more than 2 GB, can prevent this problem.
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1ins_suse.htm <https://www.ibm.com/support/knowledgecenter/en/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1ins_suse.htm>
+
+3) messages on protocol node
+nfs.snap.smtcfc0185.20190528_115106/var/log/ganesha.log:2019-05-27 13:07:05 : epoch 0005015a : smtcfc0185 : gpfs.ganesha.nfsd-26676[disp] nfs_rpc_getreq_ng :DISP :EVENT :global outstanding reqs quota exceeded (have 5791, allowed 5000)
+nfs.snap.smtcfc0185.20190528_115106/var/log/ganesha.log:2019-05-27 13:07:05 : epoch 0005015a : smtcfc0185 : gpfs.ganesha.nfsd-26676[disp] nfs_rpc_getreq_ng :DISP :EVENT :global outstanding reqs quota exceeded (have 5791, allowed 5000)
+nfs.snap.smtcfc0185.20190528_115106/var/log/ganesha.log:2019-05-27 13:07:05 : epoch 0005015a : smtcfc0185 : gpfs.ganesha.nfsd-26676[disp] nfs_rpc_getreq_ng :DISP :EVENT :global outstanding reqs quota exceeded (have 5791, allowed 5000)
+nfs.snap.smtcfc0185.20190528_115106/var/log/ganesha.log:2019-05-27 13:07:05 : epoch 0005015a : smtcfc0185 : gpfs.ganesha.nfsd-26676[disp] nfs_rpc_getreq_ng :DISP :EVENT :global outstanding reqs quota exceeded (have 5791, allowed 5000)
+nfs.snap.smtcfc0185.20190528_115106/var/log/ganesha.log:2019-05-27 13:07:05 : epoch 0005015a : smtcfc0185 : gpfs.ganesha.nfsd-26676[disp] nfs_rpc_getreq_ng :DISP :EVENT :global outstanding reqs quota exceeded (have 5791, allowed 5000)
+nfs.snap.smtcfc0185.20190528_115106/var/log/ganesha.log:2019-05-27 13:07:05 : epoch 0005015a : smtcfc0185 : gpfs.ganesha.nfsd-26676[disp] nfs_rpc_getreq_ng :DISP :EVENT :global outstanding reqs quota exceeded (have 5791, allowed 5000)
+
+With global outstanding RPC limitation Dispatch_Max_Reqs 5000 and per connection RPC limitation Dispatch_Max_Reqs_Xprt 5000, I suspect this is where one single aggressive/problematic NFS client exhausts all server resources, and starve the other NFS clients. Wondering if we can decrease the default Dispatch_Max_Reqs_Xprt to something like 2K or 3K, so we leave enough room for other clients, so as to avoid a global impaction. Also, increase outstanding RPC limitation to 10,000 instead of 5000.
+
+Update the following parameters in NFS-Config.
+Dispatch_Max_Reqs = 10000
+Dispatch_Max_Reqs_Xprt = 3000
+
+For the process of updating the above config values refer to the following blog:
+https://ganltc.github.io/nfs-ganesha-configuration-on-spectrum-scale.html <https://ganltc.github.io/nfs-ganesha-configuration-on-spectrum-scale.html>
+
+Monitor the cluster after above changes and let me know how it goes.
+
+
+Hi Stephen,
+
+1)
+Searched and found many ganesha hang issues related with this "global outstanding reqs quota exceeded" problem.
+```
+2019-06-04 13:45:00 : epoch 00020064 : m-ssnsd-01p.mcri.edu.au : gpfs.ganesha.nfsd-3559788[disp] nfs_rpc_getreq_ng :DISP :EVENT :global outstanding reqs quota exceeded (have 5126, allowed 5000)
+2019-06-04 13:45:00 : epoch 00020064 : m-ssnsd-01p.mcri.edu.au : gpfs.ganesha.nfsd-3559788[disp] nfs_rpc_getreq_ng :DISP :EVENT :global outstanding reqs quota exceeded (have 5126, allowed 5000)
+```
+With global outstanding RPC limitation Dispatch_Max_Reqs 5000 and per connection RPC limitation Dispatch_Max_Reqs_Xprt 5000, I suspect this is where one single aggressive/problematic NFS client exhausts all server resources, and starve the other NFS clients. Wondering if we can decrease the default Dispatch_Max_Reqs_Xprt to something like 2K or 3K, so we leave enough room for other clients, so as to avoid a global impaction. Also, increase outstanding RPC limitation to 10,000 instead of 5000.
+
+Update the following parameters in NFS-Config.
+Dispatch_Max_Reqs = 10000
+Dispatch_Max_Reqs_Xprt = 3000
+
+For the process of updating the above config values refer to the following blog:
+https://ganltc.github.io/nfs-ganesha-configuration-on-spectrum-scale.html
+
+2)
+And please also remember to reset ganesha debug log to normal, by this will also impact performance very bad:
+```
+ganesha_mgr set_log COMPONENT_ALL EVENT
+```
+
+3) You would better set maxStatCache to 8M as same as maxFilesToCache.
+bash-4.2$ grep -e "maxStatCache" -e "maxFilesToCache" */internaldump.*
+ ! maxFilesToCache 8388608
+ ! maxStatCache 2000000
+Performance tuning guide:
+https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/General%20Parallel%20File%20System%20(GPFS)/page/Tuning%20Parameters?section=maxStatCache
+
+or warning will be printed at cesevent:
+```
+mmcesevents::0:1:::M-ssNSD-01p-gpfs:GPFS:gpfs_maxstatcache_low:TIP:The GPFS maxStatCache is lower than the maxFilesToCache setting.:
+```
+*Tips: You need restart GPFS on all protocol nodes to take effect.
+
+4) Reviewed the tcpdump from client, seems ganesha server responsed very quick on WRITE Call, each call cost 0.002s:
+```
+bash-4.2$ tshark -r tcpdump.pcap000 | grep NFS | grep -i write| head
+   54   0.641966 10.20.100.80 ¡ú 10.20.0.11   NFS 1310 V3 WRITE Call, FH: 0x2b105602 Offset: 2818048 Len: 1070 FILE_SYNC[Packet size limited during capture]
+   55   0.643182   10.20.0.11 ¡ú 10.20.100.80 NFS 230 V3 WRITE Reply (Call In 54) Len: 1070 FILE_SYNC
+   57   0.643242 10.20.100.80 ¡ú 10.20.0.11   NFS 1310 V3 WRITE Call, FH: 0x850269c3 Offset: 2818048 Len: 1070 FILE_SYNC[Packet size limited during capture]
+   58   0.644258   10.20.0.11 ¡ú 10.20.100.80 NFS 230 V3 WRITE Reply (Call In 57) Len: 1070 FILE_SYNC
+  103   1.121185 10.20.100.80 ¡ú 10.20.0.11   NFS 678 V3 WRITE Call, FH: 0x1379c2c1 Offset: 1260172 Len: 437 FILE_SYNC[Packet size limited during capture]
+  104   1.123151   10.20.0.11 ¡ú 10.20.100.80 NFS 230 V3 WRITE Reply (Call In 103) Len: 437 FILE_SYNC
+  105   1.123199 10.20.100.80 ¡ú 10.20.0.11   NFS 2962 V3 WRITE Call, FH: 0x7bb27197 Offset: 1257472 Len: 3137 FILE_SYNC[Unreassembled Packet]
+  108   1.124147   10.20.0.11 ¡ú 10.20.100.80 NFS 230 V3 WRITE Reply (Call In 105) Len: 3137 FILE_SYNC
+  124   1.240795 10.20.100.80 ¡ú 10.20.0.11   NFS 1514 V3 WRITE Call, FH: 0x0c48f29b Offset: 2912256 Len: 2421 FILE_SYNC[Unreassembled Packet]
+  127   1.242486   10.20.0.11 ¡ú 10.20.100.80 NFS 230 V3 WRITE Reply (Call In 124) Len: 2421 FILE_SYNC
+ ....
+```
+ GETATTR also very fast, each call cost 0.001s:
+```
+bash-4.2$ tshark -r tcpdump.pcap000 | grep NFS | grep -i getattr | head
+    54   0.641966 10.20.100.80 ¡ú 10.20.0.11   NFS 1310 V3 WRITE Call, FH: 0x2b105602 Offset: 2818048 Len: 1070 FILE_SYNC[Packet size limited during capture]
+   55   0.643182   10.20.0.11 ¡ú 10.20.100.80 NFS 230 V3 WRITE Reply (Call In 54) Len: 1070 FILE_SYNC
+   57   0.643242 10.20.100.80 ¡ú 10.20.0.11   NFS 1310 V3 WRITE Call, FH: 0x850269c3 Offset: 2818048 Len: 1070 FILE_SYNC[Packet size limited during capture]
+   58   0.644258   10.20.0.11 ¡ú 10.20.100.80 NFS 230 V3 WRITE Reply (Call In 57) Len: 1070 FILE_SYNC
+  103   1.121185 10.20.100.80 ¡ú 10.20.0.11   NFS 678 V3 WRITE Call, FH: 0x1379c2c1 Offset: 1260172 Len: 437 FILE_SYNC[Packet size limited during capture]
+  104   1.123151   10.20.0.11 ¡ú 10.20.100.80 NFS 230 V3 WRITE Reply (Call In 103) Len: 437 FILE_SYNC
+  105   1.123199 10.20.100.80 ¡ú 10.20.0.11   NFS 2962 V3 WRITE Call, FH: 0x7bb27197 Offset: 1257472 Len: 3137 FILE_SYNC[Unreassembled Packet]
+  108   1.124147   10.20.0.11 ¡ú 10.20.100.80 NFS 230 V3 WRITE Reply (Call In 105) Len: 3137 FILE_SYNC
+  124   1.240795 10.20.100.80 ¡ú 10.20.0.11   NFS 1514 V3 WRITE Call, FH: 0x0c48f29b Offset: 2912256 Len: 2421 FILE_SYNC[Unreassembled Packet]
+  127   1.242486   10.20.0.11 ¡ú 10.20.100.80 NFS 230 V3 WRITE Reply (Call In 124) Len: 2421 FILE_SYNC
+....
+```
+ACCESS also fast. So this tcpdump indicates that Ganesha is responding quite well to the incoming requests(Ganesha replied within 0.0005 - 0.002 sec), in fact it is the NFS client which is not sending requests quite fast, I could see that one of the gap could almost 0.80 / 0.85 sec between 2 requests from client side:
+```
+tshark -r tcpdump.pcap000 | grep NFS | more
+  141   1.248426 10.20.100.80 -> 10.20.0.11   NFS 218 V3 GETATTR Call, FH: 0x9d0f6376
+  142   1.248575   10.20.0.11 -> 10.20.100.80 NFS 182 V3 GETATTR Reply (Call In 141)  Regular File mode: 0755 uid: 0 gid: 0
+  144   1.820792 10.20.100.80 -> 10.20.0.2    NFS 246 V3 GETATTR Call, FH: 0xf5fc6c29
+  145   1.821179    10.20.0.2 -> 10.20.100.80 NFS 170 V3 GETATTR Reply (Call In 144)  Directory mode: 2770 uid: 0 gid: 36031
+  147   1.999877 10.20.100.80 -> 10.20.0.11   NFS 218 V3 GETATTR Call, FH: 0x420eee65
+  148   2.000190   10.20.0.11 -> 10.20.100.80 NFS 182 V3 GETATTR Reply (Call In 147)  Regular File mode: 0770 uid: 31562 gid: 33112
+```
+
+So currently let's do something to tune by the comment above of 1), 2) and 3), and then monitor the cluster how it goes.
+
+Thanks.
+
+TS002301248
+
+TS001640674

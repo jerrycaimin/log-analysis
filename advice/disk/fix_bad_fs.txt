@@ -1,0 +1,6 @@
+1. mmfsck gpfs1 -n -v
+2. mmfsck gpfs1 -xk
+3. tsdbfs gpfs1
+4. tsdbfs gpfs1 -F inode 0
+5. tsdbfs gpfs1 -F desc
+6. mmfsadm readdescraw /dev/hdx

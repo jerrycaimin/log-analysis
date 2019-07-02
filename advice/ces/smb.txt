@@ -1,3 +1,25 @@
+[Authentication Debug]
+1. ping dc
+wbinfo -P
+2. verify user:
+wbinfo -u
+3. test user:
+wbinfo -i
+4. connect to ad
+wbinfo -a
+5. other run wbinfo, or net instead
+/usr/lpp/mmfs/bin/net cache flush
+6. use gpfs cmd instead
+/usr/lpp/mmfs/bin/wbinfo
+/usr/lpp/mmfs/bin/net
+7. other script
+mmadquery --help
+genent
+8. check cache:
+/usr/lpp/mmfs/bin/net cache list | grep 2610
+(check rtc: 200977)
+
+
 [check smb throughput]
 for i in smb*/CommandOutput/mmlsperfdata_smb2Throughput_n_1440_b_60; do node=$(echo $i | cut -f 3 -d "."); echo $node; grep "2018-08-22" $i | awk '{sum_read+=$3; sum_write+=$4} END {print "total read = ", sum_read, "total write = ", sum_write, "avg read = ", sum_read/3600/1024, "avg write = ", sum_write/3600/1024}'; done
 
@@ -93,7 +115,7 @@ Samba version 4.4.9-gpfs-15
 PID     Username     Group        Machine                                   Protocol Version  Encryption           Signing
 ----------------------------------------------------------------------------------------------------------------------------------------
 1:26267 NLH\karseyad NLH\domain users 172.21.5.21 (ipv4:172.21.5.21:60559)      SMB2_10           -                    -
-1:24458 NLH\mikwhiog NLH\domain users 172.21.3.100 (ipv4:172.21.3.100:63964)    SMB3_02           -                    partial(AES-128-CMAC)
+1:24458 NLH\mikwhiog NLssmbcon  H\domain users 172.21.3.100 (ipv4:172.21.3.100:63964)    SMB3_02           -                    partial(AES-128-CMAC)
 1:28797 NLH\karseyit NLH\domain users 172.17.10.128 (ipv4:172.17.10.128:59084)  SMB2_10           -                    -
 1:32300 NLH\mikwhiog NLH\domain users 172.21.5.2 (ipv4:172.21.5.2:56041)        SMB2_10           -                    -
 1:31330 NLH\karseyad NLH\domain users 172.21.5.21 (ipv4:172.21.5.21:60563)      SMB2_10           -                    -
@@ -237,9 +259,9 @@ smbpasswd -a smbuser
 4) Access by windows:
 \\{ip}\smbexport2
 5) Access by linux smbclient:
+
+
 smbclient //172.29.92.50/smb -U smbuser%caimin -m smb3
-
-
 
 [CTDB]
 Used only by ces/smb to share the config and file lock. No other components using.
@@ -266,3 +288,13 @@ ctdb nodestate
 ......
 
 
+[smb connection monitor]
+mmperfmon query smbConnections
+limitation:
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_5.0.2/com.ibm.spectrum.scale.v5r02.doc/bl1ins_smbclients.htm
+
+[smb performance tuning]
+You should adjust the following Scale parameters ==> mmchconfig <parameter>
+pagepool -> current 1073/741824 -> recommended 50% of the physically installed DRAM
+maxFilesToCache -> currently 40000 -> recommended 1.000.000
+nsdThreadsPerQueue -> currently 3 -> recommended 12

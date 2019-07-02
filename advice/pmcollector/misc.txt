@@ -76,6 +76,17 @@ host -a f2gpfs04
 host -v f2gpfs04
 nslookup f2gpfs04
 
+[How to debug if "null" output]
+1. check /var/log/zimon/*.log if anything stuck, if so restart the pmsensors service or pmcollector service.
+2. Try mmperfmon query xxx -n 10 -b 10
+3. run mmperfmon query xxx, and check collector.log:
+Jun-14 14:19:24  [Info   ] QueryEngine: (fd=38) query from 127.0.0.1: get -j metrics sumrate(gpfs_nsdds_bytes_read),sumrate(gpfs_nsdds_bytes_written) from node=gpfs1 group_by node tstart 1560493160 bucket_size 10
+capture this select cmd and send directly to zc:
+//echo "get group NFSIO bucket_size 1 last 11" | /opt/IBM/zimon/zc 127.0.0.1
+echo "get -j metrics sumrate(gpfs_nsdds_bytes_read),sumrate(gpfs_nsdds_bytes_written) from node=gpfs1 group_by node tstart 1560493160 bucket_size 10" | /opt/IBM/zimon/zc 127.0.0.1
+4. change to "debug" to /opt/IBM/zimon/*.cfg, restart service.
+
+
 
 
 

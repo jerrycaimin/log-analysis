@@ -28,6 +28,7 @@ Operations stats:             total time(s)  count    avg-usecs        wait-time
   statfs                     0.001252000       151        8.291
 Ops    285007 Secs      41.536239999  Ops/Sec     6861.647
 #######################
+
 3. Ex, rdwr costing time, seach at top of "rdwr", and find in original trace file by "timestamp" and "process id":
     "2219"       "0.464876000" WRITE: gnP 0xFFFF8818078A9E90 inode 4302101 snap 0 oiP 0xFFFFC90037308AF8 offset 0x4971CC len 162 blkSize 262144 opt 0
     2219       0.464889000 rdwr                       17.000 us
@@ -35,8 +36,45 @@ Ops    285007 Secs      41.536239999  Ops/Sec     6861.647
 [Original trace file]
    0.464876   2219 TRACE_VNOP: WRITE: gnP 0xFFFF8818078A9E90 inode 4302101 snap 0 oiP 0xFFFFC90037308AF8 offset 0x4971CC len 162 blkSize 262144 opt 0
    0.464876   2219 TRACE_FS: updateAccessHistoryM: FETCH oiP 0xFFFFC90037308AF8 newOffset 0x4971CC len 162 blockNum 18 oldPattern seq newPattern seq pa
+
+4. check dump vfsstats in dumpall file:
+===== dump vfsstats =====
+Current time 2019-06-13_16:17:46+0800
+[statistics last reset at Wed Jun 12 22:13:12 2019]
+vfs statistics currently enabled
+started at: Wed Jun 12 22:13:10.756 2019
+  duration: 65075.847 sec
+
+ name                      calls  time per call     total time
+ -------------------- ---------- -------------- --------------
+ access                  1562375       0.000005       7.726629
+ close                    350480       0.000005       1.822685
+ getattr                 1383699       0.000032      43.903121
+ lookup                   989833       0.000746     738.753286
+ open                     350498       0.000058      20.226663
+ read                     561282       0.001412     792.333111
+ readdir                   49179       0.000245      12.033966
+ getxattr                 133642       0.000004       0.571668
+ statfs                        1       0.000010       0.000010
+
+Õâ¸öÊÇnsd server node£º
+===== dump vfsstats =====
+Current time 2019-06-13_16:16:59+0800
+[statistics last reset at Wed Jun 12 22:12:24 2019]
+vfs statistics currently enabled
+started at: Wed Jun 12 22:12:23.141 2019
+  duration: 65076.346 sec
+
+ name                      calls  time per call     total time
+ -------------------- ---------- -------------- --------------
+ getattr                    6716       0.000063       0.422581
+ readlink                   3400       0.000002       0.006121
+ statfs                      108       0.000007       0.000785
+ startIO                 8874517       0.015849  140649.775257
+
+
    
-4. Besides trace file, you can also find something from internaldumps file:
+5. Besides trace file, you can also find something from internaldumps file:
 ===== dump fs =====
   OpenFile counts: total created 4254 (in use 4000, free 254 q 0)
     cached 4000, currently open 474+3, cache limit 4000 (min 10, max 4000), eff limit 4000

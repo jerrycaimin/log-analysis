@@ -1,0 +1,42 @@
+Chunk = block-group-factor * fs block size
+
+mmchpool gpfs2 system --write-affinity-depth 1 --block-group-factor 6
+
+
+
+Data pool contains all of the data disks and has FPO behavior enabled by setting allowWriteAffinity=yes, writeAffinityDepth=1, and blockGroupFactor=128.
+
+The chunk size can be calculated as blockSize * blockGroupFactor. Similar to the HDFS recommendation,
+the IBM Spectrum Scale FPO recommendation is blockSize=2M * blockGroupFactor=64 for a chunk size of 128 MB
+
+
+
+
+算是一种内置盘方案 好多节点都是nsd server
+不是 fpo 要enable writeaffinity
+你没enable 就不算
+
+
+mmlspool:
+
+Pool:
+  name                   = datapool
+  poolID                 = 65537
+  blockSize              = 4 MB
+  usage                  = dataOnly
+  maxDiskSize            = 7.36 TB
+  layoutMap              = cluster
+  allowWriteAffinity     = no
+  writeAffinityDepth     = 0
+  blockGroupFactor       = 1
+
+c866f2u25:~ # mmchpool
+mmchpool: Missing arguments.
+Usage:
+  mmchpool Device {PoolName[,PoolName...] | all}
+           [--block-group-factor BlockGroupFactor]
+           [--write-affinity-depth WriteAffinityDepth]
+      or
+  mmchpool Device -F PoolDescriptorFile
+
+改depth就能改write-affinity

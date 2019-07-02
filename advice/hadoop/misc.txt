@@ -1,0 +1,9 @@
+collect snap:
+
+gpfs.snap --hadoop
+
+
+check hadoop*:
+./hadoop.snap.zaplrib00001017-hs.20190615_214902/var/log/hadoop/root/hadoop-root-namenode-zaplrib00001017-hs.log.1
+
+If any problem.

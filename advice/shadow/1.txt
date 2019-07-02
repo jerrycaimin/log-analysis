@@ -107,7 +107,7 @@ gpfsClusterInit: Unexpected error from ccr fget mmsdrfs.  Return code:
 
 
 ====================
-68890,227,000
+68890,227,000for i in */*/inter*;do dumpsome $i | grep iohist;done
 
 mmchdisk start failed. "device not ready" due to error code 46
 
