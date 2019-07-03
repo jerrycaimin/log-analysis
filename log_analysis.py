@@ -64,7 +64,7 @@ def get_basename(full_path):
 # TODO Generate env log, need refine
 def refine_log2(output_file=None, target_folders=None, specified_configs=None):
     os.system(
-        "find .. -name *master* -type d  | xargs bash -c \'echo \"Generate report from $0 to ./env.txt\";cat \"$0\"/mmlscluster \"$0\"/mmlsmgr \"$0\"/df_k \"$0\"/mmlsnsd \"$0\"/mmlsfs \"$0\"/mmlsfileset \"$0\"/mmlsdisk \"$0\"/mmlsconfig \"$0\"/date.sorted \"$0\"/waiters.sorted \"$0\"/etc/hosts> env.txt;head \"$0\"/mmfsadm_dump_some >> env.txt'")
+        "find . -name *master* -type d  | xargs bash -c \'echo \"Generate report from $0 to ./env.txt\";cat \"$0\"/mmlscluster \"$0\"/mmlsmgr \"$0\"/df_k \"$0\"/mmlsnsd \"$0\"/mmlsfs \"$0\"/mmlsfileset \"$0\"/mmlsdisk \"$0\"/mmlsconfig \"$0\"/date.sorted \"$0\"/waiters.sorted \"$0\"/etc/hosts> env.txt;head \"$0\"/mmfsadm_dump_some >> env.txt'")
 
 
 # analyze the log files according to the rules
@@ -575,7 +575,11 @@ if __name__ == "__main__":
     global set_exp
     global silence_grep
         
-    log_folder = cur_path + "/log/" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "/"
+    log_pfolder = "./tool_logs/"
+    if not os.path.exists(log_pfolder):
+        os.mkdir(log_pfolder)
+
+    log_folder = "./tool_logs/" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "/"
     
     start_date=None
     refine_all=False
@@ -655,7 +659,7 @@ if __name__ == "__main__":
         # del test folder
         target_folders = remove_test_folder(target_folders)
     else:
-        target_folders = utils.find_file("mmfs.logs*", cur_path + "/..", 4)
+        target_folders = utils.find_file("mmfs.logs*", "..", 4)
         # del test folder
         target_folders = remove_test_folder(target_folders)
     
@@ -715,7 +719,7 @@ if __name__ == "__main__":
                 parser.error("config file not found, please check the config file again: " + conf_file)
     elif options.set_exp and not options.config_files:
         # only set when user didn't specified config_files, as they might have their own grep-files configured. 
-        config_files = [cur_path + "grep-files.xml"]
+        config_files = [cur_path + "/grep-files.xml"]
     else:
         config_files = []
         for f in os.listdir(cur_path + "/conf"):
@@ -753,7 +757,7 @@ if __name__ == "__main__":
         output_fn = ""
         for exp in set_exp:
             output_fn = output_fn + exp + ","
-        output_file = cur_path + "/log/" + output_fn[:-1] + ".txt"
+        output_file = "./log/" + output_fn[:-1] + ".txt"
         refine_log(output_file, target_folders)
         sys.exit()
     
@@ -765,7 +769,7 @@ if __name__ == "__main__":
 
     print ""
     print "######## Generate Environment Report to env.txt ########"
-    refine_log2(log_folder + "environment-report.txt", target_folders, [cur_path + "/environment-report.xml"])
+    refine_log2(log_folder + "environment-report.txt", target_folders, ["./environment-report.xml"])
     print ""
     
     print "############### Analysing gpfs.snap from existed knowledge ##############"
