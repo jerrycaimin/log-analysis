@@ -5,7 +5,7 @@
     <issue name="smb took unexpectedly long">
         <item>
         	<filepaths sortable="False">
-	            <filepath>../smb*/var/adm/ras/log.smbd</filepath>
+	            <filepath>var/adm/ras/log.smbd</filepath>
             </filepaths>
             <exp>took unexpectedly long</exp>
 			<desc>smb took unexpectedly long</desc>
@@ -16,7 +16,7 @@
     <issue name="ganesha req quota exceeded">
         <item>
         	<filepaths sortable="False">
-	            <filepath>../nfs*/var/log/ganesha.log</filepath>
+	            <filepath>var/log/ganesha.log</filepath>
             </filepaths>
             <exp>global outstanding reqs quota exceeded</exp>
 			<desc>ganesha request quota exceeded may due to workload too heavey or need further turning</desc>
@@ -24,5 +24,8 @@
         <advice from="advice/ces/ganesha_req_exceeded.txt" />
     </issue>
 
-
+    <user-scripts>
+        find . -name *master* -type d  | xargs bash -c 'echo "Generate ganesha report to ganesha-report.txt";echo "======Ganesha connections when collect snap:=======" > ganesha-report.txt;grep -e "2049.*ESTABLI" "$0"/../*/netstat_a -c >> ganesha-report.txt;echo "======Ganesha related Config output =======" >> ganesha-report.txt;grep -e ganesha.*ibm */rpm_qa >> ganesha-report.txt;grep ^Mem */proc_meminfo >> ganesha-report.txt;grep -e "Build branch" -e maxFilesToCache -e maxStatCache -e "Total pagepool" -e worker1Threads -e workerThreads */internaldump.* >> ganesha-report.txt;echo "======Ganesha CommandOutput/mmces* output =======" >> ganesha-report.txt;cat "$0"/../CommandOutput/mmces* >> ganesha-report.txt;echo "======Ganesha CommandOutput/mmnfs* output on every node =======" >> ganesha-report.txt;cat "$0"/../nfs*/CommandOutput/mmnfs* >> ganesha-report.txt;echo "======Ganesha nfs-config on every node =======" >> ganesha-report.txt; cat "$0"/../nfs*/var/mmfs/ces/nfs-config/gpfs.ganesha.[!e]*conf >> ganesha-report.txt'
+    </user-scripts>
+    <user-scripts>pwd</user-scripts>
 </root>

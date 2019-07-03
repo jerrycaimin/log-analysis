@@ -4,6 +4,7 @@ import sys
 import os
 #sys.path.insert(0, "./lib")
 cur_path = os.path.dirname(os.path.abspath(__file__))
+print cur_path
 sys.path.append(cur_path + "/lib")
 
 import xmltodict
@@ -29,21 +30,23 @@ def analyze_log(target_path=None, output_file=None):
         target_path = os.getcwd()
     if output_file is None:
         output_file = log_folder + "result.log"
-    
+
     config_file_num = len(config_files)
-    
+
     c_f_current = 1
     for config_file in config_files:
         config = read_config(config_file)
-    
+        config_name = os.path.basename(config_file)
+
         warning_hittimes = config.get("warning-hittimes", None)
         define_times = config.get("define-times", None)
         issues = config.get("issue", None)
-        
+        user_scripts = config.get("user-scripts", None)
+
         if config_file_num > 1:
             _write_log(output_file,
                        "############## [" + str(c_f_current) + "/" + str(config_file_num) + "] Analysis for config file " + config_file + ". ##############")
-        _parse_issue(target_path, issues, warning_hittimes=warning_hittimes, define_times=define_times,
+        _parse_issue(config_name, target_path, issues, user_scripts, warning_hittimes=warning_hittimes, define_times=define_times,
                      output_file=output_file)
         if config_file_num > 1:
             _write_log(output_file,
@@ -87,7 +90,7 @@ def refine_log(output_file=None, target_folders=None, specified_configs=None):
     for config_file in op_config_files:
         config = read_config(config_file)
         refine_log = config.get("refine-log", None)
-        
+
         if not refine_log:
             continue
         #any "plane" once, output file is plane
@@ -110,14 +113,14 @@ def refine_log(output_file=None, target_folders=None, specified_configs=None):
             node_name = get_basename(target_folder)
             if os.path.exists(target_folder) == False:
                 continue
-    
+
             for refine_log in refine_logs:
                 items = refine_log.get("item", [])
-    
+
                 for item in items:
                     if not item:
                         continue
-    
+
                     filepath = item["filepath"]
                     exclude_str = item.get("exclude-str")
                     rule = item.get("capture-exps")
@@ -128,7 +131,7 @@ def refine_log(output_file=None, target_folders=None, specified_configs=None):
                         rule = rule.get("exp")
                     _write_refine_log(target_folder, filepath, exclude_str, rule,
                                       node_name, desc, writer, plane_writer)
-    else:       
+    else:
         # plane loop
         for refine_log in refine_logs:
             items = refine_log.get("item", [])
@@ -137,7 +140,7 @@ def refine_log(output_file=None, target_folders=None, specified_configs=None):
                 desc_print = False
                 if not item:
                     continue
-                
+
                 filepath = item.get("filepath")
                 exclude_str = item.get("exclude-str")
                 desc = item.get("@desc","")
@@ -149,7 +152,7 @@ def refine_log(output_file=None, target_folders=None, specified_configs=None):
                         rule = ".*"
                 else:
                     rule = rule.get("exp")
-                    
+
                 for target_folder in target_folders:
                     node_name = get_basename(target_folder)
                     if os.path.exists(target_folder) == False:
@@ -160,13 +163,13 @@ def refine_log(output_file=None, target_folders=None, specified_configs=None):
                         desc_print = True
                     _write_refine_log(target_folder, filepath, exclude_str, rule,
                                       node_name, desc, writer, plane_writer)
-                    
+
                 if desc:
                     plane_writer.write("===============\n\n")
-                
+
     if plane_writer:
         plane_writer.close()
-        
+
         if set_exp:
             print "Refer to file for output:" + output_file
 
@@ -193,7 +196,7 @@ def _write_refine_log(target_folder, filepath, exclude_str, rule, node_name, des
         # skip exclude_str
         if exclude_str and exclude_str in path:
             continue
-        
+
         if os.path.isdir(path):
             #print("WARNING: Directory not supported:" + path)
             continue
@@ -207,7 +210,7 @@ def _write_refine_log(target_folder, filepath, exclude_str, rule, node_name, des
             elif f_size > 150000000:
                 print "    file size is " + str(f_size) + ", need time to analysis: " + os.path.basename(path)
 
-            
+
             # if user limits the start date, do it
             if start_date and plane_writer is None:
                 f = utils.NewSeqFile(path, start_date)
@@ -242,7 +245,7 @@ def _write_refine_log(target_folder, filepath, exclude_str, rule, node_name, des
                                 else:
                                     print_and_write_line(plane_writer, path, True, True)
                                     plane_writer_title = True
-                            
+
                             if not set_exp:
                                 print_and_write_line(plane_writer, "[" + node_name + "]" + line)
                             else:
@@ -264,32 +267,33 @@ def print_and_write_line(writer, line, is_print=False, add_enter=False):
 
     if add_enter:
         line = line + "\n"
-    
+
     writer.write(line)
-    
-    
-    
-    
+
+
+
+
 def _get_datetime_from_line(line):
     if not convertor_map:
         return ""
-    
+
     for re in convertor_map:
         matched_time = ""
         match_datetime = re.match(line)
         if match_datetime:
             convertors = convertor_map[re]
-            
+
             if type(convertors) != list:
                 convertors = [convertors]
-    
-            for conv in convertors: 
+
+            for conv in convertors:
                 try:
                     matched_time = datetime.strptime(match_datetime.group(0), conv)
                     matched_time = matched_time.strftime("\"%Y-%m-%d %H:%M:%S.%f\"")
                     return matched_time
                 except:
                     matched_time = ""
+
 
 def _get_sortable(file_path):
     if not file_path:
@@ -302,7 +306,8 @@ def _get_sortable(file_path):
         sortable = False
     return sortable
 
-def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, output_file=None):
+
+def _parse_issue(config_name, target_path, issues, user_scripts, warning_hittimes=None, define_times=None, output_file=None):
     if output_file is None:
         output_file = log_folder + "result.log"
 
@@ -324,7 +329,7 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
             if advice_name:
                 with open(cur_path + "/" + advice_name) as adv_f:
                     advice = adv_f.read()
-        
+
         issue_name = issue.get('@name', "")
         #print("========Start to check issue%d: %s.==============\n" % (issue_num, issue_name))
         _write_log(output_file,
@@ -353,7 +358,7 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
                     sortable = _get_sortable(filepaths)
                 else:
                     sortable = _get_sortable(filepath)
-                    
+
                 rule = item.get("exp", "")
                 # if no exp defined, get all exp from exps tag.
                 if not rule:
@@ -387,6 +392,23 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
                    "============================================================================================")
         _write_log(output_file, "\n")
 
+    if type(user_scripts) != list:
+        user_scripts = [user_scripts]
+
+    if user_scripts:
+        cur_num = 1
+        all_scripts_number = len(user_scripts)
+        for script in user_scripts:
+            if not script:
+                continue
+
+            print("        Start to run user specified scripts for module: [" + config_name + "]")
+            print("        [" + str(cur_num) + "/" + str(all_scripts_number) + "] Running script: \n" + script)
+            os.system(script)
+            cur_num = cur_num + 1
+
+
+
 def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True):
     file_part = ""
     if type(filepath) == list:
@@ -401,7 +423,7 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
         file_part = os.path.join(target_folder, filepath)
     #print file_part
     #import pdb;pdb.set_trace()
-   
+
     # write rule to tmp file
     reg_tmp_filename = "tmpexp"
     with open(reg_tmp_filename, 'w') as tmpexp:
@@ -412,13 +434,13 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
             tmpexp.write(rule)
     #with open("tmpexp") as tmpexp:
     #    print tmpexp.read()
-    
+
     grep_cmd = "grep -r -f tmpexp " + file_part
     status, output = commands.getstatusoutput(grep_cmd)
-    
+
     #print status
     #print output
-    
+
     Is_des_printed = False
     if status == 0 and len(output) > 0:
         if Is_des_printed == False:
@@ -428,7 +450,7 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
             _write_log(output_file, "Following related log found:")
             Is_des_printed = True
         _write_log2(output_file, output)
-    
+
 
 def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True):
     if type(rule) == list:
@@ -461,7 +483,7 @@ def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint
             #print("Only file marched that supported, directory skipped: %s" % path)
         else:
             count = 0
-            
+
             if start_date and sortable:
                 f = utils.NewSeqFile(path, start_date)
             else:
@@ -488,7 +510,7 @@ def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint
 
                 count = count + 1
                 line = lines[i]
-                
+
                 for reg_rule in reg_rules:
                     match = reg_rule.findall(line)
                     # import pdb;pdb.set_trace()
@@ -517,7 +539,7 @@ def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint
                                 if match_follow is not None and len(match_follow) > 0:
                                     # append to found rule list
                                     found_rule_i.append(cur_start)
-                                    
+
                                     _write_log2(output_file, "------->" + print_line)
                                 else:
                                     _write_log2(output_file, "\t" + print_line)
@@ -528,7 +550,7 @@ def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint
 
                         # _write_log(output_file, "------------------")
                         Is_found = True
-                        
+
                         # append to found rule list
                         found_rule_i.append(i)
                 i = i + 1
@@ -564,6 +586,13 @@ def remove_test_folder(target_folders):
 
     return target_folders
 
+
+def addExtraTargetFolders(t_folders):
+    added_folders = t_folders + utils.find_folder("smb*")
+    added_folders = added_folders + utils.find_folder("nfs*")
+    return added_folders
+
+
 if __name__ == "__main__":
     # config global opt and args
     global start_date
@@ -574,37 +603,41 @@ if __name__ == "__main__":
     global log_folder
     global set_exp
     global silence_grep
-        
+
     log_pfolder = "./tool_logs/"
     if not os.path.exists(log_pfolder):
         os.mkdir(log_pfolder)
 
     log_folder = "./tool_logs/" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "/"
-    
+
     start_date=None
     refine_all=False
     silence_grep=False
     nodes=""
     set_exp=None
-    
+
 #     if len(sys.argv) > 1:
 #         target_folders = sys.argv[1].split("|")
 #     else:
 #         target_folders = ["./test"]
-    
-    usage = "usage: python log_analysis.py {gpfs.snap_folder_path} -m {mode}" + "\n"\
+
+    usage = "This is gpfs.snap analysis tool that reuse current known solution/knowledge base(under conf/.xml)" + "\n"\
+            "to determine the issue and give solution."  + "\n"\
+            "Also run the user shell scripts to help analysis per each problem field.(scripts defined in conf/.xml as well)"  + "\n\n"\
+            "How to use: cd to unpacked gpfs.snap folder, then run:" + "\n"\
+            "    {PATH}/log_analysis.py -m {mode}" + "\n"\
             "    Current support mode:" "\n"\
             "       disk: scan disk related issues," + "\n"\
             "       hang: scan long waiters, hang, deadlock related issues," + "\n"\
             "       network: scan network related issues," + "\n"\
+            "       perf: scan performance related issues," + "\n"\
             "       common: scan other issues and also refine logs." + "\n"\
-            "Tip: If no mode specifed, all modes will be used to check logs."
-
+            "Tip: If no mode specifed, all modes under conf/ will be used to check logs."
 
     parser = OptionParser(usage)
-    parser.add_option("-d", "--date", dest="start_date",  
+    parser.add_option("-d", "--date", dest="start_date",
                       help="logs start from date.")
-    
+
     parser.add_option("-a", "--refine-all", dest="refine_all",
                       default=False, action="store_true",
                       help="ignore capture-exps, refine all logs.")
@@ -619,7 +652,7 @@ if __name__ == "__main__":
 
     parser.add_option("-c", "--config-file", dest="config_files",
                       action="append", help="specify the config files.(Invalid when -m set)")
-    
+
     parser.add_option("-f", "--folder", dest="folders",
                       action="append", help="specify the folders that need to analysis.")
 
@@ -627,24 +660,25 @@ if __name__ == "__main__":
                       help="collect only folders that contain the specified nodes name.")
 
     parser.add_option("-e", "--exp", dest="set_exp",
-                      action="append", help="Can multiply specify what exps to grep in " + 
-                                            "grep-files.xml. If -e specified, only run" + 
+                      action="append", help="Can multiply specify what exps to grep in " +
+                                            "grep-files.xml. If -e specified, only run" +
                                             "Refine-Log function.")
-    
+
     parser.add_option("-s", "--silence", dest="silence_grep",
                       default=False, action="store_true",
                       help="If specified, do not print output when use -e to grep.")
-    
+
     (options, args) = parser.parse_args()
-    
+
     # get target folder auto
-    target_folders = []    
+    target_folders = []
     if len(args) > 0:
         if not os.path.exists(args[0]):
             parser.error("target folder not existed:" + args[0])
         target_folders = args[0]
         target_folders = utils.find_file("mmfs.logs*", target_folders, 4)
-        
+        target_folders = addExtraTargetFolders(target_folders)
+
         # del test folder
         target_folders = remove_test_folder(target_folders)
     elif options.folders:
@@ -656,25 +690,27 @@ if __name__ == "__main__":
         # del duplicate
         if target_folders:
             target_folders = list(set(target_folders))
-        
+
+        target_folders = addExtraTargetFolders(target_folders)
         # del test folder
         target_folders = remove_test_folder(target_folders)
     else:
         target_folders = utils.find_file("mmfs.logs*", ".", 4)
+        target_folders = addExtraTargetFolders(target_folders)
         # del test folder
         target_folders = remove_test_folder(target_folders)
-    
+
     if options.set_exp:
         if type(options.set_exp) == list:
             set_exp=options.set_exp
         else:
             set_exp=[options.set_exp]
-    
+
     if not options.set_exp:
         # only create log folder when exp not set
         if not os.path.exists(log_folder):
             os.mkdir(log_folder)
-    
+
     selected_target_folders = []
     #print folders to be analysis
     if options.nodes:
@@ -684,7 +720,7 @@ if __name__ == "__main__":
             for target_folder in target_folders:
                 if node_name in get_basename(target_folder):
                     selected_target_folders.append(target_folder)
-        
+
         len_stf = len(selected_target_folders)
         if len_stf > 0:
             print "Node selected string:" + options.nodes
@@ -697,7 +733,7 @@ if __name__ == "__main__":
             for target_folder in target_folders:
                 print get_basename(target_folder)
             sys.exit()
-    else:    
+    else:
         print "The following folder(s) contains mmfs.logs, candidates to analysis:"
         for target_folder in target_folders:
             print get_basename(target_folder)
@@ -712,7 +748,7 @@ if __name__ == "__main__":
     start_date = options.start_date
     refine_all = options.refine_all
     silence_grep = options.silence_grep
-    
+
     if options.config_files:
         config_files = options.config_files
         for conf_file in config_files:
@@ -749,7 +785,7 @@ if __name__ == "__main__":
             print "    : -g enabled, generate datetime from each line, by which could support time sort, will cost more time."
         if options.nodes:
             print "    : -n enable, only collect log in folders that name contains " + options.nodes
-            
+
         output_file = log_folder + "Log-Refined.txt"
         refine_log(output_file, target_folders)
         print "succeeded, refer to output file: " + output_file
@@ -761,7 +797,7 @@ if __name__ == "__main__":
         output_file = "./log/" + output_fn[:-1] + ".txt"
         refine_log(output_file, target_folders)
         sys.exit()
-    
+
     # print ""
     # print "######## Generate Environment Report according to  environment-report.xml for all nodes ########"
     # refine_log(log_folder + "environment-report.txt", target_folders, ["./environment-report.xml"])
@@ -772,7 +808,7 @@ if __name__ == "__main__":
     print "######## Generate Environment Report to env.txt ########"
     refine_log2(log_folder + "environment-report.txt", target_folders, ["./environment-report.xml"])
     print ""
-    
+
     print "############### Analysing gpfs.snap from existed knowledge ##############"
     analysis_num = 1
     for target_folder in target_folders:
@@ -786,7 +822,6 @@ if __name__ == "__main__":
         print "done, output file: " + output_file
         analysis_num = analysis_num + 1
 
-    
     print ""
-    print "All finished." 
+    print "All finished."
 

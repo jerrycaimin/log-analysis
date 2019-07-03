@@ -174,6 +174,17 @@ class NewFile(file):
             self.found = True
 
 
+def find_folder(folder_name):
+    matching_folderpaths = list()
+    folders = glob.glob(os.path.join(".", folder_name))
+    for folder in folders:
+        folder_basename = os.path.basename(folder)
+        if folder_basename not in matching_folderpaths:
+            matching_folderpaths.append(folder_basename)
+
+    return matching_folderpaths
+
+
 def find_file(filename, file_folder, depth=None):
     matching_filepaths = list()
     if depth == 0:
