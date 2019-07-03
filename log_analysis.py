@@ -1,16 +1,19 @@
-import sys
+#!/usr/bin/env python
 
-sys.path.insert(0, "./lib")
+import sys
+import os
+#sys.path.insert(0, "./lib")
+cur_path = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(cur_path + "/lib")
 
 import xmltodict
-import os
 import re
 import glob
 import time
 from datetime import datetime
 import csv
 from optparse import OptionParser
-import utils 
+import utils
 import commands
 
 
@@ -572,7 +575,7 @@ if __name__ == "__main__":
     global set_exp
     global silence_grep
         
-    log_folder = "./log/" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "/"
+    log_folder = cur_path + "/log/" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "/"
     
     start_date=None
     refine_all=False
@@ -652,7 +655,7 @@ if __name__ == "__main__":
         # del test folder
         target_folders = remove_test_folder(target_folders)
     else:
-        target_folders = utils.find_file("mmfs.logs*", "..", 4)
+        target_folders = utils.find_file("mmfs.logs*", cur_path + "/..", 4)
         # del test folder
         target_folders = remove_test_folder(target_folders)
     
@@ -712,11 +715,11 @@ if __name__ == "__main__":
                 parser.error("config file not found, please check the config file again: " + conf_file)
     elif options.set_exp and not options.config_files:
         # only set when user didn't specified config_files, as they might have their own grep-files configured. 
-        config_files = ["./grep-files.xml"]
+        config_files = [cur_path + "grep-files.xml"]
     else:
         config_files = []
-        for f in os.listdir("./conf"):
-            config_files.append("./conf/" + f)
+        for f in os.listdir(cur_path + "/conf"):
+            config_files.append(cur_path + "/conf/" + f)
 
     if options.selected_mode:
         #when selected mode set, override config-file settings:
@@ -750,7 +753,7 @@ if __name__ == "__main__":
         output_fn = ""
         for exp in set_exp:
             output_fn = output_fn + exp + ","
-        output_file = "./log/" + output_fn[:-1] + ".txt"
+        output_file = cur_path + "/log/" + output_fn[:-1] + ".txt"
         refine_log(output_file, target_folders)
         sys.exit()
     
@@ -762,7 +765,7 @@ if __name__ == "__main__":
 
     print ""
     print "######## Generate Environment Report to env.txt ########"
-    refine_log2(log_folder + "environment-report.txt", target_folders, ["./environment-report.xml"])
+    refine_log2(log_folder + "environment-report.txt", target_folders, [cur_path + "/environment-report.xml"])
     print ""
     
     print "############### Analysing gpfs.snap from existed knowledge ##############"

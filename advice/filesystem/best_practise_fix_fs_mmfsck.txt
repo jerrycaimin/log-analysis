@@ -431,3 +431,27 @@ MMFS-FSSTRUCT error is a false positive.
 error further investigation by GPFS is necessary.
 
 Let me know if you have any additional questions."
+
+
+
+#################### From ARM How to fix filesystem ####################
+Problem description:
+1.  a lot of input/output error on filesystem
+
+Solution:
+1. Need run mmfsck to fix filesystem.
+2. Please follow below steps to fix the GPFS filesystem.
+
+Step 1: stop the applications which utilize /dev/sapmntdata filesystem.
+Step 2: mmumount /dev/sapmntdata
+Step 3: run: mmfsck /dev/sapmntdata -V -n --threads 64 --patch-file /tmp/fsck.patch > /tmp/gpfs_fsck_n.out 2>&1
+After mmfsck finish, upload /tmp/fsck.patch and /tmp/gpfs_fsck_n.out to ECUREP. We should check these two files firstly.
+
+Step 4: After we review above two files, we will give you feedback.
+Step 5: run: mmfsck /dev/sapmntdata -V --threads 64 --patch-file /tmp/fsck.patch --patch > /tmp/gpfs_fsck_y.out 2>&1
+
+Step 6: From the output of Step 5, we will obtain the result of mmfsck. If success, then, run:
+mmmount /dev/sapmntdata
+Next, to check this filesystem mount or not.
+
+If mmfsck failed, let us check the file, /tmp/gpfs_fsck_y.out. And then, give next step advice.
