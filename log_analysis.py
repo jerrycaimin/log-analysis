@@ -319,10 +319,10 @@ def _parse_issue(target_path, issues, warning_hittimes=None, define_times=None, 
 
         counter = 0
         advice = issue.get("advice", "")
-        if hasattr(advice,"get"):
+        if hasattr(advice, "get"):
             advice_name = advice.get("@from", "")
             if advice_name:
-                with open(advice_name) as adv_f:
+                with open(cur_path + "/" + advice_name) as adv_f:
                     advice = adv_f.read()
         
         issue_name = issue.get('@name', "")
