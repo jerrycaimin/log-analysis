@@ -659,7 +659,7 @@ if __name__ == "__main__":
         # del test folder
         target_folders = remove_test_folder(target_folders)
     else:
-        target_folders = utils.find_file("mmfs.logs*", "..", 4)
+        target_folders = utils.find_file("mmfs.logs*", ".", 4)
         # del test folder
         target_folders = remove_test_folder(target_folders)
     
