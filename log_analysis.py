@@ -597,7 +597,8 @@ if __name__ == "__main__":
             "       disk: scan disk related issues," + "\n"\
             "       hang: scan long waiters, hang, deadlock related issues," + "\n"\
             "       network: scan network related issues," + "\n"\
-            "       common: scan other issues and also refine logs."
+            "       common: scan other issues and also refine logs." + "\n"\
+            "Tip: If no mode specifed, all modes will be used to check logs."
 
 
     parser = OptionParser(usage)
@@ -729,7 +730,7 @@ if __name__ == "__main__":
         #when selected mode set, override config-file settings:
         config_files = []
         for selected_mode in options.selected_mode:
-            mode_config_file = "conf/" + selected_mode + ".xml"
+            mode_config_file = cur_path + "/conf/" + selected_mode + ".xml"
             if not os.path.exists(mode_config_file):
                 parser.error("mode not supported: " + selected_mode + ", config file not found:" + mode_config_file)
             else:
@@ -788,4 +789,4 @@ if __name__ == "__main__":
     
     print ""
     print "All finished." 
-    
+
