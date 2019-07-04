@@ -679,7 +679,7 @@ if __name__ == "__main__":
     #                   help="generate date when date string includes week not sortable.")
 
     parser.add_option("-m", "--mode", dest="selected_mode",
-                      action="append", help="current supported mode:'common','disk','hang','network'\n" +
+                      action="append", help="current supported mode:'common','disk','hang','network','perf'\n" +
                                             "can set multiple mode.")
 
     # parser.add_option("-c", "--config-file", dest="config_files",
@@ -689,7 +689,7 @@ if __name__ == "__main__":
     #                   action="append", help="specify the folders that need to analysis.")
 
     parser.add_option("-n", "--nodes", dest="nodes",
-                      help="collect only folders that contain the specified nodes name.")
+                      help="filter the participant nodes by fuzzy matching.")
 
     # parser.add_option("-e", "--exp", dest="set_exp",
     #                   action="append", help="Can multiply specify what exps to grep in " +
@@ -700,7 +700,18 @@ if __name__ == "__main__":
     #                   default=False, action="store_true",
     #                   help="If specified, do not print output when use -e to grep.")
 
+    parser.add_option("-s", "--script-only", dest="script_only",
+                      default=False, action="store_true",
+                      help="Only run scripts, no existing issues check.")
+
+    parser.add_option("-c", "--check-only", dest="check_only",
+                      default=False, action="store_true",
+                      help="Only check existing issues, no scripts running.")
+
     (options, args) = parser.parse_args()
+
+    if options.script_only and options.check_only:
+        parser.error("options -s and -c are mutually exclusive")
 
     # get target folder auto
     target_folders = []
@@ -842,23 +853,25 @@ if __name__ == "__main__":
     # print "succeeded, refer to file: ./log/environment-report.txt"
     # print ""
 
-    print ""
-    print "############### Analysing gpfs.snap from existed knowledge ##############"
-    analysis_num = 1
-    for target_folder in target_folders:
-        pre_num = "[" + str(analysis_num) + "/" + str(len(target_folders)) + "]"
-        print pre_num + " analysing " + get_basename(target_folder) + " ..."
-        if os.path.exists(target_folder):
-            basename = get_basename(target_folder)
-            output_file = log_folder + basename + ".log"
-            # analyze log by each defined task
-            analyze_log(target_folder, output_file)
-        print "done, output file: " + output_file
-        analysis_num = analysis_num + 1
-    print ""
+    if not options.script_only:
+        print ""
+        print "############### Analysing gpfs.snap from existed knowledge ##############"
+        analysis_num = 1
+        for target_folder in target_folders:
+            pre_num = "[" + str(analysis_num) + "/" + str(len(target_folders)) + "]"
+            print pre_num + " analysing " + get_basename(target_folder) + " ..."
+            if os.path.exists(target_folder):
+                basename = get_basename(target_folder)
+                output_file = log_folder + basename + ".log"
+                # analyze log by each defined task
+                analyze_log(target_folder, output_file)
+            print "done, output file: " + output_file
+            analysis_num = analysis_num + 1
 
-    print "######## Running user specified scripts ########"
-    run_user_script(log_pfolder)
-    print ""
-    print "All finished."
+    if not options.check_only:
+        print ""
+        print "######## Running user specified scripts ########"
+        run_user_script(log_pfolder)
+        print ""
+        print "All finished."
 
