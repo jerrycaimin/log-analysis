@@ -55,4 +55,7 @@
     	</item>
     	<advice from="advice/filesystem/best_practise_fix_fs_mmfsck.txt" />
     </issue>
+    <user-scripts name="Generate env report">
+        find . -name *master* -type d  | xargs bash -c 'echo "Generate report from $0 to ./env.txt";cat "$0"/mmlscluster "$0"/mmlsmgr "$0"/df_k "$0"/mmlsnsd "$0"/mmlsfs "$0"/mmlsfileset "$0"/mmlsdisk "$0"/mmlsconfig "$0"/date.sorted "$0"/waiters.sorted "$0"/etc/hosts> env.txt;head "$0"/mmfsadm_dump_some >> env.txt'
+    </user-scripts>
 </root>

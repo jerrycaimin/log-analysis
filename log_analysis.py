@@ -65,9 +65,41 @@ def get_basename(full_path):
 
 
 # TODO Generate env log, need refine
-def refine_log2(output_file=None, target_folders=None, specified_configs=None):
-    os.system(
-        "find . -name *master* -type d  | xargs bash -c \'echo \"Generate report from $0 to ./env.txt\";cat \"$0\"/mmlscluster \"$0\"/mmlsmgr \"$0\"/df_k \"$0\"/mmlsnsd \"$0\"/mmlsfs \"$0\"/mmlsfileset \"$0\"/mmlsdisk \"$0\"/mmlsconfig \"$0\"/date.sorted \"$0\"/waiters.sorted \"$0\"/etc/hosts> env.txt;head \"$0\"/mmfsadm_dump_some >> env.txt'")
+def run_user_script(log_pfolder):
+    for config_file in config_files:
+        all_scripts_number = 0
+        config = read_config(config_file)
+        config_name = os.path.basename(config_file)
+        mode_name = os.path.splitext(config_name)[0]
+        if not os.path.exists(log_pfolder + "/" + mode_name) and mode_name != "common":
+            os.mkdir(log_pfolder + "/" + mode_name)
+
+        user_scripts = config.get("user-scripts", None)
+
+        if user_scripts and type(user_scripts) != list:
+            user_scripts = [user_scripts]
+
+        if user_scripts:
+            cur_num = 1
+            all_scripts_number = len(user_scripts)
+            if all_scripts_number > 0:
+                print("    Scripts in " + config_name)
+            for script in user_scripts:
+                if not script:
+                    continue
+
+                if type(script) == unicode:
+                    run_script = script
+                else:
+                    run_script = script.get("#text")
+
+                if hasattr(script, "get"):
+                    script_name = script.get("@name", "script:" + str(cur_num))
+                else:
+                    script_name = "script:" + str(cur_num)
+                print("    [" + str(cur_num) + "/" + str(all_scripts_number) + "] Running script name: " + script_name)
+                os.system(run_script)
+                cur_num = cur_num + 1
 
 
 # analyze the log files according to the rules
@@ -392,20 +424,20 @@ def _parse_issue(config_name, target_path, issues, user_scripts, warning_hittime
                    "============================================================================================")
         _write_log(output_file, "\n")
 
-    if type(user_scripts) != list:
-        user_scripts = [user_scripts]
-
-    if user_scripts:
-        cur_num = 1
-        all_scripts_number = len(user_scripts)
-        for script in user_scripts:
-            if not script:
-                continue
-
-            print("        Start to run user specified scripts for module: [" + config_name + "]")
-            print("        [" + str(cur_num) + "/" + str(all_scripts_number) + "] Running script: \n" + script)
-            os.system(script)
-            cur_num = cur_num + 1
+    # if type(user_scripts) != list:
+    #     user_scripts = [user_scripts]
+    #
+    # if user_scripts:
+    #     cur_num = 1
+    #     all_scripts_number = len(user_scripts)
+    #     for script in user_scripts:
+    #         if not script:
+    #             continue
+    #
+    #         print("        Start to run user specified scripts for module: [" + config_name + "]")
+    #         print("        [" + str(cur_num) + "/" + str(all_scripts_number) + "] Running script: \n" + script)
+    #         os.system(script)
+    #         cur_num = cur_num + 1
 
 
 
@@ -765,6 +797,8 @@ if __name__ == "__main__":
     if options.selected_mode:
         #when selected mode set, override config-file settings:
         config_files = []
+        if "common" not in options.selected_mode:
+            options.selected_mode.append("common")
         for selected_mode in options.selected_mode:
             mode_config_file = cur_path + "/conf/" + selected_mode + ".xml"
             if not os.path.exists(mode_config_file):
@@ -805,10 +839,6 @@ if __name__ == "__main__":
     # print ""
 
     print ""
-    print "######## Generate Environment Report to env.txt ########"
-    refine_log2(log_folder + "environment-report.txt", target_folders, ["./environment-report.xml"])
-    print ""
-
     print "############### Analysing gpfs.snap from existed knowledge ##############"
     analysis_num = 1
     for target_folder in target_folders:
@@ -821,7 +851,10 @@ if __name__ == "__main__":
             analyze_log(target_folder, output_file)
         print "done, output file: " + output_file
         analysis_num = analysis_num + 1
+    print ""
 
+    print "######## Running user specified scripts ########"
+    run_user_script(log_pfolder)
     print ""
     print "All finished."
 
