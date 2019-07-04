@@ -729,7 +729,7 @@ if __name__ == "__main__":
     else:
         target_folders = utils.find_file("mmfs.logs*", ".", 4)
         target_folders = addExtraTargetFolders(target_folders)
-        # del test folder
+        # del test folder_
         target_folders = remove_test_folder(target_folders)
 
     # if options.set_exp:
