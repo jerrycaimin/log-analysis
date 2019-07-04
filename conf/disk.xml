@@ -31,4 +31,8 @@
     	</item>
         <advice from="advice/disk/diskfailure_rc5.txt" />
     </issue>
+
+    <user-scripts name="iohist_awk_summary for all nodes internaldump(first level not in internaldumps folder)">
+        for i in */internaldump.*;do echo " " ; echo "iohist_awk_summary -f $i > ./tool_logs/iohist_awk_summary.${i##*.}";iohist_awk_summary -f $i > ./tool_logs/iohist_awk_summary.${i##*.};done
+    </user-scripts>
 </root>
