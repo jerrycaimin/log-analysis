@@ -713,19 +713,19 @@ if __name__ == "__main__":
 
         # del test folder
         target_folders = remove_test_folder(target_folders)
-    elif options.folders:
-        folders = options.folders
-        for folder in folders:
-            if not os.path.exists(folder):
-                parser.error("target folder not existed:" + folder)
-            target_folders= target_folders + utils.find_file("mmfs.logs*", folder, 4)
-        # del duplicate
-        if target_folders:
-            target_folders = list(set(target_folders))
-
-        target_folders = addExtraTargetFolders(target_folders)
-        # del test folder
-        target_folders = remove_test_folder(target_folders)
+    # elif options.folders:
+    #     folders = options.folders
+    #     for folder in folders:
+    #         if not os.path.exists(folder):
+    #             parser.error("target folder not existed:" + folder)
+    #         target_folders= target_folders + utils.find_file("mmfs.logs*", folder, 4)
+    #     # del duplicate
+    #     if target_folders:
+    #         target_folders = list(set(target_folders))
+    #
+    #     target_folders = addExtraTargetFolders(target_folders)
+    #     # del test folder
+    #     target_folders = remove_test_folder(target_folders)
     else:
         target_folders = utils.find_file("mmfs.logs*", ".", 4)
         target_folders = addExtraTargetFolders(target_folders)
