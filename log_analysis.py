@@ -71,8 +71,8 @@ def run_user_script(log_pfolder):
         config = read_config(config_file)
         config_name = os.path.basename(config_file)
         mode_name = os.path.splitext(config_name)[0]
-        if not os.path.exists(log_pfolder + "/" + mode_name) and mode_name != "common":
-            os.mkdir(log_pfolder + "/" + mode_name)
+        # if not os.path.exists(log_pfolder + "/" + mode_name) and mode_name != "common":
+        #     os.mkdir(log_pfolder + "/" + mode_name)
 
         user_scripts = config.get("user-scripts", None)
 
