@@ -667,38 +667,38 @@ if __name__ == "__main__":
             "Tip: If no mode specifed, all modes under conf/ will be used to check logs."
 
     parser = OptionParser(usage)
-    parser.add_option("-d", "--date", dest="start_date",
-                      help="logs start from date.")
-
-    parser.add_option("-a", "--refine-all", dest="refine_all",
-                      default=False, action="store_true",
-                      help="ignore capture-exps, refine all logs.")
-
-    parser.add_option("-g", "--generate-date", dest="generate_date",
-                      default=False, action="store_true",
-                      help="generate date when date string includes week not sortable.")
+    # parser.add_option("-d", "--date", dest="start_date",
+    #                   help="logs start from date.")
+    #
+    # parser.add_option("-a", "--refine-all", dest="refine_all",
+    #                   default=False, action="store_true",
+    #                   help="ignore capture-exps, refine all logs.")
+    #
+    # parser.add_option("-g", "--generate-date", dest="generate_date",
+    #                   default=False, action="store_true",
+    #                   help="generate date when date string includes week not sortable.")
 
     parser.add_option("-m", "--mode", dest="selected_mode",
                       action="append", help="current supported mode:'common','disk','hang','network'\n" +
                                             "can set multiple mode.")
 
-    parser.add_option("-c", "--config-file", dest="config_files",
-                      action="append", help="specify the config files.(Invalid when -m set)")
-
-    parser.add_option("-f", "--folder", dest="folders",
-                      action="append", help="specify the folders that need to analysis.")
+    # parser.add_option("-c", "--config-file", dest="config_files",
+    #                   action="append", help="specify the config files.(Invalid when -m set)")
+    #
+    # parser.add_option("-f", "--folder", dest="folders",
+    #                   action="append", help="specify the folders that need to analysis.")
 
     parser.add_option("-n", "--nodes", dest="nodes",
                       help="collect only folders that contain the specified nodes name.")
 
-    parser.add_option("-e", "--exp", dest="set_exp",
-                      action="append", help="Can multiply specify what exps to grep in " +
-                                            "grep-files.xml. If -e specified, only run" +
-                                            "Refine-Log function.")
-
-    parser.add_option("-s", "--silence", dest="silence_grep",
-                      default=False, action="store_true",
-                      help="If specified, do not print output when use -e to grep.")
+    # parser.add_option("-e", "--exp", dest="set_exp",
+    #                   action="append", help="Can multiply specify what exps to grep in " +
+    #                                         "grep-files.xml. If -e specified, only run" +
+    #                                         "Refine-Log function.")
+    #
+    # parser.add_option("-s", "--silence", dest="silence_grep",
+    #                   default=False, action="store_true",
+    #                   help="If specified, do not print output when use -e to grep.")
 
     (options, args) = parser.parse_args()
 
@@ -732,16 +732,16 @@ if __name__ == "__main__":
         # del test folder
         target_folders = remove_test_folder(target_folders)
 
-    if options.set_exp:
-        if type(options.set_exp) == list:
-            set_exp=options.set_exp
-        else:
-            set_exp=[options.set_exp]
+    # if options.set_exp:
+    #     if type(options.set_exp) == list:
+    #         set_exp=options.set_exp
+    #     else:
+    #         set_exp=[options.set_exp]
 
-    if not options.set_exp:
-        # only create log folder when exp not set
-        if not os.path.exists(log_folder):
-            os.mkdir(log_folder)
+    # if not options.set_exp:
+    # only create log folder when exp not set
+    if not os.path.exists(log_folder):
+        os.mkdir(log_folder)
 
     selected_target_folders = []
     #print folders to be analysis
@@ -770,29 +770,29 @@ if __name__ == "__main__":
         for target_folder in target_folders:
             print get_basename(target_folder)
     print ""
-
-    generate_date = options.generate_date
-    if generate_date:
-        convertor_map = {re.compile("[a-zA-Z]{3} [a-zA-Z]{3}.*?201[5-8]"):["%a %b %d %H:%M:%S.%f %Y",
-                                                                           "%a %b  %d %H:%M:%S.%f %Y"]}
+    #
+    # generate_date = options.generate_date
+    # if generate_date:
+    #     convertor_map = {re.compile("[a-zA-Z]{3} [a-zA-Z]{3}.*?201[5-8]"):["%a %b %d %H:%M:%S.%f %Y",
+    #                                                                        "%a %b  %d %H:%M:%S.%f %Y"]}
 
     #fill in the parameters
-    start_date = options.start_date
-    refine_all = options.refine_all
-    silence_grep = options.silence_grep
+    # start_date = options.start_date
+    # refine_all = options.refine_all
+    # silence_grep = options.silence_grep
 
-    if options.config_files:
-        config_files = options.config_files
-        for conf_file in config_files:
-            if not os.path.exists(conf_file):
-                parser.error("config file not found, please check the config file again: " + conf_file)
-    elif options.set_exp and not options.config_files:
-        # only set when user didn't specified config_files, as they might have their own grep-files configured. 
-        config_files = [cur_path + "/grep-files.xml"]
-    else:
-        config_files = []
-        for f in os.listdir(cur_path + "/conf"):
-            config_files.append(cur_path + "/conf/" + f)
+    # if options.config_files:
+    #     config_files = options.config_files
+    #     for conf_file in config_files:
+    #         if not os.path.exists(conf_file):
+    #             parser.error("config file not found, please check the config file again: " + conf_file)
+    # elif options.set_exp and not options.config_files:
+    #     # only set when user didn't specified config_files, as they might have their own grep-files configured.
+    #     config_files = [cur_path + "/grep-files.xml"]
+    # else:
+    #     config_files = []
+    #     for f in os.listdir(cur_path + "/conf"):
+    #         config_files.append(cur_path + "/conf/" + f)
 
     if options.selected_mode:
         #when selected mode set, override config-file settings:
@@ -805,32 +805,36 @@ if __name__ == "__main__":
                 parser.error("mode not supported: " + selected_mode + ", config file not found:" + mode_config_file)
             else:
                 config_files.append(mode_config_file)
-
-    if not set_exp:
-        # refine the log from all the dumplogs, which defined in config.xml
-        print ""
-        print "######## Refine all " + str(len(target_folders)) + " nodes gpfs.snap into one csv (can be sorted or filtered by Excel) ########"
-        #print "Start to refine the logs from all above folder according to configuration."
-        if start_date:
-            print "    : -d is set to " + start_date + ", only extract the logs AFTER this date. (If start date not matched, all data will be generated.)"
-        if refine_all:
-            print "    : -a enabled, ignore regex, all the logs from the period will be generated."
-        if generate_date:
-            print "    : -g enabled, generate datetime from each line, by which could support time sort, will cost more time."
-        if options.nodes:
-            print "    : -n enable, only collect log in folders that name contains " + options.nodes
-
-        output_file = log_folder + "Log-Refined.txt"
-        refine_log(output_file, target_folders)
-        print "succeeded, refer to output file: " + output_file
     else:
-        print "Start to grep " + str(set_exp) + " from files configured in grep-files.xml"
-        output_fn = ""
-        for exp in set_exp:
-            output_fn = output_fn + exp + ","
-        output_file = "./log/" + output_fn[:-1] + ".txt"
-        refine_log(output_file, target_folders)
-        sys.exit()
+        config_files = []
+        for f in os.listdir(cur_path + "/conf"):
+            config_files.append(cur_path + "/conf/" + f)
+
+    # if not set_exp:
+    #     # refine the log from all the dumplogs, which defined in config.xml
+    #     print ""
+    #     print "######## Refine all " + str(len(target_folders)) + " nodes gpfs.snap into one file ########"
+    #     #print "Start to refine the logs from all above folder according to configuration."
+    #     if start_date:
+    #         print "    : -d is set to " + start_date + ", only extract the logs AFTER this date. (If start date not matched, all data will be generated.)"
+    #     if refine_all:
+    #         print "    : -a enabled, ignore regex, all the logs from the period will be generated."
+    #     if generate_date:
+    #         print "    : -g enabled, generate datetime from each line, by which could support time sort, will cost more time."
+    #     if options.nodes:
+    #         print "    : -n enable, only collect log in folders that name contains " + options.nodes
+    #
+    #     output_file = log_folder + "Log-Refined.txt"
+    #     refine_log(output_file, target_folders)
+    #     print "succeeded, refer to output file: " + output_file
+    # else:
+    #     print "Start to grep " + str(set_exp) + " from files configured in grep-files.xml"
+    #     output_fn = ""
+    #     for exp in set_exp:
+    #         output_fn = output_fn + exp + ","
+    #     output_file = "./log/" + output_fn[:-1] + ".txt"
+    #     refine_log(output_file, target_folders)
+    #     sys.exit()
 
     # print ""
     # print "######## Generate Environment Report according to  environment-report.xml for all nodes ########"
