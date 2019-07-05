@@ -673,9 +673,9 @@ if __name__ == "__main__":
             "Tip: If no mode specifed, all modes under conf/ will be used to check logs."
 
     parser = OptionParser(usage)
-    # parser.add_option("-d", "--date", dest="start_date",
-    #                   help="logs start from date.")
-    #
+    parser.add_option("-d", "--date", dest="start_date",
+                      help="logs start from date.")
+
     # parser.add_option("-a", "--refine-all", dest="refine_all",
     #                   default=False, action="store_true",
     #                   help="ignore capture-exps, refine all logs.")
