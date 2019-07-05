@@ -20,8 +20,7 @@
 	            <filepath>./mmfs.logs*</filepath>
             </filepaths>
             <exps>
-				<exp>is being expelled because of an expired lease. Pings sent</exp>
-				<exp>Disk lease period expired</exp>
+				<exp>[E].*is being expelled.*expired lease</exp>
 			</exps>
             <desc>hit node expel due to network glitches problem.</desc>
             <log_range>-10,50</log_range>

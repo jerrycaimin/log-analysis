@@ -1,6 +1,7 @@
 import sys
 import os
 import utils
+from utils import bcolors
 from datetime import datetime
 import re
 # path = "C:\\Logs\\fs1gs1-ib_1027161535\\mmfs.logs.fs1gs1-ib"
@@ -17,6 +18,12 @@ import re
 # print "1111e"
 
 #%a %b %d %X.%f %Y
+
+g_printer = bcolors(bcolors.FAIL)
+g_printer.printc("testt")
+
+
+sys.exit()
 b = []
 for f in os.listdir("./conf"):
     b.append("./config.xml/" + f)

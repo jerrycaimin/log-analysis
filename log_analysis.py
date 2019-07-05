@@ -674,7 +674,8 @@ if __name__ == "__main__":
 
     parser = OptionParser(usage)
     parser.add_option("-d", "--date", dest="start_date",
-                      help="logs start from date.")
+                      help="Filter for logs after the date, ex: 2019-07-01 or Sat Feb 25. If not found the string " +
+                      "started with the input value, just ignore and search all.")
 
     # parser.add_option("-a", "--refine-all", dest="refine_all",
     #                   default=False, action="store_true",
@@ -799,7 +800,7 @@ if __name__ == "__main__":
     #                                                                        "%a %b  %d %H:%M:%S.%f %Y"]}
 
     #fill in the parameters
-    # start_date = options.start_date
+    start_date = options.start_date
     # refine_all = options.refine_all
     # silence_grep = options.silence_grep
 
