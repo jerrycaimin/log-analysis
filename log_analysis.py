@@ -603,7 +603,7 @@ def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint
 
 def _write_log(filepath, content):
     file_object = open(filepath, 'a')
-    file_object.write(content + "\r\n")
+    file_object.write(content + "\n")
     file_object.close()
 
 
@@ -804,7 +804,12 @@ if __name__ == "__main__":
     #                                                                        "%a %b  %d %H:%M:%S.%f %Y"]}
 
     #fill in the parameters
-    start_date = options.start_date
+    if options.start_date:
+        print("Start date filter enabled(-d), tool will search the log on first hit start with this value" +
+              " and only check the logs after this line. If no search hit, check all the log files.")
+        yellow_print.printc(options.start_date)
+        start_date = options.start_date
+
     # refine_all = options.refine_all
     # silence_grep = options.silence_grep
 
