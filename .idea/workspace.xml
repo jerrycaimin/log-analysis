@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="61f26b08-3b1f-4ba2-bd81-f05f4aa56f43" name="Default" comment="update.">
-      <change beforePath="$PROJECT_DIR$/.idea/acai_log.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/acai_log.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/log_analysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/log_analysis.py" afterDir="false" />
     </list>
@@ -21,8 +19,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/advice/AFM/state.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="180">
-              <caret line="78" selection-start-line="78" selection-end-line="78" selection-end-column="119" />
+            <state>
+              <caret line="66" column="14" selection-start-line="66" selection-start-column="14" selection-end-line="66" selection-end-column="14" />
             </state>
           </provider>
         </entry>
@@ -30,8 +28,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/log_analysis.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="191">
-              <caret line="715" selection-start-line="715" selection-end-line="727" selection-end-column="61" />
+            <state relative-caret-position="221">
+              <caret line="883" column="68" selection-start-line="883" selection-start-column="68" selection-end-line="883" selection-end-column="68" />
               <folding>
                 <element signature="e#23#33#0" expanded="true" />
               </folding>
@@ -40,8 +38,12 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/environment-report.xml">
-          <provider selected="true" editor-type-id="text-editor" />
+        <entry file="file://$PROJECT_DIR$/venv/lib/python2.7/genericpath.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="390">
+              <caret line="27" selection-start-line="27" selection-end-line="27" />
+            </state>
+          </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
@@ -49,15 +51,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="405">
               <caret line="27" column="1060" selection-start-line="27" selection-start-column="1060" selection-end-line="27" selection-end-column="1060" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/conf/perf.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="60">
-              <caret line="4" column="7" selection-start-line="4" selection-start-column="7" selection-end-line="4" selection-end-column="7" />
             </state>
           </provider>
         </entry>
@@ -72,33 +65,42 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/grep-files.xml">
+        <entry file="file://$PROJECT_DIR$/conf/common.xml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="18">
+              <caret line="3" column="34" selection-start-line="3" selection-start-column="34" selection-end-line="3" selection-end-column="34" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/conf/network.xml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="330">
+              <caret line="22" column="58" selection-start-line="22" selection-start-column="21" selection-end-line="22" selection-end-column="58" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/testmaster2/mmfs.logs.fs2338">
           <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/conf/common.xml">
+        <entry file="file://$PROJECT_DIR$/testmaster2/mmfs.logs.gssio4-bkp-hs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="387">
-              <caret line="57" column="45" selection-start-line="57" selection-start-column="45" selection-end-line="57" selection-end-column="45" />
+            <state relative-caret-position="102">
+              <caret line="6428" selection-start-line="6428" selection-end-line="6428" selection-end-column="10" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/utils.py">
+        <entry file="file://$PROJECT_DIR$/test.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="165">
-              <caret line="177" selection-start-line="177" selection-end-line="177" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/venv/lib/python2.7/posixpath.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="278">
-              <caret line="73" selection-start-line="73" selection-end-line="73" />
+            <state relative-caret-position="30">
+              <caret line="2" column="12" selection-start-line="2" selection-start-column="12" selection-end-line="3" selection-end-column="25" />
             </state>
           </provider>
         </entry>
@@ -114,18 +116,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>WorkerThreads</find>
-      <find>mmfsck.*xk</find>
-      <find>winbind</find>
-      <find>vm.</find>
-      <find>sysctl</find>
-      <find>ctdb</find>
-      <find>vfs</find>
-      <find>fsstructlx</find>
-      <find>./</find>
-      <find>Generate Environment Report</find>
-      <find>log_folder</find>
-      <find>cur_path</find>
       <find>selected_mode</find>
       <find>config_files</find>
       <find>Analysing gpfs.snap from existed knowledge</find>
@@ -144,6 +134,18 @@
       <find>has</find>
       <find>run user specified script</find>
       <find>silence_grep</find>
+      <find>exit</find>
+      <find>print.printc</find>
+      <find>Running script name:</find>
+      <find>Node filter string</find>
+      <find>lease</find>
+      <find>disk lease</find>
+      <find>start_date</find>
+      <find>[E].*is being expelled.*expired lease</find>
+      <find>being expelled because of an expired lease</find>
+      <find>log_folder</find>
+      <find>remove</find>
+      <find>done, output file:</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -159,8 +161,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/advice/rpc/memo.txt" />
-        <option value="$PROJECT_DIR$/advice/filesystem/fix_header.txt" />
         <option value="$PROJECT_DIR$/advice/others/abbr.txt" />
         <option value="$PROJECT_DIR$/advice/CCR/restoreccr.txt" />
         <option value="$PROJECT_DIR$/advice/performance/pmcollector/misc.txt" />
@@ -184,9 +184,7 @@
         <option value="$PROJECT_DIR$/config.xml" />
         <option value="$PROJECT_DIR$/advice/file_audit(kafka)/memo.txt" />
         <option value="$PROJECT_DIR$/conf/perf.xml" />
-        <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/conf/hang.xml" />
-        <option value="$PROJECT_DIR$/conf/network.xml" />
         <option value="$PROJECT_DIR$/advice/performance/memo.txt" />
         <option value="$PROJECT_DIR$/advice/crash/reset_old_shared_segment.txt" />
         <option value="$PROJECT_DIR$/smb.test/var/adm/ras/log.smbd" />
@@ -205,10 +203,14 @@
         <option value="$PROJECT_DIR$/advice/ces/how_to.txt" />
         <option value="$PROJECT_DIR$/advice/ces/ganasha.txt" />
         <option value="$PROJECT_DIR$/advice/filesystem/best_practise_fix_fs_mmfsck.txt" />
-        <option value="$PROJECT_DIR$/utils.py" />
-        <option value="$PROJECT_DIR$/conf/common.xml" />
         <option value="$PROJECT_DIR$/conf/ces.xml" />
         <option value="$PROJECT_DIR$/conf/disk.xml" />
+        <option value="$PROJECT_DIR$/utils.py" />
+        <option value="$PROJECT_DIR$/test.py" />
+        <option value="$PROJECT_DIR$/conf/common.xml" />
+        <option value="$PROJECT_DIR$/testmaster2/mmfs.logs.fs2338" />
+        <option value="$PROJECT_DIR$/conf/network.xml" />
+        <option value="$PROJECT_DIR$/test/mmfs.logs.gssio4-bkp-hs" />
         <option value="$PROJECT_DIR$/log_analysis.py" />
       </list>
     </option>
@@ -243,16 +245,6 @@
             <path>
               <item name="log-analysis" type="b2602c69:ProjectViewProjectNode" />
               <item name="log-analysis" type="462c0819:PsiDirectoryNode" />
-              <item name="conf" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="log-analysis" type="b2602c69:ProjectViewProjectNode" />
-              <item name="log-analysis" type="462c0819:PsiDirectoryNode" />
-              <item name="lib" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="log-analysis" type="b2602c69:ProjectViewProjectNode" />
-              <item name="log-analysis" type="462c0819:PsiDirectoryNode" />
               <item name="tool_logs" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
@@ -267,6 +259,8 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/testmaster2" />
+      <recent name="$PROJECT_DIR$/test" />
       <recent name="$PROJECT_DIR$/test2" />
       <recent name="$PROJECT_DIR$/advice" />
       <recent name="$PROJECT_DIR$/test/internaldumps" />
@@ -399,7 +393,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/log_analysis.py" />
-      <option name="PARAMETERS" value="-m disk" />
+      <option name="PARAMETERS" value="-m network" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -693,7 +687,70 @@
       <option name="project" value="LOCAL" />
       <updated>1562230957405</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="update.">
+      <created>1562231099677</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1562231099677</updated>
+    </task>
+    <task id="LOCAL-00030" summary="update.">
+      <created>1562231164028</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1562231164028</updated>
+    </task>
+    <task id="LOCAL-00031" summary="update.">
+      <created>1562231351403</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1562231351403</updated>
+    </task>
+    <task id="LOCAL-00032" summary="update.">
+      <created>1562232930027</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1562232930027</updated>
+    </task>
+    <task id="LOCAL-00033" summary="update.">
+      <created>1562293584522</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1562293584522</updated>
+    </task>
+    <task id="LOCAL-00034" summary="update.">
+      <created>1562305820978</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1562305820978</updated>
+    </task>
+    <task id="LOCAL-00035" summary="update.">
+      <created>1562305967854</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1562305967854</updated>
+    </task>
+    <task id="LOCAL-00036" summary="update.">
+      <created>1562308504039</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1562308504039</updated>
+    </task>
+    <task id="LOCAL-00037" summary="update.">
+      <created>1562309928299</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1562309928299</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
     <servers />
   </component>
   <component name="TodoView">
@@ -713,13 +770,13 @@
       <window_info id="Favorites" order="1" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.16646849" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.4987715" visible="true" weight="0.29964328" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.4987715" weight="0.28537455" />
       <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49938574" weight="0.3626635" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32936978" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.17954816" />
-      <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.4987908" weight="0.32818073" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="8" sideWeight="0.4987908" visible="true" weight="0.32223544" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5012285" side_tool="true" weight="0.3626635" />
       <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.4993954" weight="0.2508918" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
@@ -743,14 +800,40 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/log_analysis.py</url>
-          <line>78</line>
-          <option name="timeStamp" value="20" />
+          <line>765</line>
+          <option name="timeStamp" value="28" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/log_analysis.py</url>
+          <line>647</line>
+          <option name="timeStamp" value="31" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="os.path.exists(log_pfolder)" language="Python" />
+        <watch expression="os.path.exists(log_pfolder + &quot;latest&quot;)" language="Python" />
+      </configuration>
+    </watches-manager>
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="watch">
+      <expression>
+        <expression-string>os.path.exists(log_pfolder + &quot;latest&quot;)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>os.path.exists(log_pfolder)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>log_folder_name</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>type(script) == unicode</expression-string>
         <language-id>Python</language-id>
@@ -786,21 +869,6 @@
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
-      <expression>
-        <expression-string>script.get(&quot;text&quot;)</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>script.get()</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>script.#text</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
     </expressions>
     <expressions id="evaluateExpression">
       <expression>
@@ -811,25 +879,6 @@
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/log/2019-05-15_10-47-38/test2.log">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file:///Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/optparse.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="59">
-          <caret line="1007" column="4" selection-start-line="1007" selection-start-column="4" selection-end-line="1007" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/log/2019-05-15_11-36-22/Log-Refined.txt">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/log/2019-05-15_10-47-38/Log-Refined.txt">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/log/2019-05-15_11-36-22/test2.log">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/log/2019-05-15_11-38-01/test2.log">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -844,13 +893,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="255">
           <caret line="17" column="36" lean-forward="true" selection-start-line="17" selection-start-column="36" selection-end-line="17" selection-end-column="36" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/conf/network.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" column="6" selection-start-line="1" selection-start-column="6" selection-end-line="1" selection-end-column="6" />
         </state>
       </provider>
     </entry>
@@ -1071,13 +1113,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="165">
-          <caret line="177" selection-start-line="177" selection-end-line="177" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/typescript">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -1086,13 +1121,6 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/environment-report.xml">
       <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/advice/AFM/state.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="78" selection-start-line="78" selection-end-line="78" selection-end-column="119" />
-        </state>
-      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/conf/perf.xml">
       <provider selected="true" editor-type-id="text-editor">
@@ -1103,13 +1131,6 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/grep-files.xml">
       <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/conf/common.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="387">
-          <caret line="57" column="45" selection-start-line="57" selection-start-column="45" selection-end-line="57" selection-end-column="45" />
-        </state>
-      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/conf/ces.xml">
       <provider selected="true" editor-type-id="text-editor">
@@ -1125,10 +1146,72 @@
         </state>
       </provider>
     </entry>
+    <entry file="file:///Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/optparse.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="232">
+          <caret line="937" column="20" selection-start-line="937" selection-start-column="20" selection-end-line="937" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="30">
+          <caret line="2" column="12" selection-start-line="2" selection-start-column="12" selection-end-line="3" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/advice/AFM/state.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret line="66" column="14" selection-start-line="66" selection-start-column="14" selection-end-line="66" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/conf/common.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="18">
+          <caret line="3" column="34" selection-start-line="3" selection-start-column="34" selection-end-line="3" selection-end-column="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="456">
+          <caret line="234" column="74" selection-start-line="234" selection-start-column="74" selection-end-line="234" selection-end-column="74" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/testmaster2/mmfs.logs.fs2338">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/testmaster2/mmfs.logs.gssio4-bkp-hs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6428" selection-start-line="6428" selection-end-line="6428" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/conf/network.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="22" column="58" selection-start-line="22" selection-start-column="21" selection-end-line="22" selection-end-column="58" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/venv/lib/python2.7/genericpath.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="27" selection-start-line="27" selection-end-line="27" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/log_analysis.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="191">
-          <caret line="715" selection-start-line="715" selection-end-line="727" selection-end-column="61" />
+        <state relative-caret-position="221">
+          <caret line="883" column="68" selection-start-line="883" selection-start-column="68" selection-end-line="883" selection-end-column="68" />
           <folding>
             <element signature="e#23#33#0" expanded="true" />
           </folding>

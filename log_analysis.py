@@ -881,7 +881,7 @@ if __name__ == "__main__":
                 output_file = log_folder + basename + ".log"
                 # analyze log by each defined task
                 analyze_log(target_folder, output_file)
-            print "done, output file: " + output_file
+            print "done, output file: " + log_pfolder + "latest/" + basename + ".log"
             analysis_num = analysis_num + 1
 
     if not options.check_only:
