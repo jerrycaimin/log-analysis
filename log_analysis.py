@@ -487,7 +487,15 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
                 _write_log(output_file, "Hint: " + hint)
             _write_log(output_file, "Following related log found:")
             Is_des_printed = True
+
+        if len(output) > 1000:
+            output = output[:1000] + '..'
         _write_log2(output_file, output)
+
+    if len(output) > 0:
+        return True
+    else:
+        return False
 
 
 def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True):
@@ -530,7 +538,7 @@ def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint
             f_size = os.path.getsize(path)
             if f_size > 300000000:
                 print "    file size larger than 300M, is " + str(f_size) + ", use os grep instead to speed up. File:" + os.path.basename(path)
-                _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True)
+                Is_found = _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True)
                 continue
             elif f_size > 100000000:
                 print "    file size is " + str(f_size) + ", need time to analysis: " + os.path.basename(path)
