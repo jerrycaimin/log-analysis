@@ -20,7 +20,7 @@ mmtracectl --start --trace-file-size=512M -N all
 mmdsh -N all "/usr/lpp/mmfs/bin/mmfsadm saferdump all > /tmp/mmfs/service.\$(hostname -s).safer.dumpall.\$(date +"%m%d%H%M%S")"
 
 3. Retry the operations that made log assert failed.
- 
+
 4. Cut traceoff and stop trace after:
 mmtracectl --stop -N all
 mmtracectl --off
@@ -31,4 +31,4 @@ https://www.ibm.com/support/knowledgecenter/STXKQY_5.0.0/com.ibm.spectrum.scale.
 
 [How to disable logAssertion in 5.0.2]
 https://tuna.pok.stglabs.ibm.com/wiki/Assert_consolidation
-±»»Á£∫mmchconfig disableAssert="sharkd.C:7000-8000:*test assert*"
+mchconfig disableAssert="sharkd.C:7000-8000:*test assert*"
