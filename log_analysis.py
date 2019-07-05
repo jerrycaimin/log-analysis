@@ -669,7 +669,7 @@ if __name__ == "__main__":
             "       hang: scan long waiters, hang, deadlock related issues," + "\n"\
             "       network: scan network related issues," + "\n"\
             "       perf: scan performance related issues," + "\n"\
-            "       common: scan other issues and also refine logs." + "\n"\
+            "       common: scan common issues." + "\n"\
             "Tip: If no mode specifed, all modes under conf/ will be used to check logs."
 
     parser = OptionParser(usage)
