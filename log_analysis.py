@@ -810,7 +810,7 @@ if __name__ == "__main__":
                 red_print.printc(get_basename(target_folder))
             sys.exit()
     else:
-        print "The following folder(s) contains mmfs.logs, candidates to analysis:"
+        print "The following folder(s) contains mmfs.logs or start with nfs*/smb*, candidates to analysis:"
         for target_folder in target_folders:
             yellow_print.printc(get_basename(target_folder))
     print ""
