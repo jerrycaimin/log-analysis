@@ -645,8 +645,11 @@ if __name__ == "__main__":
     log_pfolder = "./tool_logs/"
     if not os.path.exists(log_pfolder):
         os.mkdir(log_pfolder)
+    if os.path.islink(log_pfolder + "latest"):
+        os.unlink(log_pfolder + "latest")
 
-    log_folder = "./tool_logs/" + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + "/"
+    log_folder_name = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
+    log_folder = "./tool_logs/" + log_folder_name + "/"
 
     start_date=None
     refine_all=False
@@ -760,6 +763,7 @@ if __name__ == "__main__":
     # only create log folder when exp notRunning script name: set
     if not os.path.exists(log_folder):
         os.mkdir(log_folder)
+    os.system("ln -s " + log_folder_name + " " + log_pfolder + "/latest ")
 
     # welcome message
     green_print.printc("Welcome to use gpfs.snap analysis tool, this tool will give suggestion to your support \n" +
