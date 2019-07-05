@@ -367,6 +367,11 @@ def _parse_issue(config_name, target_path, issues, user_scripts, warning_hittime
             if advice_name:
                 with open(cur_path + "/" + advice_name) as adv_f:
                     advice = adv_f.read()
+        relatedtickets = issue.get("relatedtickets", "")
+        relatedtickets_id = ""
+        if hasattr(relatedtickets, "get"):
+            relatedtickets_id = relatedtickets.get("@id", "")
+
 
         issue_name = issue.get('@name', "")
         #print("========Start to check issue%d: %s.==============\n" % (issue_num, issue_name))
@@ -415,7 +420,11 @@ def _parse_issue(config_name, target_path, issues, user_scripts, warning_hittime
 
         if define_times is not None:
             if counter >= define_times:
-                yellow_print.printc("    [WARNING] possibly hit issue: %s" % issue_name)
+                if relatedtickets_id:
+                    yellow_print.printc("    [WARNING] possibly hit issue: " + issue_name +
+                                        ", you can check related tickets: " + relatedtickets_id)
+                else:
+                    yellow_print.printc("    [WARNING] possibly hit issue: %s" % issue_name)
                 _write_log(output_file,
                            "The issue [" + issue_name + "] is highly happened.\nPlease refer the advice:\n" + advice)
         elif warning_hittimes is not None:
@@ -488,8 +497,8 @@ def _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc,
             _write_log(output_file, "Following related log found:")
             Is_des_printed = True
 
-        if len(output) > 1000:
-            output = output[:1000] + '..'
+        if len(output) > 10000:
+            output = output[:10000] + '..'
         _write_log2(output_file, output)
 
     if len(output) > 0:

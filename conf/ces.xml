@@ -22,6 +22,7 @@
 			<desc>ganesha request quota exceeded may due to workload too heavey or need further turning</desc>
         </item>
         <advice from="advice/ces/ganesha_req_exceeded.txt" />
+        <relatedtickets id="TS002301248, TS001640674" />
     </issue>
 
     <user-scripts name="Generate ganesha report">
