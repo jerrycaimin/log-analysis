@@ -546,7 +546,7 @@ def _regex_rule(target_folder, filepath, sortable, rule, output_file, desc, hint
             # skip if larger than 500M
             f_size = os.path.getsize(path)
             if f_size > 300000000:
-                print "    file size larger than 300M, is " + str(f_size) + ", use os grep instead to speed up. File:" + os.path.basename(path)
+                print "    file size larger than 300M, is " + str(f_size) + ", use os grep instead to speed up. File: " + path
                 Is_found = _regex_rule_grep(target_folder, filepath, sortable, rule, output_file, desc, hint, log_range="0,0", print_match_position=True)
                 continue
             elif f_size > 100000000:
@@ -903,7 +903,7 @@ if __name__ == "__main__":
                 output_file = log_folder + basename + ".log"
                 # analyze log by each defined task
                 analyze_log(target_folder, output_file)
-            print "done, output file: " + log_pfolder + "latest/" + basename + ".log"
+            print "done, output and suggest solutions are written to: " + log_pfolder + "latest/" + basename + ".log"
             analysis_num = analysis_num + 1
 
     if not options.check_only:
