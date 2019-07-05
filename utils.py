@@ -243,3 +243,21 @@ class NewSeqFile(file):
         else:
             self.seek(cur_lineno)
             self.found = True
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+    def __init__(self, cur_color):
+        self.cur_color = cur_color
+
+    def printc(self, str_c):
+        print self.cur_color + str_c + self.ENDC
+

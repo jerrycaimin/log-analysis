@@ -4,7 +4,7 @@ import sys
 import os
 #sys.path.insert(0, "./lib")
 cur_path = os.path.dirname(os.path.abspath(__file__))
-print cur_path
+#print cur_path
 sys.path.append(cur_path + "/lib")
 
 import xmltodict
@@ -16,6 +16,11 @@ import csv
 from optparse import OptionParser
 import utils
 import commands
+
+from utils import bcolors
+yellow_print = bcolors(bcolors.WARNING)
+green_print = bcolors(bcolors.OKGREEN)
+red_print = bcolors(bcolors.FAIL)
 
 
 # validate and read config file
@@ -83,7 +88,7 @@ def run_user_script(log_pfolder):
             cur_num = 1
             all_scripts_number = len(user_scripts)
             if all_scripts_number > 0:
-                print("    Scripts in " + config_name)
+                green_print.printc("    Running scripts in " + config_name)
             for script in user_scripts:
                 if not script:
                     continue
@@ -97,7 +102,8 @@ def run_user_script(log_pfolder):
                     script_name = script.get("@name", "script:" + str(cur_num))
                 else:
                     script_name = "script:" + str(cur_num)
-                print("    [" + str(cur_num) + "/" + str(all_scripts_number) + "] Running script name: " + script_name)
+                print("    [" + str(cur_num) + "/" + str(all_scripts_number) + "] Running script name: " +
+                      bcolors.WARNING + script_name + bcolors.ENDC)
                 os.system(run_script)
                 cur_num = cur_num + 1
 
@@ -409,7 +415,7 @@ def _parse_issue(config_name, target_path, issues, user_scripts, warning_hittime
 
         if define_times is not None:
             if counter >= define_times:
-                print("    [WARNING] possibly hit issue: %s" % issue_name)
+                yellow_print.printc("    [WARNING] possibly hit issue: %s" % issue_name)
                 _write_log(output_file,
                            "The issue [" + issue_name + "] is highly happened.\nPlease refer the advice:\n" + advice)
         elif warning_hittimes is not None:
@@ -750,10 +756,15 @@ if __name__ == "__main__":
     #         set_exp=[options.set_exp]
 
     # if not options.set_exp:
-    # only create log folder when exp not set
+    # only create log folder when exp notRunning script name: set
     if not os.path.exists(log_folder):
         os.mkdir(log_folder)
 
+    # welcome message
+    green_print.printc("Welcome to use gpfs.snap analysis tool, this tool will give suggestion to your support \n" +
+                       "based on current known issues in logs, as well as running user specified shell scripts to \n" +
+                       "generate interested outputs. More help run: log_analysis.py -h")
+    print ""
     selected_target_folders = []
     #print folders to be analysis
     if options.nodes:
@@ -766,20 +777,20 @@ if __name__ == "__main__":
 
         len_stf = len(selected_target_folders)
         if len_stf > 0:
-            print "Node selected string:" + options.nodes
-            print "Collecting " + str(len_stf) + " nodes that found in total " + str(len(target_folders)) + " folders:"
+            green_print.printc("Node filter string:" + options.nodes + ". Filtered out [" + str(len_stf) +
+                               "] nodes that found in total [" + str(len(target_folders)) + "] available targets:")
             for selected_target_folder in selected_target_folders:
-                print get_basename(selected_target_folder)
+                yellow_print.printc(get_basename(selected_target_folder))
             target_folders = selected_target_folders
         else:
-            print "ERROR: no folder names that contains your options:" + options.nodes + ". Here are all nodes folders:"
+            red_print.printc("ERROR: no folder names that contains your options:" + options.nodes + ". Here are all nodes folders:")
             for target_folder in target_folders:
-                print get_basename(target_folder)
+                red_print.printc(get_basename(target_folder))
             sys.exit()
     else:
         print "The following folder(s) contains mmfs.logs, candidates to analysis:"
         for target_folder in target_folders:
-            print get_basename(target_folder)
+            yellow_print.printc(get_basename(target_folder))
     print ""
     #
     # generate_date = options.generate_date
@@ -855,7 +866,7 @@ if __name__ == "__main__":
 
     if not options.script_only:
         print ""
-        print "############### Analysing gpfs.snap from existed knowledge ##############"
+        green_print.printc("############### Analysing gpfs.snap from existed knowledge ##############")
         analysis_num = 1
         for target_folder in target_folders:
             pre_num = "[" + str(analysis_num) + "/" + str(len(target_folders)) + "]"
@@ -870,7 +881,7 @@ if __name__ == "__main__":
 
     if not options.check_only:
         print ""
-        print "######## Running user specified scripts ########"
+        green_print.printc("######## Running user specified scripts ########")
         run_user_script(log_pfolder)
         print ""
         print "All finished."
