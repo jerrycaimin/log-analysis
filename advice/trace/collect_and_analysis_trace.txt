@@ -71,3 +71,6 @@ Grep all the content between timeslot and analysis it.
 
  
 
+[Different between mmtrace and mmtracectl]
+1. mmtrace on local node while mmtracectl on all nodes by mmdsh
+2. mmtracectl would call mmchconfig that customer doesn't like so some customer prefer mmtrace.

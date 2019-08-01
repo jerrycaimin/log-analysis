@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+
+if  ( $ARGV[2] ) {
+    print "Unexpected option $ARGV[2].  Exiting.\n";
+    exit (1);
+}
+
+$TimeThreshold = $ARGV[1];
+if ( $TimeThreshold > 0 ) {
+    $MinTime = $TimeThreshold;
+    $ARGV[1] = $ARGV[0]; shift;
+} else {
+    $MinTime = 0.001;
+}
+
+
+printf ("Snipping trcio file: %s.  Entries < \'Total Time' threshold %8.3f will not be reported\n", $ARGV[0], $MinTime);
+
+while ( <>) {
+    if  (    ( /^Total Time/ ) 
+          || ( /^Total elapsedTime/)
+          || ( /^Out-of-order records/) 
+          || ( /min\s+avg/) 
+          || ( /^-----/) 
+          || ( (/^$/) )                ) {
+        print $_;
+    } elsif ( /^\s*(\d+\.\d+)\s+\d+\s+/ ) {
+        $CurTime = $1;
+        if ( $CurTime >= $MinTime ) {
+            print $_;
+        }
+    }
+}

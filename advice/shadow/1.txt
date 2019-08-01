@@ -266,7 +266,10 @@ termcapinfo xterm* ti@:te@
 or
 c+a [ to start to scroll <-- recommended.
 
-
+[Split]
+c+| vertical
+c+S horizon
+c+Q unsplit
  sed:
  ²Î¿¼£º
  http://sed.sourceforge.net/sed1line_zh-CN.html

@@ -1,0 +1,44 @@
+#!/usr/bin/perl
+$Print_File2_First = 1;
+
+#    20.482   52599  25835.1     0.035      0.389      0.789     19.628      0.556  22%  mbox  'CreateHandlerThread'
+
+$File1 = $ARGV[0];
+$File2 = $ARGV[1];
+print "Total Time   Count  Ops/sec  Per Oper                                                                      Total Time   Count  Ops/sec  Per Oper\n";
+print " (seconds)                   avg (ms)    Operation                                                          (seconds)                   avg (ms)\n";
+print "----------  ------ --------  --------    ----------------------------------------------------------------  ----------   -----  -------  -----------\n";
+
+
+open(my $File1FH, '<:', $File1) or die "Could not open file '$File1' $!";
+while ( <$File1FH> ) {
+    if (/^\s+(\S+)\s+(\S+)\s+(\S+)\s+\S+\s+(\S+)\s+\S+\s+\S+\s+\S+\s+\S+\s+(.*)/) {
+        $TotalTime = $1;
+        $Count     = $2;
+        $OpsSec    = $3;
+        $AvgTime   = $4;
+        $Descript  = $5;
+        $PrintDescript = substr ($Descript, 0, 70);
+    }
+
+    open(my $File2FH, '<:', $File2) or die "Could not open file '$File2' $!";
+    while ( <$File2FH> ) {
+        if (/^\s+(\S+)\s+(\S+)\s+(\S+)\s+\S+\s+(\S+)\s+\S+\s+\S+\s+\S+\s+\S+\s+(.*)/ ) {
+            $TotalTime2 = $1;
+            $Count2     = $2;
+            $OpsSec2    = $3;
+            $AvgTime2   = $4;
+            $Descript2  = $5;
+        }
+
+        if ( $Descript eq $Descript2 ) {
+            if ( $Print_File2_First ) {
+                printf "%10s %7s %8s %8s %70s %9s %7s %8s %8s\n",
+                       $TotalTime2, $Count2, $OpsSec2, $AvgTime2, $PrintDescript,
+                       $TotalTime, $Count, $OpsSec, $AvgTime;
+                last;
+            }
+
+        }
+    }
+}

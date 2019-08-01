@@ -298,3 +298,106 @@ You should adjust the following Scale parameters ==> mmchconfig <parameter>
 pagepool -> current 1073/741824 -> recommended 50% of the physically installed DRAM
 maxFilesToCache -> currently 40000 -> recommended 1.000.000
 nsdThreadsPerQueue -> currently 3 -> recommended 12
+
+
+
+
+
+[smb collect logs]
+1. Start tcpdump on SMB client
+/usr/sbin/tcpdump -i <local network interface> -w <local big directory>/<client hostname>.<client IP address>.client.$(date +%F-%H%M.%S).pcap -C 500 -W10 host <server IP address>
+
+
+2 Start tcpdump on SMB server
+/usr/sbin/tcpdump -i <local network interface> -w <local big directory>/<server hostname>.<server IP address>.server.$(date +%F-%H%M.%S).pcap -C 500 -W50 host <client IP address>
+/usr/sbin/tcpdump -i eth0:0 -w /root/tmp/STG209010/c866f2u09.9.114.182.200.server.$(date +%F-%H%M.%S).pcap -C 500 -W50 host 9.123.152.62
+
+
+3. Start SMB trace on SMB server
+smbcontrol smbd debug 10
+
+4. Start GPFS trace on SMB server
+mmchconfig traceGenDump=yes
+mmchconfig debugDataControl=heavy
+mmtracectl --set --trace-file-size=512m --tracedev-overwrite-buffer-size=256M --tracedev-write-mode=overwrite --aix-trace-buffer-size=255m --trace=def
+mmtracectl --start
+
+5. Recreate the problem
+
+6. Once issue recreated, stop GPFS trace immediately
+
+ mmtracectl --stop -N all ; mmtracectl --off -N all ; mmchconfig debugDataControl=light
+
+7. Stop SMB trace on SMB server
+
+smbcontrol smbd debug 1
+
+8. Stop tcpdump on SMB server
+9. Stop tcpdump on SMB client
+10. collect a gpfs.snap and upload it
+
+
+[took unexpected too long issue]
+The warning message,
+
+-----------
+
+Mar 6 17:35:27 KSTISSNASHD02 [daemon:err] smbd[13095]: WARNING: VFS call "async pread" took unexpectedly long (5.20 seconds) filename = "..." -- Validate that file and storage subsystems are operating normally
+
+-------------
+
+Was printed by the following Samba audit code.
+
+https://fossies.org/linux/samba/source3/modules/vfs_time_audit.c
+
+
+
+  39 static void smb_time_audit_log_msg(const char *syscallname, double elapsed,
+
+  40                    const char *msg)
+
+  41 {
+
+  42    DEBUG(0, ("WARNING: VFS call \"%s\" took unexpectedly long "
+
+  43          "(%.2f seconds) %s%s-- Validate that file and storage "
+
+  44          "subsystems are operating normally\n", syscallname,
+
+  45          elapsed, (msg != NULL) ? msg : "",
+
+  46          (msg != NULL) ? " " : ""));
+
+  47 }
+
+
+
+
+
+Whenever a call does not finish within audit_timeout. It will print out above message.
+
+
+
+ 743    if (timediff > audit_timeout) {
+
+ 744        smb_time_audit_log_fsp("async pread", timediff, state->fsp); // will invoke smb_time_audit_log_msg()
+
+ 745    }
+
+
+
+Here is a document in Japanese that explained audit_timeout well.
+
+http://www.samba.gr.jp/project/translation/3.6/htmldocs/manpages-3/vfs_time_audit.8.html
+
+
+
+According to an closed PMR 47074,634,760,  In Scale "time_audit:timeout = 5000" and not configurable.
+
+That means whatever calls run more than 5 seconds will trigger the audit message.
+
+https://w3-03.ibm.com/systems/techlink/psdb/global/viewRecord.do?category=PMR&uid=47074634760-20171202&sessionTime=1552553766762&rsid=0&seqNo=13&displayId=47074%2C634%2C760&searchStr=audit_timeout&totalHits=34
+
+
+
+The message show the time spent on this call at that moment. If no impact to the customer task. No action is needed. It could be ignored.

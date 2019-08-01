@@ -1,0 +1,79 @@
+#!/usr/bin/perl
+#$DEBUG= 1;
+$ReqThreshold = 0.001; # Default delta threshold is 1 ms
+use Time::Local;
+use Getopt::Long;
+
+sub usage() {
+    print "findgaps [tracefile]\n";
+    print "  (-h)  Help (this usage message)\n";
+    print "  -t    [Threshold in seconds the minimum gap between two trace entries, in order to print the entries]\n";
+    print "        The default threshold is 1 ms\n";
+    exit(1);
+}
+
+#main
+
+GetOptions( 't=s' => \$ReqThreshold,       # Threshold that consititutes a 'gap'
+            'h'   => sub { usage() },      # Usage 
+          )   # short output
+    or Usage();
+
+
+if  ( $ARGV[1] ) {
+    print "Unexpected option $ARGV[4].  Exiting.\n";
+    usage();
+    exit (1);
+}
+
+$InputFile = $ARGV[0];
+
+chomp($UnameOutput = `uname`);
+if ( (substr($InputFile, -3, 3) eq ".gz" ) && ($UnameOutput ne "Darwin") ) {
+    open($inFH, "zcat $InputFile |") || die "Can't open: zcat $InputFile \n";
+} elsif ( substr($InputFile, -3, 3) eq ".gz" ) {
+    open($inFH, "gzcat $InputFile |") || die "Can't open: zcat $InputFile \n";
+} else {
+    open($inFH, "$InputFile") || die "Can't open file: $InputFile\n";
+}
+
+#open(my $inFH, "$InputFile");
+while (<$inFH>) {
+    #Relative-seconds   TID  COMPONENT_TAG: application trace record 
+    #---------------- ------ -------------- ------------------------ 
+    #0.000000000  11913 TRACE_ALLOC: SGAllocMap::allocReplica poolId 65537 DA n=0 -1:-1 -1:-1 -1:-1 disk 5 len 512 frag 0 data 1 retry 0 numBlocks 1
+
+    if ( /^.*?(\d+\.\d+)\s+(\d+) T/ ) {
+        $CurTime = $1;
+        if ( ! $Started ) {
+            $PrevTime = $CurTime;
+            $PrevLine = $_;
+            $Started  = 1;
+        } else {
+    #        print "JJL:  $CurTime - $PrevTime \n";     
+            $Delta    = $CurTime - $PrevTime;
+    #        print "JJL:  $Delta >= $ReqThreshold \n";
+            if ( ( $Delta >= $ReqThreshold ) || ( ! $StartLine)  ) {
+                $StartLine = 1;
+                unless ( $LastLinePrinted ) {
+                    print "$PrevLine";
+                    printf "  [. . . Delta:%9.6f]\n", $Delta;
+                }
+                print $_;
+                print "  [. . .]\n";
+     
+                $LastLinePrinted = 1;
+            } else {
+                $LastLinePrinted = 0;
+            }
+            $PrevTime = $CurTime;
+            $PrevLine = $_;
+        }
+    
+    }  elsif ( $LastLinePrinted )  {
+        print "$_";
+    }
+}
+
+#print the last line in the trace for context
+print "$PrevLine";

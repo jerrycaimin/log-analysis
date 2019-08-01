@@ -1,3 +1,8 @@
+Maunal install:
+1. yum install -y cyrus-sasl-devel openssl-devel && rpm -ivh /usr/lpp/mmfs/5.0.3.1/gpfs_rpms/rhel7/*kafka*
+2. mmmsgqueue enable -N ece1,ece2,ece3
+3. mmaudit fsece enable
+
 Config:
 /opt/kafka/config
 

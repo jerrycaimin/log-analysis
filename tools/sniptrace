@@ -1,0 +1,121 @@
+#!/usr/bin/perl
+#jlewars - process GPFS trcrpt file, to limit it to a given TID and/or timestamp range
+use Getopt::Long;
+
+sub usage() {
+    print "sniptrace start_time_in_seconds end_time_in_seconds tracefile\n";
+    print "  (-e) End   trace time for this snipped section of trace\n";
+    print "  (-f) Filename definding list of TIDs to snip";
+    print "  (-h) Help (this usage message)\n";
+    print "  (-p) Start parsing trace right away (don't expect trcrpt description lines)\n";
+    print "  (-s) Start trace time for this snipped section of trace\n";
+    print "  (-t) TID to limit the snipped section of trace to (only specified TID)\n";
+    print "       if \"-s\" and \"-t 0\" are both specified, use TID executing at \"Start trace time\" \n";
+    exit(1);
+}
+
+GetOptions( 'e=s' => \$EndTime,          # end time for trace window
+            'f=s' => \$FileOfTIDs,       # Filenames specifying TIDs to snip
+            'h'   =>  sub { usage() },   # Usage
+            'p'   => \$Parsing,          # Start parsing right away
+            's=s' => \$StartTime,        # start time for trace window
+            't=s' => \$TargetTIDSTR,     # only print this TID's entries
+            'v'   => \$Verbose,          # get extra (Verbose) info
+          )   # short output
+    or usage();
+
+#0.000188826  12573 TRACE_THREAD: Thread 0xE4B482C3 now has handle 0xE4B4C2C3 (OpenHandlerThread)
+
+
+if ( defined($TargetTIDSTR) ) {
+    if ( $TargetTIDSTR eq "0" ) {
+        $FindTargetTID = 1;
+    } else {
+        $_ = $TargetTIDSTR;
+        my @TIDList = split /,/, $TargetTIDSTR;
+
+        foreach my $element (@TIDList) {
+            $TargetTIDHash{$element} = 1;
+            #DEBUG print "Watching TID: $element\n";
+        }
+    }
+} elsif ( $FileOfTIDs ) {
+    open(my $TIDFileH, '<:', $FileOfTIDs) or die "Could not open file '$FileOfTIDs' $!";
+    while ( my $element = <$TIDFileH> ) {
+        chomp($element);
+        $TargetTIDHash{$element} = 1;
+       print "Watching TID: $element\n";
+    }
+}
+
+if  ( $ARGV[2] ) {
+    print "Unexpected option $ARGV[2].  Exiting.\n";
+    usage();
+    exit (1);
+}
+
+$InputFile = $ARGV[0];
+
+#for -t flag specified explicitly as 0
+#we find the TID that is executing at the start time
+
+#we need to account for the trace being a compressed file and, on MAC we need to use gzcat for .tar.gz, rather than zcat
+chomp($UnameOutput = `uname`);
+if ( (substr($InputFile, -3, 3) eq ".gz" ) && ($UnameOutput ne "Darwin") ) {
+    open($inFH, "zcat $InputFile |") || die "Can't open: zcat $InputFile \n";
+} elsif ( substr($InputFile, -3, 3) eq ".gz" ) {
+    open($inFH, "gzcat $InputFile |") || die "Can't open: zcat $InputFile \n";
+} else {
+    open($inFH, "$InputFile") || die "Can't open: $InputFile\n";
+}
+
+#open(my $inFH, "$InputFile");
+while (<$inFH>) {
+    #Relative-seconds   TID  COMPONENT_TAG: application trace record
+    #---------------- ------ -------------- ------------------------
+    #0.000000000  11913 TRACE_ALLOC: SGAllocMap::allocReplica poolId 65537 DA n=0 -1:-1 -1:-1 -1:-1 disk 5 len 512 frag 0 data 1 retry 0 numBlocks 1
+
+    if ( /--------/ ) {
+        $Parsing = 1;
+        print $_;
+    } elsif ( ! $Parsing ) {
+        print $_;
+    } elsif ( /^.*?(\d+\.\d+)\s+(\d+) T/ ) {
+        $Timestamp = $1;
+        $CurTID = $2;
+
+        #If the user specified '0' for the TargetTIDSTR (-t) input , they want to 'find' (define) the
+        #target TID according to whatever TID is executing at the StartTime timestamp specified by '-s'
+        if ( ( $Timestamp == $StartTime ) && ( $FindTargetTID ) ) {
+            $TargetTID = $CurTID;#JJL
+            $TargetTIDHash{$CurTID} = 1;
+            #DEBUG print "Found TargetTID = $TargetTID = $CurTID\n";
+        }
+
+        if ( $EndTime  && ( $Timestamp > $EndTime )  )      {
+            # if we find 2 entries in a row indicating the trace is past the end time, we stop processing
+            if  ($TracePastEndTime ) {
+                exit(0);
+            }
+            $TracePastEndTime = 1;
+        } else {
+            $TracePastEndTime = 0;
+        }
+
+
+        if (  ( $Timestamp >= $StartTime ) &&
+              (  ( $EndTime == 0 ) || ($Timestamp <= $EndTime )  )    ) {
+            if (  keys %TargetTIDHash == 0 ) {
+                print "$_";
+                $LastLineValid = 1;
+            } elsif ( $TargetTIDHash{$CurTID} ) {
+                $LastLineValid = 0;
+                print "$_";
+            } #else {
+            #    print "DEBUG: TID=$CurTID + $TargetTIDHash{$CurTID}  + $_";
+            #}
+        }
+    }  elsif ( (! $TracePastEndTime) && $LastLineValid )  {
+        print "$_";
+    }
+}
