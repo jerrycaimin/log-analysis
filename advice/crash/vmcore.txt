@@ -1,2 +1,25 @@
 Collect kdump:
 https://www.ibm.com/support/knowledgecenter/STXKQY_5.0.0/com.ibm.spectrum.scale.v5r00.doc/bl1pdg_configchangescoredumpdata.htm
+
+
+
+============= collect vmcore =======
+bash-4.2$ cat uname_a
+
+
+######################################################################
+Mon Aug 26 11:40:42 JST 2019: Output for /bin/uname -a on npg2 - timeout=2
+######################################################################
+
+Linux npg2 3.10.0-514.26.2.el7.x86_64 #1 SMP Fri Jun 30 05:26:04 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
+
+===
+
+In this case, customer should download and install below debuginfo packages.
+kernel-debuginfo-common-x86_64-3.10.0-514.26.2.el7.x86_64
+kernel-debuginfo-3.10.0-514.26.2.el7.x86_64
+kernel-debug-debuginfo-3.10.0-514.26.2.el7.x86_64.rpm
+centos
+And, customer can download these packages from below web page.
+
+http://debuginfo..org/7/x86_64/

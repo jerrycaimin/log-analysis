@@ -27,4 +27,17 @@
     	</item>
     	<advice from="advice/node-expel/node_expel_due_to_network_glitches.txt" />
     </issue>
+         <issue name="node expel due to firewall open, no route to host">
+    	<item>
+    		<filepaths sortable="True">
+	            <filepath>./mmfs.logs*</filepath>
+            </filepaths>
+            <exps>
+				<exp>Close connection.*No route to host</exp>
+			</exps>
+            <desc>node expel due to firewall open, no route to host.</desc>
+            <log_range>-1,20</log_range>
+    	</item>
+    	<advice from="advice/node-expel/firewalld.txt" />
+    </issue>
 </root>

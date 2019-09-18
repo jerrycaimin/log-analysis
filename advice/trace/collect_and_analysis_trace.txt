@@ -74,3 +74,92 @@ Grep all the content between timeslot and analysis it.
 [Different between mmtrace and mmtracectl]
 1. mmtrace on local node while mmtracectl on all nodes by mmdsh
 2. mmtracectl would call mmchconfig that customer doesn't like so some customer prefer mmtrace.
+
+[linux trace set nowrap]
+1. mmchconfig tracedevCycleOnWrap=yes -i
+# blocking not override
+2. mmtracectl --set --trace="util 6" --tracedev-write-mode=blocking --trace-file-size=1G --trace-recycle=global -N 3
+--trace-file-size is equal to nowrap file size
+3. "mmtrace start" if mmtracectl --start change the tracedevCycleOnWrap to no back again.
+4. monitor the /tmp/mmfs:
+
+sample on single node:
+[root@gssio1 ~]# mmtracectl --set --tracedev-write-mode=blocking --trace-file-size=100M --trace-recycle=global -N gssio1-hs
+[root@gssio1 ~]# mmchconfig tracedevCycleOnWrap=yes -i
+[root@gssio1 ~]# mmtrace start
+[root@gssio1 ~]# for i in `seq 1 30`; do /usr/lpp/mmfs/samples/perf/gpfsperf create seq -n 1G -r 4k /gpfs/gpfs0/perftest$i.out4; done | grep "Avg Latency";mmfsadm dump all > dumpall.gssio1.default4k
+
+watch /tmp/mmfs:
+Every 2.0s: ls -lth /tmp/mmfs/                                                                                                                                                                                        Sat Aug 10 00:40:15 2019
+
+total 3.0G
+-r--r----- 1 root root  38M Aug 10 00:40 lxtrace.trc.gssio1-hs.cpu0
+-r--r----- 1 root root 100M Aug 10 00:40 lxtrace.trc.gssio1-hs.nowrap.3.cpu0
+-r--r----- 1 root root 100M Aug 10 00:39 lxtrace.trc.gssio1-hs.nowrap.2.cpu0
+-r--r----- 1 root root 100M Aug 10 00:39 lxtrace.trc.gssio1-hs.nowrap.1.cpu0
+-r--r----- 1 root root 100M Aug 10 00:38 lxtrace.trc.gssio1-hs.nowrap.0.cpu0
+after stopped:
+
+[root@gssio1 ~]# mmtrace
+
+It will gzip all the lxtrace*nowrap* to trcfile as well as the latest trcrpt:
+[root@gssio1 ~]# mmtrace
+mmtrace: move /tmp/mmfs/lxtrace.trc.gssio1-hs.nowrap.0.cpu0 /tmp/mmfs/trcfile.2019-08-10_00.40.41.142606.gssio1-hs.nowrap.0.cpu0
+mmtrace: move /tmp/mmfs/lxtrace.trc.gssio1-hs.nowrap.1.cpu0 /tmp/mmfs/trcfile.2019-08-10_00.40.41.142606.gssio1-hs.nowrap.1.cpu0
+mmtrace: move /tmp/mmfs/lxtrace.trc.gssio1-hs.nowrap.2.cpu0 /tmp/mmfs/trcfile.2019-08-10_00.40.41.142606.gssio1-hs.nowrap.2.cpu0
+mmtrace: move /tmp/mmfs/lxtrace.trc.gssio1-hs.nowrap.3.cpu0 /tmp/mmfs/trcfile.2019-08-10_00.40.41.142606.gssio1-hs.nowrap.3.cpu0
+mmtrace: move /tmp/mmfs/lxtrace.trc.gssio1-hs.nowrap.4.cpu0 /tmp/mmfs/trcfile.2019-08-10_00.40.41.142606.gssio1-hs.nowrap.4.cpu0
+mmtrace: move /tmp/mmfs/lxtrace.trc.gssio1-hs.recycle.cpu0 /tmp/mmfs/trcfile.2019-08-10_00.40.41.142606.gssio1-hs.recycle.cpu0
+mmtrace: formatting /tmp/mmfs/trcfile.2019-08-10_00.40.41.142606.gssio1-hs.recycle to /tmp/mmfs/trcrpt.2019-08-10_00.40.41.142606.gssio1-hs.gz
+
+watch again:
+Every 2.0s: ls -lth /tmp/mmfs/                                                                                                                                                                                        Sat Aug 10 00:42:22 2019
+
+total 2.9G
+-r--r----- 1 root root 164K Aug 10 00:42 lxtrace.trc.gssio1-hs.cpu0
+-r--r----- 1 root root 3.9M Aug 10 00:41 trcrpt.2019-08-10_00.40.41.142606.gssio1-hs.gz
+-r--r----- 1 root root  85M Aug 10 00:41 trcfile.2019-08-10_00.40.41.142606.gssio1-hs.nowrap.4.cpu0.gz
+-r--r----- 1 root root  85M Aug 10 00:41 trcfile.2019-08-10_00.40.41.142606.gssio1-hs.nowrap.3.cpu0.gz
+-r--r----- 1 root root  85M Aug 10 00:41 trcfile.2019-08-10_00.40.41.142606.gssio1-hs.nowrap.2.cpu0.gz
+-r--r----- 1 root root  85M Aug 10 00:40 trcfile.2019-08-10_00.40.41.142606.gssio1-hs.nowrap.1.cpu0.gz
+-r--r----- 1 root root  85M Aug 10 00:40 trcfile.2019-08-10_00.40.41.142606.gssio1-hs.nowrap.0.cpu0.gz
+
+If dev wants to check nowrap, trcfile is unreadable, need to gzip -d them and run "mmtrace format=all" to generate nowrap trcrpt files:
+
+[root@gssio1 mmfs]# ll
+total 192704
+-rw-r--r-- 1 root root        0 Aug 10 00:44 lxtrace.trcerr.gssio1-hs
+-r--r----- 1 root root        0 Aug 10 00:46 lxtrace.trc.gssio1-hs.cpu0
+-r--r----- 1 root root 88599831 Aug 10 00:46 trcfile.2019-08-10_00.46.08.147401.gssio1-hs.nowrap.0.cpu0.gz
+-r--r----- 1 root root 88601784 Aug 10 00:46 trcfile.2019-08-10_00.46.08.147401.gssio1-hs.nowrap.1.cpu0.gz
+-r--r----- 1 root root 20121092 Aug 10 00:46 trcrpt.2019-08-10_00.46.08.147401.gssio1-hs.gz
+[root@gssio1 mmfs]# gzip -d trcfile*.gz
+[root@gssio1 mmfs]# ll
+total 224408
+-rw-r--r-- 1 root root         0 Aug 10 00:44 lxtrace.trcerr.gssio1-hs
+-r--r----- 1 root root         0 Aug 10 00:46 lxtrace.trc.gssio1-hs.cpu0
+-r--r----- 1 root root 104814780 Aug 10 00:46 trcfile.2019-08-10_00.46.08.147401.gssio1-hs.nowrap.0.cpu0
+-r--r----- 1 root root 104851986 Aug 10 00:46 trcfile.2019-08-10_00.46.08.147401.gssio1-hs.nowrap.1.cpu0
+-r--r----- 1 root root  20121092 Aug 10 00:46 trcrpt.2019-08-10_00.46.08.147401.gssio1-hs.gz
+
+# send trcrpt*nowarp* to dev for investigation
+-r--r----- 1 root root   82028932 Aug 10 00:48 trcrpt.2019-08-10_00.46.08.147401.gssio1-hs.nowrap.0.gz
+-r--r----- 1 root root   82184438 Aug 10 00:48 trcrpt.2019-08-10_00.46.08.147401.gssio1-hs.nowrap.1.gz
+
+Total steps:
+0. enlarge process stack size to 10240: "ulimit -s 10240"
+1. mmchconfig tracedevCycleOnWrap=yes -i, dev mentioned set this would create a new 1G file when trace file size reaches to 1G.
+2. mmtracectl --set --trace="util 6" --tracedev-write-mode=blocking --trace-file-size=1G --trace-recycle=global -N <node name on which you run mmrestorefs cmd>
+3. mmtracectl --start
+4. rerun the mmrestorefs, wait until you see:
+"0 operations have been added to list" blocked.
+5. run "mmtrace" to recycle and format the trace data first time.
+6. wait some time, run "mmtrace" again to recycle second time.
+7. run mmtracectl --stop
+
+
+
+
+
+
+

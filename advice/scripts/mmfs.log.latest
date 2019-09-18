@@ -1,0 +1,7 @@
+2019-09-18_08:14:21.762+0800: [N] Connecting to 10.30.21.128 node13 <c0n33>
+2019-09-18_08:14:21.763+0800: [N] Close connection to 10.30.21.128 gpfs2 <c0n33> (No route to host)
+2019-09-18_08:14:21.763+0800: [N] Retry connection to 10.30.21.128 gpfs2 <c0n33>
+2019-09-18_08:14:21.764+0800: [N] Close connection to 10.30.21.128 gpfs2 <c0n33> (No route to host)
+2019-09-18_08:15:29.223+0800: [D] Leave protocol detail info: LA: 18 LFLG: 1379403 LFLG delta: 18
+2019-09-18_08:15:29.479+0800: [D] Leave protocol detail info: LA: 14 LFLG: 1379407 LFLG delta: 14
+2019-09-18_08:15:29.484+0800: [I] Recovering nodes: 10.30.21.128 10.30.21.122

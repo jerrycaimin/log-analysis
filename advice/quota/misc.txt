@@ -1,0 +1,76 @@
+
+Empty the fileset quota:
+[root@gpfs1 logs]# mmsetquota gpfs_test:sw1 --block 0:0
+
+Set the fileset quota:
+[root@gpfs1 logs]# mmsetquota gpfs_test:sw1 --block 0:0
+
+
+
+There are two thresholds in Spectrum Scale quotas: the soft limit and the hard limit.
+The range of space between the soft limit and the hard limit is governed by the Grace Period.
+
+Here are some concepts from the Spectrum Scale documentation:
+
+Soft limit
+    Defines levels of disk space and files below which the user, group of users,
+    or fileset can safely operate. It's the total amount of disk space that this
+    user, group, or fileset is allowed to use during the grace period
+
+Hard limit
+    Defines the maximum amount of disk space and number of files the user, group
+    of users, or fileset can accumulate.
+
+Grace period
+     Allows the user, group of users, or fileset to exceed the soft limit for a
+     specified period of time. The default period is one week. If usage is not
+     reduced to a level below the soft limit during that time, the quota system
+     interprets the soft limit as the hard limit and no further allocation is
+     allowed. The user, group of users, or fileset can reset this condition
+     by reducing usage enough to fall below the soft limit; or the administrator
+     can increase the quota levels using the mmedquota or mmdefedquota.
+
+In doubt quotas
+     Disk space allocated but currently unaccounted for. The sum of the in doubt
+     value and the current usage may not exceed the hard limit. Consequently,
+     the actual block space and number  of files available to the user of the
+     group may be constrained by the in doubt value. Should the in doubt value
+     approach a significant percentage of the quota, use the mmcheckquota command
+     to account for the lost space and files.
+
+And here is an example:
+
+ Userid paul issued this command:
+   mmlsquota
+
+ The system displays information similar to:
+                            Block Limits             |           File Limits
+Filesystem  type  KB   quota  limit  in_doubt   grace| files quota limit in_doubt grace
+fsn         USR   728  100096 200192 4880       none | 35    30    50    10       6days
+
+This output shows the quotas for user paul in file system fsn set to a soft limit of 100096 KB,
+and a hard limit of 200192 KB. 728 KB is currently allocated to paul. 4880 KB is also in doubt,
+meaning that the quota system has not yet been updated as to whether this space has been used by the nodes,
+or whether it is still available. No grace period appears because the user has not exceeded his quota.
+If the user had exceeded the soft limit, the grace period would be set and the user would have that amount
+of time to bring his usage below the quota values. If the user failed to do so, the user would not be allocated any more space.
+
+The soft limit for files (inodes) is set at 30 and the hard limit is 50.
+35 files are currently allocated to this user, and the quota system does not yet know whether the 10 in doubt
+have been used or are still available. A grace period of six days appears because the user has exceeded his quota.
+The user would have this amount of time to bring his usage below the quota values. If the user fails to do so,
+the user is not allocated any more space.
+
+You can also use the mmedquota command to change the file system-specific grace periods for block and file usage
+if the default of one week is unsatisfactory. The grace period is the time during which users can exceed the soft
+limit. If the user, group, or fileset does not show reduced usage below the soft limit before the grace period expires,
+the soft limit becomes the new hard limit.
+
+There is no way to force GPFS nodes to relinquish all their local shares in order to check for lost quotas.
+This can only be determined by running the mmcheckquota command immediately after mounting the file system,
+and before any allocations are made. In this case, the value in doubt is the amount lost.
+
+To display the latest quota usage information, use the -e option on either the mmlsquota or the mmrepquota commands.
+Remember that the mmquotaon and mmquotaoff commands do not enable and disable quota management. These commands merely
+control enforcement of quota limits. Usage continues to be counted and recorded in the quota files regardless of
+enforcement. Reduce quota usage by deleting or compressing files or moving them out of the file system. Consider increasing quota limit
