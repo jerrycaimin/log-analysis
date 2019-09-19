@@ -1,1 +1,5 @@
-Need to close firewalld or add 1191 to firewalld
+You can check between nodes by:
+nc -zv {node} 1191
+
+If still same no route to host issue. Need to close firewalld or add 1191 to firewalld.
+
