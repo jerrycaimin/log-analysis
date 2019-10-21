@@ -14,10 +14,10 @@ import time
 from datetime import datetime
 import csv
 from optparse import OptionParser
-import utils
 import commands
+from lib import utils
 
-from utils import bcolors
+from lib.utils import bcolors
 yellow_print = bcolors(bcolors.WARNING)
 green_print = bcolors(bcolors.OKGREEN)
 red_print = bcolors(bcolors.FAIL)
