@@ -146,6 +146,7 @@ total 224408
 -r--r----- 1 root root   82028932 Aug 10 00:48 trcrpt.2019-08-10_00.46.08.147401.gssio1-hs.nowrap.0.gz
 -r--r----- 1 root root   82184438 Aug 10 00:48 trcrpt.2019-08-10_00.46.08.147401.gssio1-hs.nowrap.1.gz
 
+
 Total steps:
 0. enlarge process stack size to 10240: "ulimit -s 10240"
 1. mmchconfig tracedevCycleOnWrap=yes -i, dev mentioned set this would create a new 1G file when trace file size reaches to 1G.
