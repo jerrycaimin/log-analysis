@@ -54,4 +54,4 @@ Options:
   -c, --check-only      Only check existing issues, no scripts running.
 
 ```
-![Test Image 1](lib/1.jpg)
+![tool_ui](lib/logo.jpg)
