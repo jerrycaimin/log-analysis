@@ -1,0 +1,43 @@
+
+I checked this ganesha issue, reviewed your searched doc and previous similar issue, this problem might caused by MaxFilesToCache set to low on ces nodes.
+
+You have 1 ces ip with 3 ces nodes, and now hpc-gpfs02-opa is working on it
+
+Node Name      Node Groups Node Flags
+------ ---------------- ------------- ------------
+1   hpc-gpfs01-opa        none
+2   hpc-gpfs02-opa        none
+3   hpc-gpfs03-opa        none
+?
+Address    Node                Group   Attribute
+-------------------------------------------------------------------------
+10.0.1.26   hpc-gpfs02-opa           none   none
+
+
+Your maxfilestocache set to low, so the ganesha NOFILE is low as well (80% of mftc)
+
+>>maxFilesToCache 4000
+>>mmcesop: NFS Ganesha NOFILE set to 3200
+
+This caused the problem that when files open are far more that it can be cached, gpfs would steal(remove old and cache new) them very often, here is the dump files on gpfs02:
+================
+  OpenFile counts: total created 4230 (in use 3940, free 290 q 0)
+  cached 3940 dirCached 595 dirPct 10, currently open 4+3, cache limit 4000 (min 10, max 4000), eff limit 4000, soft delta 60 (1.5%)
+ OpenInstance counts: in use 4 free 3196 total 3200 using 5350K memory
+ NFS instance limit: 4000
+ fileCacheMemUsed 26792000, openFileMemUsed 27200, limit 10107676570, eff limit 10107676570, soft delta 151615148
+  stats: ins 135988255 rem 135984315 creat 9513192 destr 9508972 free 75355167 reuse 75354877
+      steals 1179074 (clean 1177199, dirty 1875)
+      async steals 74129295 stealStartThread 9551332
+   dirty steal details: inodeDirty 1840, loggedUpdates 16, indDirty 63, indUpdates 0, dataDirty 55, dataStale 2
+   create cached file reuse 0
+================
+
+
+According to the doc and previous case, the following issue would be caused:
+2019-10-27 06:53:03 : epoch 0001004e : hpc-gpfs01 : gpfs.ganesha.nfsd-212822[work-130] nfs3_Errno_verbose :NFS3 :CRIT :Error I/O error in nfs3_lookup converted to NFS3ERR_IO but was set non-retryable
+
+[Action Plan]
+Run this on all 3 ces nodes:
+mmchconfig maxfilestocache=100000
+then restart the GPFS on all nodes, the NOFILE will be automatically update to 80k, retry to see if this issue averted.

@@ -1,0 +1,9 @@
+restripeOnDiskFailure
+yes:
+no:
+https://www.ibm.com/support/knowledgecenter/en/STXKQY_4.2.3/com.ibm.spectrum.scale.v4r23.doc/bl1adv_restartingalargeibmspectrumscalecluster.htm
+
+unmountOnDiskFail
+yes:
+no:
+meta;

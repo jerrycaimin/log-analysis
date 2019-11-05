@@ -1,0 +1,32 @@
+In your previoius examples, you used "DirInherit:InheritOnly". This means for subfolder only:
+
+This folder, subfolder, and files (FileInherit, DirInherit)
+This folder and subfolders (DirInherit)
+This folder and files (FileInherit)
+Subfolders and files only (FileInherit, DirInherit, InheritOnly)
+Subfolders only (DirInherit, InheritOnly)
+Files only (FileInherit, InheritOnly)
+
+[root@gpfs1 smb]# mmeditacl 3
+
+#NFSv4 ACL
+#owner:root
+#group:root
+special:owner@:rwxc:allow:FileInherit:DirInherit
+ (X)READ/LIST (X)WRITE/CREATE (X)APPEND/MKDIR (X)SYNCHRONIZE (X)READ_ACL  (X)READ_ATTR  (X)READ_NAMED
+ (-)DELETE    (X)DELETE_CHILD (X)CHOWN        (X)EXEC/SEARCH (X)WRITE_ACL (X)WRITE_ATTR (X)WRITE_NAMED
+
+special:group@:r-x-:allow:FileInherit:DirInherit
+ (X)READ/LIST (-)WRITE/CREATE (-)APPEND/MKDIR (X)SYNCHRONIZE (X)READ_ACL  (X)READ_ATTR  (X)READ_NAMED
+ (-)DELETE    (-)DELETE_CHILD (-)CHOWN        (X)EXEC/SEARCH (-)WRITE_ACL (-)WRITE_ATTR (-)WRITE_NAMED
+
+special:everyone@:rwxc:allow:FileInherit:DirInherit:Inherited
+ (X)READ/LIST (X)WRITE/CREATE (X)APPEND/MKDIR (X)SYNCHRONIZE (X)READ_ACL  (X)READ_ATTR  (X)READ_NAMED
+ (X)DELETE    (X)DELETE_CHILD (X)CHOWN        (X)EXEC/SEARCH (X)WRITE_ACL (X)WRITE_ATTR (X)WRITE_NAMED
+
+Detail:
+https://www.ibm.com/support/knowledgecenter/STXKQY_5.0.3/com.ibm.spectrum.scale.v5r03.doc/bl1adm_nfsv4syn.htm
+
+
+
+

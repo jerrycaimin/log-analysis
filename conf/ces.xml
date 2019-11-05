@@ -25,6 +25,19 @@
         <relatedtickets id="TS002301248, TS001640674" />
     </issue>
 
+
+    <issue name="ganesha error io non retryable">
+        <item>
+        	<filepaths sortable="False">
+	            <filepath>var/log/ganesha.log</filepath>
+            </filepaths>
+            <exp>Error I/O error.*non-retryable</exp>
+			<desc>ganesha error io non retryable, mightbe mftc too low</desc>
+        </item>
+        <advice from="advice/ces/ganesha_errio_non_retryable.txt" />
+        <relatedtickets id="TS002968715, TS002472807" />
+    </issue>
+
     <user-scripts name="Generate ganesha report">
         find . -name *master* -type d  | xargs bash -c 'echo "Generate ganesha report to ganesha-report.txt";echo "======Ganesha connections when collect snap:=======" > ganesha-report.txt;grep -e "2049.*ESTABLI" "$0"/../*/netstat_a -c >> ganesha-report.txt;echo "======Ganesha related Config output =======" >> ganesha-report.txt;grep -e ganesha.*ibm */rpm_qa >> ganesha-report.txt;grep ^Mem */proc_meminfo >> ganesha-report.txt;grep -e "Build branch" -e maxFilesToCache -e maxStatCache -e "Total pagepool" -e worker1Threads -e workerThreads */internaldump.* >> ganesha-report.txt;echo "======Ganesha CommandOutput/mmces* output =======" >> ganesha-report.txt;cat "$0"/../CommandOutput/mmces* >> ganesha-report.txt;echo "======Ganesha CommandOutput/mmnfs* output on every node =======" >> ganesha-report.txt;cat "$0"/../nfs*/CommandOutput/mmnfs* >> ganesha-report.txt;echo "======Ganesha nfs-config on every node =======" >> ganesha-report.txt; cat "$0"/../nfs*/var/mmfs/ces/nfs-config/gpfs.ganesha.[!e]*conf >> ganesha-report.txt;chmod 777 ganesha-report.txt'
     </user-scripts>
